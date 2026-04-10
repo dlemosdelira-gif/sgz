@@ -5,208 +5,464 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Sarclisa – Materiais Wpp</title>
+<title>Sarclisa – Materiais</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f2f2f7; color: #1c1c1e; min-height: 100vh; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f2f2f7;color:#1c1c1e;min-height:100vh;padding-bottom:80px}
 
-  /* HEADER */
-  .header { background: #7C3AED; color: white; padding: 16px 16px 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
-  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-  .header p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+/* TABS */
+.tab-bar{display:flex;background:#fff;border-bottom:1px solid #e5e5ea;position:sticky;top:0;z-index:200}
+.tab{flex:1;padding:14px 4px 12px;text-align:center;font-size:12px;font-weight:600;color:#8e8e93;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab.active{color:#7C3AED;border-bottom-color:#7C3AED}
 
-  /* SEARCH */
-  .search-bar { padding: 10px 12px; background: #f2f2f7; position: sticky; top: 60px; z-index: 99; }
-  .search-bar input {
-    width: 100%; padding: 10px 14px; border-radius: 12px; border: none;
-    background: white; font-size: 15px; outline: none;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  }
+/* HEADER */
+.page-header{background:#7C3AED;color:#fff;padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between}
+.page-header h1{font-size:17px;font-weight:700}
+.page-header p{font-size:11px;opacity:.8;margin-top:1px}
+.header-btn{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
 
-  /* MATERIAL FILTER */
-  .material-filter { padding: 0 12px 10px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
-  .material-filter::-webkit-scrollbar { display: none; }
-  .chip {
-    white-space: nowrap; padding: 6px 14px; border-radius: 20px; font-size: 12px;
-    font-weight: 600; border: none; cursor: pointer; transition: all 0.15s;
-    background: white; color: #7C3AED; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-  .chip.active { background: #7C3AED; color: white; }
-  .chip.all { background: #e5e7eb; color: #374151; }
-  .chip.all.active { background: #374151; color: white; }
+/* SEARCH */
+.search-wrap{padding:10px 12px;background:#f2f2f7;position:sticky;top:45px;z-index:99}
+.search-wrap input{width:100%;padding:9px 14px;border-radius:12px;border:none;background:#fff;font-size:15px;outline:none;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 
-  /* STATS */
-  .stats { padding: 0 12px 8px; font-size: 12px; color: #8e8e93; }
+/* CHIPS */
+.chips{padding:0 12px 8px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:#fff;color:#7C3AED;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.chip.active{background:#7C3AED;color:#fff}
+.chip.all{background:#e5e7eb;color:#374151}
+.chip.all.active{background:#374151;color:#fff}
 
-  /* DOCTOR CARDS */
-  .list { padding: 0 12px 80px; display: flex; flex-direction: column; gap: 10px; }
+.stats-row{padding:0 12px 6px;font-size:12px;color:#8e8e93}
 
-  .card {
-    background: white; border-radius: 14px; overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-  .card-header {
-    padding: 12px 14px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
-  }
-  .doc-name { font-size: 14px; font-weight: 600; color: #1c1c1e; flex: 1; }
-  .doc-phone { font-size: 11px; color: #8e8e93; margin-top: 2px; }
-  .chevron { font-size: 10px; color: #c7c7cc; transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
-  .card.open .chevron { transform: rotate(180deg); }
+/* CARDS */
+.list{padding:0 12px;display:flex;flex-direction:column;gap:8px}
+.card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card-hd{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.card-hd-info{flex:1;cursor:pointer}
+.doc-name{font-size:14px;font-weight:600;color:#1c1c1e}
+.doc-phone{font-size:11px;color:#8e8e93;margin-top:1px}
+.chevron{font-size:10px;color:#c7c7cc;transition:transform .2s;cursor:pointer;padding:4px}
+.card.open .chevron{transform:rotate(180deg)}
+.card-actions{display:flex;gap:6px}
+.icon-btn{background:none;border:1px solid #e5e5ea;border-radius:8px;padding:5px 8px;font-size:13px;cursor:pointer;color:#3c3c43}
+.icon-btn.del{border-color:#ffcdd2;color:#e53935}
 
-  .card-body { display: none; border-top: 1px solid #f2f2f7; }
-  .card.open .card-body { display: block; }
+.card-body{display:none;border-top:1px solid #f2f2f7}
+.card.open .card-body{display:block}
 
-  .material-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px; border-bottom: 1px solid #f9f9f9; gap: 10px;
-  }
-  .material-row:last-child { border-bottom: none; }
-  .mat-label { font-size: 13px; color: #3c3c43; flex: 1; line-height: 1.3; }
-  .mat-label .sent-badge {
-    display: inline-block; font-size: 10px; background: #d1fae5; color: #065f46;
-    border-radius: 6px; padding: 1px 6px; margin-left: 6px; font-weight: 600;
-  }
-  .wpp-btn {
-    display: flex; align-items: center; gap: 5px; background: #25D366; color: white;
-    border: none; border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 600;
-    cursor: pointer; white-space: nowrap; text-decoration: none;
-    box-shadow: 0 2px 6px rgba(37,211,102,0.3); flex-shrink: 0;
-    transition: opacity 0.15s;
-  }
-  .wpp-btn:active { opacity: 0.75; }
-  .wpp-btn svg { width: 16px; height: 16px; fill: white; }
-  .no-phone { font-size: 11px; color: #ff3b30; background: #fff1f0; padding: 6px 10px; border-radius: 8px; flex-shrink: 0; }
+.mat-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #f9f9f9}
+.mat-row:last-child{border-bottom:none}
+.mat-label{font-size:13px;color:#3c3c43;flex:1;line-height:1.3}
+.sent-badge{display:inline-block;font-size:10px;background:#d1fae5;color:#065f46;border-radius:6px;padding:1px 5px;margin-left:5px;font-weight:600}
+.wpp-btn{display:flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;flex-shrink:0}
+.wpp-btn:active{opacity:.75}
+.no-phone{font-size:11px;color:#e53935;background:#fff1f0;padding:5px 8px;border-radius:8px;flex-shrink:0}
 
-  /* EMPTY STATE */
-  .empty { text-align: center; padding: 60px 20px; color: #8e8e93; }
-  .empty .icon { font-size: 48px; margin-bottom: 10px; }
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:20px 20px 40px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal h2 button{background:none;border:none;font-size:20px;color:#8e8e93;cursor:pointer;line-height:1}
+.field{margin-bottom:14px}
+.field label{font-size:12px;font-weight:600;color:#8e8e93;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e5e5ea;font-size:15px;font-family:inherit;outline:none;background:#f9f9f9}
+.field input:focus,.field textarea:focus{border-color:#7C3AED;background:#fff}
+.field textarea{resize:vertical;min-height:90px}
+.btn-row{display:flex;gap:10px;margin-top:6px}
+.btn-primary{flex:1;background:#7C3AED;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-danger{flex:1;background:#e53935;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-ghost{flex:1;background:#f2f2f7;color:#3c3c43;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:600;cursor:pointer}
+
+/* MATERIAIS TAB */
+.mat-card{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:14px;margin-bottom:8px}
+.mat-card-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.mat-card-preview{font-size:12px;color:#8e8e93;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mat-card-actions{display:flex;gap:8px;margin-top:10px}
+
+/* INSIGHTS TAB */
+.insight-card{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:14px;margin-bottom:8px}
+.insight-card h3{font-size:14px;font-weight:700;margin-bottom:8px}
+.insight-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f2f2f7;font-size:13px}
+.insight-row:last-child{border-bottom:none}
+.pill{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.pill.green{background:#d1fae5;color:#065f46}
+.pill.orange{background:#fff3e0;color:#e65100}
+.pill.red{background:#ffebee;color:#b71c1c}
+.pill.blue{background:#e3f2fd;color:#0d47a1}
+.tip-box{background:#f3f0ff;border-left:3px solid #7C3AED;border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#4a2d9c;line-height:1.5}
+.tip-title{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+
+.empty{text-align:center;padding:50px 20px;color:#8e8e93}
+.fab{position:fixed;bottom:24px;right:16px;background:#7C3AED;color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:24px;cursor:pointer;box-shadow:0 4px 12px rgba(124,58,237,.4);z-index:300;display:flex;align-items:center;justify-content:center}
+
+/* WHATSAPP IMAGE NOTE */
+.wpp-note{background:#e8f5e9;border-radius:10px;padding:10px 12px;margin:0 12px 10px;font-size:12px;color:#2e7d32;line-height:1.5}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>💊 Sarclisa – Materiais WhatsApp</h1>
-  <p>Toque no médico → escolha o material → abre no WhatsApp</p>
+<div class="tab-bar">
+  <button class="tab active" onclick="showTab('medicos')">👨‍⚕️ Médicos</button>
+  <button class="tab" onclick="showTab('materiais')">📄 Materiais</button>
+  <button class="tab" onclick="showTab('insights')">📊 Insights</button>
 </div>
 
-<div class="search-bar">
-  <input type="search" id="search" placeholder="🔍 Buscar médico..." oninput="render()" autocomplete="off" autocorrect="off" spellcheck="false">
+<!-- ===== MÉDICOS TAB ===== -->
+<div id="tab-medicos">
+  <div class="page-header">
+    <div><h1>Sarclisa – WhatsApp</h1><p id="hdr-subtitle">Toque no médico para enviar materiais</p></div>
+    <button class="header-btn" onclick="openDocModal()">+ Médico</button>
+  </div>
+  <div class="search-wrap"><input id="search" type="search" placeholder="🔍 Buscar médico..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+  <div class="chips" id="chips"></div>
+  <div class="wpp-note">💡 <b>Imagem no WhatsApp:</b> Após clicar em "Enviar", o WhatsApp abrirá com o texto pré-preenchido. Para anexar imagem: pressione e segure o campo de texto → cole imagem ou use o clipe 📎. O iOS não permite pré-anexar imagens via link — é um limite do WhatsApp.</div>
+  <div class="stats-row" id="stats"></div>
+  <div class="list" id="list"></div>
+  <button class="fab" onclick="openDocModal()">+</button>
 </div>
 
-<div class="material-filter" id="chips"></div>
-<div class="stats" id="stats"></div>
-<div class="list" id="list"></div>
+<!-- ===== MATERIAIS TAB ===== -->
+<div id="tab-materiais" style="display:none;padding:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="font-size:17px;font-weight:700">Materiais WhatsApp</span>
+    <button class="header-btn" style="background:#7C3AED;color:#fff" onclick="openMatModal()">+ Material</button>
+  </div>
+  <div id="mat-list"></div>
+</div>
+
+<!-- ===== INSIGHTS TAB ===== -->
+<div id="tab-insights" style="display:none;padding:12px">
+  <div style="font-size:17px;font-weight:700;margin-bottom:12px">Insights & Melhorias</div>
+  <div id="insights-content"></div>
+</div>
+
+<!-- MODAL MÉDICO -->
+<div class="overlay" id="doc-modal">
+  <div class="modal">
+    <h2>Médico <button onclick="closeDocModal()">×</button></h2>
+    <input type="hidden" id="doc-idx">
+    <div class="field"><label>Nome completo</label><input id="doc-name-inp" placeholder="Ex: João Silva Santos" autocomplete="off"></div>
+    <div class="field"><label>WhatsApp (ex: 19-99999-9999)</label><input id="doc-phone-inp" placeholder="DDD-NNNNN-NNNN" type="tel"></div>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="closeDocModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveDoc()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MATERIAL -->
+<div class="overlay" id="mat-modal">
+  <div class="modal">
+    <h2>Material <button onclick="closeMatModal()">×</button></h2>
+    <input type="hidden" id="mat-idx">
+    <div class="field"><label>Nome do material</label><input id="mat-name-inp" placeholder="Ex: IMROZ – Eficácia"></div>
+    <div class="field"><label>Mensagem WhatsApp</label><textarea id="mat-msg-inp" placeholder="Olá! ..."></textarea></div>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="closeMatModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveMat()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR DELETE -->
+<div class="overlay" id="del-modal">
+  <div class="modal">
+    <h2>Confirmar exclusão <button onclick="closeDelModal()">×</button></h2>
+    <p style="font-size:14px;color:#3c3c43;margin-bottom:20px" id="del-msg">Tem certeza?</p>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="closeDelModal()">Cancelar</button>
+      <button class="btn-danger" onclick="confirmDel()">Excluir</button>
+    </div>
+  </div>
+</div>
 
 <script>
-const DATA = {"materials": [{"name": "HD7 – Caso clínico (indução TE)", "msg": "Olá!\n\nUm ponto que tem chamado atenção no HD7 é a rapidez da resposta já na indução com Sarclisa® + VRd nesse caso clínico elegível ao TMO. Caso tenha tido experiência, você tem percebido diferença quando intensifica com anti-CD38 logo na 1ª linha?\n\nVeja esse caso clínico com resposta rápida ao tratamento de indução em pacientes elegíveis ao TACT: https://bit.ly/4scupfx"}, {"name": "HD7 – Eficácia (DRM na indução)", "msg": "Olá!\n\nEsse dado do HD7 é interessante: aumento relevante de DRM negativa ainda antes do transplante com Sarclisa® + VRd. De que forma alcançar DRM- já na indução muda sua visão sobre a manutenção depois do TMO?\n\nVeja mais no nosso artigo de tratamento para pacientes MMRD elegíveis: análise da DRM e o impacto na SLP: https://bit.ly/46G6U6r"}, {"name": "HD7 – Posologia (exposição curta)", "msg": "Olá!\n\nUm detalhe prático do HD7 que costuma gerar discussão é o uso de Sarclisa® em apenas 11 doses durante a indução com VRd. Esse formato mais curto facilita considerar quadruplete na sua rotina?\n\nVeja mais sobre a posologia administração de Sarclisa® no HD7: https://bit.ly/4lIIoGA"}, {"name": "IMROZ – Eficácia", "msg": "Olá!\n\nNo IMROZ, chamou atenção a SLP mais longa com Sarclisa® + VRd já na 1ª linha dos pacientes sem indicação de TMO. Como você enxerga quadrupletes como estratégia inicial nesses casos?\n\nSaiba mais em: https://bit.ly/3BIcvM8"}, {"name": "IMROZ – DRM longitudinal", "msg": "Olá!\n\nOutro ponto interessante do IMROZ foi o aumento progressivo da DRM negativa ao longo do tratamento com Sarclisa®. Como esse aprofundamento contínuo da resposta influencia sua escolha do esquema inicial?\n\nSaiba mais sobre a dinâmica da negatividade da doença residual mínima em pacientes com mieloma múltiplo recém-diagnosticado: https://bit.ly/42izZRF"}, {"name": "IMROZ – Caso clínico", "msg": "Olá!\n\nEsse caso clínico mostra resposta já no primeiro ciclo com Sarclisa® + VRd em paciente inelegível ao transplante, bem alinhado com o IMROZ. Caso já tenha tido experiência, você tem observado respostas precoces assim com quadruplete na prática?\n\nSaiba mais nesse interessante caso clínico: https://bit.ly/4aBvlT5"}], "doctors": [{"name": "ALESSANDRA DA COSTA KILER CHIQUITO", "phone": "19-99219-9293", "marks": [true, false, false, false, false, false]}, {"name": "ALINE SHIRATA", "phone": "11-99190-9023", "marks": [false, false, false, false, false, false]}, {"name": "AMAURI GUIMARAES BARREIRO", "phone": "35-98805-3242", "marks": [false, false, false, false, false, false]}, {"name": "ANA CLAUDIA CHIARI", "phone": "11-97497-9698", "marks": [false, false, false, false, false, false]}, {"name": "ANA GABRIELA POVEDA BISMARA", "phone": "15-97401-0226", "marks": [false, false, false, false, false, false]}, {"name": "ANA PAULA VAZ DE CARVALHO", "phone": "15-99837-9898", "marks": [false, false, false, false, false, false]}, {"name": "ANDREZA LAMONICA", "phone": "14-99757-2922", "marks": [false, false, false, false, false, false]}, {"name": "ANTONIO PAULO SERVANTES", "phone": "11-99658-9732", "marks": [false, false, false, false, false, false]}, {"name": "ARIELLA CASSIA DE MOURA", "phone": "15-98117-1088", "marks": [false, false, false, false, false, false]}, {"name": "ARLETE DELFINA MARQUES MAIA", "phone": "67-99983-2782", "marks": [false, false, false, false, false, false]}, {"name": "BARBARA DE CAMPOS", "phone": "19-99896-2012", "marks": [false, false, false, false, false, false]}, {"name": "BEATRIZ ESPERANCA DE LEO TEDDE", "phone": "67-98185-1289", "marks": [false, false, false, false, false, false]}, {"name": "BIANCA RUIZ LIMA", "phone": "17-99627-2767", "marks": [false, false, false, false, false, false]}, {"name": "BIANCA ZOCCA MOREIRA CALVILHO", "phone": "11-98647-0067", "marks": [false, false, false, false, false, false]}, {"name": "BRUNA ADOLFO MESTIERI", "phone": "11-96343-0217", "marks": [false, false, false, false, false, false]}, {"name": "CAMILA ALMEIDA DO AMARAL KRUZICH", "phone": "19-98127-1677", "marks": [false, false, false, false, false, false]}, {"name": "CAMILA GALATI ARAUJO", "phone": "19-99203-0783", "marks": [false, false, false, false, false, false]}, {"name": "CAMILA HELENA GONZAGA DA SILVA", "phone": "11-97054-4955", "marks": [false, false, false, false, false, false]}, {"name": "CAMILLA DELFINO DOS SANTOS", "phone": "19-99210-5299", "marks": [false, false, false, false, false, false]}, {"name": "CAMILLA MARIA DE ALENCAR SARAIVA", "phone": "19-93861-5507", "marks": [false, false, false, false, false, false]}, {"name": "CARLOS EDUARDO ENGEL VELANO", "phone": "35-98855-9623", "marks": [false, false, false, false, false, false]}, {"name": "CARLOS WILSON DE ALENCAR CANO", "phone": "67-99298-6769", "marks": [false, false, false, false, false, false]}, {"name": "CELSO RICARDO MARCONDES DOS SANTOS", "phone": "19-99779-2759", "marks": [false, false, false, false, false, false]}, {"name": "CHRISTIANE HATSUE NATORI", "phone": "67-99931-4884", "marks": [false, false, false, false, false, false]}, {"name": "CLAUDIA HELENA RUBI IVAN CARNIELLI", "phone": "19-99765-0337", "marks": [false, false, false, false, false, false]}, {"name": "CLAUDIA MARIANA SOARES ASSATO", "phone": "", "marks": [false, false, false, false, false, false]}, {"name": "CLAUDIA TERESA DE OLIVEIRA", "phone": "14-98111-3156", "marks": [false, false, false, false, false, false]}, {"name": "CLAUDIO RENATO CUNHA FREIRE", "phone": "19-98428-4249", "marks": [false, false, false, false, false, false]}, {"name": "DANIEL SALAS STEINBAUM", "phone": "67-98186-6162", "marks": [false, false, false, false, false, false]}, {"name": "DEISE FERREIRA NANTES", "phone": "67-99626-8780", "marks": [false, false, false, false, false, false]}, {"name": "DENISE BITTENCOURT SIQUEIRA", "phone": "14-98100-0879", "marks": [false, false, false, false, false, false]}, {"name": "DIRCEU EURILIO SILVA", "phone": "35-99989-6568", "marks": [false, false, false, false, false, false]}, {"name": "EDER SANTANA NAVARRO", "phone": "15-99148-4884", "marks": [false, false, false, false, false, false]}, {"name": "EDERSON ROBERTO DE MATTOS", "phone": "14-99133-7515", "marks": [false, false, false, false, false, false]}, {"name": "ELAINE RODRIGUEIRO BELINI", "phone": "67-99918-0823", "marks": [false, false, false, false, false, false]}, {"name": "ELCIO FARIA", "phone": "19-99269-5304", "marks": [false, false, false, false, false, false]}, {"name": "EVENY CRISTINE LUNA DE OLIVEIRA", "phone": "67-99886-2908", "marks": [false, false, false, false, false, false]}, {"name": "FABIO DE OLIVEIRA MARTIN", "phone": "19-98210-1000", "marks": [false, false, false, false, false, false]}, {"name": "FABIO JOSE DELLA PIAZZA", "phone": "19-99167-3832", "marks": [false, false, false, false, false, false]}, {"name": "FAUSI PADILHA GONÇALVES", "phone": "67-99629-0985", "marks": [false, false, false, false, false, false]}, {"name": "FERNANDO VIEIRA PERICOLE DE SOUZA", "phone": "19-99167-0235", "marks": [false, false, false, false, false, false]}, {"name": "GISLAINE BORBA OLIVEIRA", "phone": "19-99111-3664", "marks": [false, false, false, false, false, false]}, {"name": "GIULIA MARIA HAKIM GOMES", "phone": "15-99736-5649", "marks": [false, false, false, false, false, false]}, {"name": "GRAZZIELLA CURADO SIUFI", "phone": "67-98136-4547", "marks": [false, false, false, false, false, false]}, {"name": "GUILHERME FELIPE DONNANGELO MARTINS", "phone": "19-99720-1637", "marks": [false, false, false, false, false, false]}, {"name": "GUSTAVO FERNANDO VERALDI ISMAEL", "phone": "19-98328-3595", "marks": [false, false, false, false, false, false]}, {"name": "ISOLMAR TADEU SCHETTERT", "phone": "11-99204-0828", "marks": [false, false, false, false, false, false]}, {"name": "IVNA BALTAZAR FILGUEIRAS STUCCHI", "phone": "19-98443-4272", "marks": [false, false, false, false, false, false]}, {"name": "JAIR ALVES BONFIM FILHO", "phone": "67-98219-1787", "marks": [false, false, false, false, false, false]}, {"name": "JAMILLE ELITA DE CASTRO CUNHA HERCULANI", "phone": "11-98711-2081", "marks": [false, false, false, false, false, false]}, {"name": "JIVIANE BEATRIZ CUNHA BARRETO DA SILVA", "phone": "19-98207-2627", "marks": [false, false, false, false, false, false]}, {"name": "JOAO GUILHERME MARTINS LUSVARGHI", "phone": "35-99147-1807", "marks": [false, false, false, false, false, false]}, {"name": "JOAO PAULO MARQUES BIGHETTI", "phone": "19-98105-3992", "marks": [false, false, false, false, false, false]}, {"name": "JOAO VICTOR VEZALI COSTARDI", "phone": "67-99985-5233", "marks": [false, false, false, false, false, false]}, {"name": "JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE", "phone": "35-99896-6688", "marks": [false, false, false, false, false, false]}, {"name": "JULIANA LINO DE MATOS ROSA", "phone": "11-98183-3301", "marks": [false, false, false, false, false, false]}, {"name": "JULIANE FONTES SEVERINO", "phone": "67-98209-6367", "marks": [false, false, false, false, false, false]}, {"name": "JULIO ROBERTO CORREA", "phone": "14-99798-9420", "marks": [false, false, false, false, false, false]}, {"name": "JUNIA RODRIGUES BRANDAO FRANCO", "phone": "13-98160-8661", "marks": [false, false, false, false, false, false]}, {"name": "KAREN DARIANE BARBOSA DE VASCONCELOS", "phone": "35-9857-3052", "marks": [false, false, false, false, false, false]}, {"name": "KLEBER KOBAYASHI", "phone": "67-99940-4149", "marks": [false, false, false, false, false, false]}, {"name": "LILIAN ZORTEA", "phone": "67-99285-1305", "marks": [false, false, false, false, false, false]}, {"name": "LISA AQUARONI RICCI", "phone": "15-99787-2900", "marks": [false, false, false, false, false, false]}, {"name": "LORENA BEDOTTI RIBEIRO", "phone": "19-99373-9827", "marks": [false, false, false, false, false, false]}, {"name": "LUCAS OLIVEIRA CANTADORI", "phone": "14-98124-2886", "marks": [false, false, false, false, false, false]}, {"name": "LUCIANO CARVALHO CAMPOS", "phone": "35-99931-8459", "marks": [false, false, false, false, false, false]}, {"name": "LUCIANO FUZZATO SILVA", "phone": "19-99939-9355", "marks": [false, false, false, false, false, false]}, {"name": "LUÍS HENRIQUE MASCARENHAS MOREIRA", "phone": "67-99981-7430", "marks": [false, false, false, false, false, false]}, {"name": "LUIZ GUSTAVO RODRIGUES BARBOSA", "phone": "14-98141-9491", "marks": [false, false, false, false, false, false]}, {"name": "MARCELO AUGUSTO ARAUJO ASSUNCAO", "phone": "31-99762-9558", "marks": [false, false, false, false, false, false]}, {"name": "MARCELO BERNARDINI ANTUNES", "phone": "14-99792-3873", "marks": [false, false, false, false, false, false]}, {"name": "MARCELO DOS SANTOS SOUZA", "phone": "67-99219-6811", "marks": [false, false, false, false, false, false]}, {"name": "MARCO TULIO CESTARI RODRIGUES", "phone": "67-99913-0498", "marks": [false, false, false, false, false, false]}, {"name": "MARCOS PAULO COLELLA", "phone": "19-99672-9777", "marks": [false, false, false, false, false, false]}, {"name": "MARCUS VINICIUS FRANZIN BIZZARO", "phone": "16-99606-8878", "marks": [false, false, false, false, false, false]}, {"name": "MARIA APARECIDA SANTOS PIRES", "phone": "67-99971-5464", "marks": [false, false, false, false, false, false]}, {"name": "MARIA PAULA NALESSO CAMARGO", "phone": "15-99828-2282", "marks": [false, false, false, false, false, false]}, {"name": "MARIAMA NAKAMOTO FERNANDES DOS SANTOS", "phone": "17-99709-5757", "marks": [false, false, false, false, false, false]}, {"name": "MARIANA CRISTTINA LIMA DE FALCO", "phone": "19-99318-3106", "marks": [false, false, false, false, false, false]}, {"name": "MARILIA SOARES E SILVA ARCADIPANE", "phone": "11-99659-2105", "marks": [false, false, false, false, false, false]}, {"name": "MARINA MOSCA PEDROSO", "phone": "19-99715-9343", "marks": [false, false, false, false, false, false]}, {"name": "MARTA APARECIDA SOARES ROSSINI", "phone": "19-99791-6553", "marks": [false, false, false, false, false, false]}, {"name": "MARTA MARIA FALSETTI", "phone": "19-99782-0795", "marks": [false, false, false, false, false, false]}, {"name": "MELINA SALVI DIAS ATHAYDE", "phone": "31-8636-6412", "marks": [false, false, false, false, false, false]}, {"name": "MICHELE KAMILA GALGANI AMARU", "phone": "19-98159-4768", "marks": [false, false, false, false, false, false]}, {"name": "PAMELA RISARDI FRANCELIN", "phone": "16-99706-4239", "marks": [false, false, false, false, false, false]}, {"name": "PATRICIA GAMA", "phone": "19-98314-7273", "marks": [false, false, false, false, false, false]}, {"name": "PAULA NATASHA RIBEIRO JONAS DE FARIA", "phone": "35-99764-5849", "marks": [false, false, false, false, false, false]}, {"name": "PAULO RIBEIRO CALIL", "phone": "19-99608-5236", "marks": [false, false, false, false, false, false]}, {"name": "RENATA BALDISSERA CARDOSO", "phone": "14-99854-3939", "marks": [false, false, false, false, false, false]}, {"name": "RICARDO DAVID FROTA", "phone": "35-9969-7573", "marks": [false, false, false, false, false, false]}, {"name": "ROGERIO CAMARA VALSANI", "phone": "19-99604-6750", "marks": [false, false, false, false, false, false]}, {"name": "ROSANA FERREIRA GOMES SALMAZO", "phone": "67-99618-1927", "marks": [false, false, false, false, false, false]}, {"name": "ROSELI NUNES DA SILVEIRA ANTUNES", "phone": "14-98121-8959", "marks": [false, false, false, false, false, false]}, {"name": "SAMIRA DE OLIVEIRA LAUAR", "phone": "19-99771-8182", "marks": [false, false, false, false, false, false]}, {"name": "SONIA REGINA IANTAS", "phone": "11-99654-1639", "marks": [false, false, false, false, false, false]}, {"name": "SORAIA TEIXEIRA ROMANINI", "phone": "67-98154-0224", "marks": [false, false, false, false, false, false]}, {"name": "SULEY MARA CHADDAD VANCINE", "phone": "11-99621-3922", "marks": [false, false, false, false, false, false]}, {"name": "SUZANA DE FRANCA RIBEIRO GONZAGA", "phone": "11-95425-4245", "marks": [false, false, false, false, false, false]}, {"name": "SUZANA SILVA PRADO ZINCONE", "phone": "35-99146-8499", "marks": [false, false, false, false, false, false]}, {"name": "VALTER ADOLPHO MASSAGLI FILHO", "phone": "15-99779-0506", "marks": [false, false, false, false, false, false]}, {"name": "VANESSA MOURA COVEZZI", "phone": "19-99378-7233", "marks": [false, false, false, false, false, false]}, {"name": "VINICIUS BORGES GRILO", "phone": "19-98431-1616", "marks": [false, false, false, false, false, false]}, {"name": "VINICIUS MARTINS NASCIMENTO", "phone": "13-99716-3844", "marks": [false, false, false, false, false, false]}, {"name": "VITOR VASQUEZ DOS SANTOS", "phone": "17-99769-8366", "marks": [false, false, false, false, false, false]}, {"name": "WALTER ASSUNCAO GONCALVES", "phone": "67-98186-7166", "marks": [false, false, false, false, false, false]}, {"name": "WILLIAN PAIVA DA LUZ", "phone": "67-98202-3177", "marks": [false, false, false, false, false, false]}]};
+const INITIAL_MATERIALS = [
+  {name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm ponto que tem chamado atenção no HD7 é a rapidez da resposta já na indução com Sarclisa® + VRd nesse caso clínico elegível ao TMO. Caso tenha tido experiência, você tem percebido diferença quando intensifica com anti-CD38 logo na 1ª linha?\n\nVeja esse caso clínico com resposta rápida ao tratamento de indução em pacientes elegíveis ao TACT: https://bit.ly/4scupfx"},
+  {name:"HD7 – Eficácia (DRM na indução)",msg:"Olá!\n\nEsse dado do HD7 é interessante: aumento relevante de DRM negativa ainda antes do transplante com Sarclisa® + VRd. De que forma alcançar DRM- já na indução muda sua visão sobre a manutenção depois do TMO?\n\nVeja mais no nosso artigo de tratamento para pacientes MMRD elegíveis: análise da DRM e o impacto na SLP: https://bit.ly/46G6U6r"},
+  {name:"HD7 – Posologia (exposição curta)",msg:"Olá!\n\nUm detalhe prático do HD7 que costuma gerar discussão é o uso de Sarclisa® em apenas 11 doses durante a indução com VRd. Esse formato mais curto facilita considerar quadruplete na sua rotina?\n\nVeja mais sobre a posologia administração de Sarclisa® no HD7: https://bit.ly/4lIIoGA"},
+  {name:"IMROZ – Eficácia",msg:"Olá!\n\nNo IMROZ, chamou atenção a SLP mais longa com Sarclisa® + VRd já na 1ª linha dos pacientes sem indicação de TMO. Como você enxerga quadrupletes como estratégia inicial nesses casos?\n\nSaiba mais em: https://bit.ly/3BIcvM8"},
+  {name:"IMROZ – DRM longitudinal",msg:"Olá!\n\nOutro ponto interessante do IMROZ foi o aumento progressivo da DRM negativa ao longo do tratamento com Sarclisa®. Como esse aprofundamento contínuo da resposta influencia sua escolha do esquema inicial?\n\nSaiba mais sobre a dinâmica da negatividade da doença residual mínima em pacientes com mieloma múltiplo recém-diagnosticado: https://bit.ly/42izZRF"},
+  {name:"IMROZ – Caso clínico",msg:"Olá!\n\nEsse caso clínico mostra resposta já no primeiro ciclo com Sarclisa® + VRd em paciente inelegível ao transplante, bem alinhado com o IMROZ. Caso já tenha tido experiência, você tem observado respostas precoces assim com quadruplete na prática?\n\nSaiba mais nesse interessante caso clínico: https://bit.ly/4aBvlT5"}
+];
 
-// Deduplicate IMROZ DRM longitudinal
-DATA.materials[5].name = "IMROZ – Caso clínico";
+const INITIAL_DOCTORS = [{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","phone":"19-99219-9293","marks":[true,false,false,false,false,false]},{"name":"ALINE SHIRATA","phone":"11-99190-9023","marks":[false,false,false,false,false,false]},{"name":"AMAURI GUIMARAES BARREIRO","phone":"35-98805-3242","marks":[false,false,false,false,false,false]},{"name":"ANA CLAUDIA CHIARI","phone":"11-97497-9698","marks":[false,false,false,false,false,false]},{"name":"ANA GABRIELA POVEDA BISMARA","phone":"15-97401-0226","marks":[false,false,false,false,false,false]},{"name":"ANA PAULA VAZ DE CARVALHO","phone":"15-99837-9898","marks":[false,false,false,false,false,false]},{"name":"ANDREZA LAMONICA","phone":"14-99757-2922","marks":[false,false,false,false,false,false]},{"name":"ANTONIO PAULO SERVANTES","phone":"11-99658-9732","marks":[false,false,false,false,false,false]},{"name":"ARIELLA CASSIA DE MOURA","phone":"15-98117-1088","marks":[false,false,false,false,false,false]},{"name":"ARLETE DELFINA MARQUES MAIA","phone":"67-99983-2782","marks":[false,false,false,false,false,false]},{"name":"BARBARA DE CAMPOS","phone":"19-99896-2012","marks":[false,false,false,false,false,false]},{"name":"BEATRIZ ESPERANCA DE LEO TEDDE","phone":"67-98185-1289","marks":[false,false,false,false,false,false]},{"name":"BIANCA RUIZ LIMA","phone":"17-99627-2767","marks":[false,false,false,false,false,false]},{"name":"BIANCA ZOCCA MOREIRA CALVILHO","phone":"11-98647-0067","marks":[false,false,false,false,false,false]},{"name":"BRUNA ADOLFO MESTIERI","phone":"11-96343-0217","marks":[false,false,false,false,false,false]},{"name":"CAMILA ALMEIDA DO AMARAL KRUZICH","phone":"19-98127-1677","marks":[false,false,false,false,false,false]},{"name":"CAMILA GALATI ARAUJO","phone":"19-99203-0783","marks":[false,false,false,false,false,false]},{"name":"CAMILA HELENA GONZAGA DA SILVA","phone":"11-97054-4955","marks":[false,false,false,false,false,false]},{"name":"CAMILLA DELFINO DOS SANTOS","phone":"19-99210-5299","marks":[false,false,false,false,false,false]},{"name":"CAMILLA MARIA DE ALENCAR SARAIVA","phone":"19-93861-5507","marks":[false,false,false,false,false,false]},{"name":"CARLOS EDUARDO ENGEL VELANO","phone":"35-98855-9623","marks":[false,false,false,false,false,false]},{"name":"CARLOS WILSON DE ALENCAR CANO","phone":"67-99298-6769","marks":[false,false,false,false,false,false]},{"name":"CELSO RICARDO MARCONDES DOS SANTOS","phone":"19-99779-2759","marks":[false,false,false,false,false,false]},{"name":"CHRISTIANE HATSUE NATORI","phone":"67-99931-4884","marks":[false,false,false,false,false,false]},{"name":"CLAUDIA HELENA RUBI IVAN CARNIELLI","phone":"19-99765-0337","marks":[false,false,false,false,false,false]},{"name":"CLAUDIA MARIANA SOARES ASSATO","phone":"","marks":[false,false,false,false,false,false]},{"name":"CLAUDIA TERESA DE OLIVEIRA","phone":"14-98111-3156","marks":[false,false,false,false,false,false]},{"name":"CLAUDIO RENATO CUNHA FREIRE","phone":"19-98428-4249","marks":[false,false,false,false,false,false]},{"name":"DANIEL SALAS STEINBAUM","phone":"67-98186-6162","marks":[false,false,false,false,false,false]},{"name":"DEISE FERREIRA NANTES","phone":"67-99626-8780","marks":[false,false,false,false,false,false]},{"name":"DENISE BITTENCOURT SIQUEIRA","phone":"14-98100-0879","marks":[false,false,false,false,false,false]},{"name":"DIRCEU EURILIO SILVA","phone":"35-99989-6568","marks":[false,false,false,false,false,false]},{"name":"EDER SANTANA NAVARRO","phone":"15-99148-4884","marks":[false,false,false,false,false,false]},{"name":"EDERSON ROBERTO DE MATTOS","phone":"14-99133-7515","marks":[false,false,false,false,false,false]},{"name":"ELAINE RODRIGUEIRO BELINI","phone":"67-99918-0823","marks":[false,false,false,false,false,false]},{"name":"ELCIO FARIA","phone":"19-99269-5304","marks":[false,false,false,false,false,false]},{"name":"EVENY CRISTINE LUNA DE OLIVEIRA","phone":"67-99886-2908","marks":[false,false,false,false,false,false]},{"name":"FABIO DE OLIVEIRA MARTIN","phone":"19-98210-1000","marks":[false,false,false,false,false,false]},{"name":"FABIO JOSE DELLA PIAZZA","phone":"19-99167-3832","marks":[false,false,false,false,false,false]},{"name":"FAUSI PADILHA GONÇALVES","phone":"67-99629-0985","marks":[false,false,false,false,false,false]},{"name":"FERNANDO VIEIRA PERICOLE DE SOUZA","phone":"19-99167-0235","marks":[false,false,false,false,false,false]},{"name":"GISLAINE BORBA OLIVEIRA","phone":"19-99111-3664","marks":[false,false,false,false,false,false]},{"name":"GIULIA MARIA HAKIM GOMES","phone":"15-99736-5649","marks":[false,false,false,false,false,false]},{"name":"GRAZZIELLA CURADO SIUFI","phone":"67-98136-4547","marks":[false,false,false,false,false,false]},{"name":"GUILHERME FELIPE DONNANGELO MARTINS","phone":"19-99720-1637","marks":[false,false,false,false,false,false]},{"name":"GUSTAVO FERNANDO VERALDI ISMAEL","phone":"19-98328-3595","marks":[false,false,false,false,false,false]},{"name":"ISOLMAR TADEU SCHETTERT","phone":"11-99204-0828","marks":[false,false,false,false,false,false]},{"name":"IVNA BALTAZAR FILGUEIRAS STUCCHI","phone":"19-98443-4272","marks":[false,false,false,false,false,false]},{"name":"JAIR ALVES BONFIM FILHO","phone":"67-98219-1787","marks":[false,false,false,false,false,false]},{"name":"JAMILLE ELITA DE CASTRO CUNHA HERCULANI","phone":"11-98711-2081","marks":[false,false,false,false,false,false]},{"name":"JIVIANE BEATRIZ CUNHA BARRETO DA SILVA","phone":"19-98207-2627","marks":[false,false,false,false,false,false]},{"name":"JOAO GUILHERME MARTINS LUSVARGHI","phone":"35-99147-1807","marks":[false,false,false,false,false,false]},{"name":"JOAO PAULO MARQUES BIGHETTI","phone":"19-98105-3992","marks":[false,false,false,false,false,false]},{"name":"JOAO VICTOR VEZALI COSTARDI","phone":"67-99985-5233","marks":[false,false,false,false,false,false]},{"name":"JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE","phone":"35-99896-6688","marks":[false,false,false,false,false,false]},{"name":"JULIANA LINO DE MATOS ROSA","phone":"11-98183-3301","marks":[false,false,false,false,false,false]},{"name":"JULIANE FONTES SEVERINO","phone":"67-98209-6367","marks":[false,false,false,false,false,false]},{"name":"JULIO ROBERTO CORREA","phone":"14-99798-9420","marks":[false,false,false,false,false,false]},{"name":"JUNIA RODRIGUES BRANDAO FRANCO","phone":"13-98160-8661","marks":[false,false,false,false,false,false]},{"name":"KAREN DARIANE BARBOSA DE VASCONCELOS","phone":"35-9857-3052","marks":[false,false,false,false,false,false]},{"name":"KLEBER KOBAYASHI","phone":"67-99940-4149","marks":[false,false,false,false,false,false]},{"name":"LILIAN ZORTEA","phone":"67-99285-1305","marks":[false,false,false,false,false,false]},{"name":"LISA AQUARONI RICCI","phone":"15-99787-2900","marks":[false,false,false,false,false,false]},{"name":"LORENA BEDOTTI RIBEIRO","phone":"19-99373-9827","marks":[false,false,false,false,false,false]},{"name":"LUCAS OLIVEIRA CANTADORI","phone":"14-98124-2886","marks":[false,false,false,false,false,false]},{"name":"LUCIANO CARVALHO CAMPOS","phone":"35-99931-8459","marks":[false,false,false,false,false,false]},{"name":"LUCIANO FUZZATO SILVA","phone":"19-99939-9355","marks":[false,false,false,false,false,false]},{"name":"LUÍS HENRIQUE MASCARENHAS MOREIRA","phone":"67-99981-7430","marks":[false,false,false,false,false,false]},{"name":"LUIZ GUSTAVO RODRIGUES BARBOSA","phone":"14-98141-9491","marks":[false,false,false,false,false,false]},{"name":"MARCELO AUGUSTO ARAUJO ASSUNCAO","phone":"31-99762-9558","marks":[false,false,false,false,false,false]},{"name":"MARCELO BERNARDINI ANTUNES","phone":"14-99792-3873","marks":[false,false,false,false,false,false]},{"name":"MARCELO DOS SANTOS SOUZA","phone":"67-99219-6811","marks":[false,false,false,false,false,false]},{"name":"MARCO TULIO CESTARI RODRIGUES","phone":"67-99913-0498","marks":[false,false,false,false,false,false]},{"name":"MARCOS PAULO COLELLA","phone":"19-99672-9777","marks":[false,false,false,false,false,false]},{"name":"MARCUS VINICIUS FRANZIN BIZZARO","phone":"16-99606-8878","marks":[false,false,false,false,false,false]},{"name":"MARIA APARECIDA SANTOS PIRES","phone":"67-99971-5464","marks":[false,false,false,false,false,false]},{"name":"MARIA PAULA NALESSO CAMARGO","phone":"15-99828-2282","marks":[false,false,false,false,false,false]},{"name":"MARIAMA NAKAMOTO FERNANDES DOS SANTOS","phone":"17-99709-5757","marks":[false,false,false,false,false,false]},{"name":"MARIANA CRISTTINA LIMA DE FALCO","phone":"19-99318-3106","marks":[false,false,false,false,false,false]},{"name":"MARILIA SOARES E SILVA ARCADIPANE","phone":"11-99659-2105","marks":[false,false,false,false,false,false]},{"name":"MARINA MOSCA PEDROSO","phone":"19-99715-9343","marks":[false,false,false,false,false,false]},{"name":"MARTA APARECIDA SOARES ROSSINI","phone":"19-99791-6553","marks":[false,false,false,false,false,false]},{"name":"MARTA MARIA FALSETTI","phone":"19-99782-0795","marks":[false,false,false,false,false,false]},{"name":"MELINA SALVI DIAS ATHAYDE","phone":"31-8636-6412","marks":[false,false,false,false,false,false]},{"name":"MICHELE KAMILA GALGANI AMARU","phone":"19-98159-4768","marks":[false,false,false,false,false,false]},{"name":"PAMELA RISARDI FRANCELIN","phone":"16-99706-4239","marks":[false,false,false,false,false,false]},{"name":"PATRICIA GAMA","phone":"19-98314-7273","marks":[false,false,false,false,false,false]},{"name":"PAULA NATASHA RIBEIRO JONAS DE FARIA","phone":"35-99764-5849","marks":[false,false,false,false,false,false]},{"name":"PAULO RIBEIRO CALIL","phone":"19-99608-5236","marks":[false,false,false,false,false,false]},{"name":"RENATA BALDISSERA CARDOSO","phone":"14-99854-3939","marks":[false,false,false,false,false,false]},{"name":"RICARDO DAVID FROTA","phone":"35-9969-7573","marks":[false,false,false,false,false,false]},{"name":"ROGERIO CAMARA VALSANI","phone":"19-99604-6750","marks":[false,false,false,false,false,false]},{"name":"ROSANA FERREIRA GOMES SALMAZO","phone":"67-99618-1927","marks":[false,false,false,false,false,false]},{"name":"ROSELI NUNES DA SILVEIRA ANTUNES","phone":"14-98121-8959","marks":[false,false,false,false,false,false]},{"name":"SAMIRA DE OLIVEIRA LAUAR","phone":"19-99771-8182","marks":[false,false,false,false,false,false]},{"name":"SONIA REGINA IANTAS","phone":"11-99654-1639","marks":[false,false,false,false,false,false]},{"name":"SORAIA TEIXEIRA ROMANINI","phone":"67-98154-0224","marks":[false,false,false,false,false,false]},{"name":"SULEY MARA CHADDAD VANCINE","phone":"11-99621-3922","marks":[false,false,false,false,false,false]},{"name":"SUZANA DE FRANCA RIBEIRO GONZAGA","phone":"11-95425-4245","marks":[false,false,false,false,false,false]},{"name":"SUZANA SILVA PRADO ZINCONE","phone":"35-99146-8499","marks":[false,false,false,false,false,false]},{"name":"VALTER ADOLPHO MASSAGLI FILHO","phone":"15-99779-0506","marks":[false,false,false,false,false,false]},{"name":"VANESSA MOURA COVEZZI","phone":"19-99378-7233","marks":[false,false,false,false,false,false]},{"name":"VINICIUS BORGES GRILO","phone":"19-98431-1616","marks":[false,false,false,false,false,false]},{"name":"VINICIUS MARTINS NASCIMENTO","phone":"13-99716-3844","marks":[false,false,false,false,false,false]},{"name":"VITOR VASQUEZ DOS SANTOS","phone":"17-99769-8366","marks":[false,false,false,false,false,false]},{"name":"WALTER ASSUNCAO GONCALVES","phone":"67-98186-7166","marks":[false,false,false,false,false,false]},{"name":"WILLIAN PAIVA DA LUZ","phone":"67-98202-3177","marks":[false,false,false,false,false,false]}];
 
-let activeFilter = -1; // -1 = todos
+// STATE
+let materials = JSON.parse(localStorage.getItem('sarclisa_mats') || 'null') || INITIAL_MATERIALS;
+let doctors = JSON.parse(localStorage.getItem('sarclisa_docs') || 'null') || INITIAL_DOCTORS;
+let sentLog = JSON.parse(localStorage.getItem('sarclisa_sent') || '{}');
+let activeFilter = -1;
+let delTarget = null;
+let currentTab = 'medicos';
 
-function formatPhone(raw) {
-  return '+55' + raw.replace(/\D/g, '');
+function save(){
+  localStorage.setItem('sarclisa_mats', JSON.stringify(materials));
+  localStorage.setItem('sarclisa_docs', JSON.stringify(doctors));
+  localStorage.setItem('sarclisa_sent', JSON.stringify(sentLog));
 }
 
-function wppUrl(phone, msg) {
-  const num = formatPhone(phone);
-  return `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
-}
+function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())}
+function formatPhone(r){return'+55'+r.replace(/\D/g,'')}
+function wppUrl(phone,msg){return`https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(msg)}`}
+function sentKey(dname,midx){return dname+'__'+midx}
 
-function toTitleCase(str) {
-  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function buildChips() {
-  const el = document.getElementById('chips');
-  let html = `<button class="chip all active" onclick="setFilter(-1)">Todos</button>`;
-  DATA.materials.forEach((m, i) => {
-    html += `<button class="chip" id="chip-${i}" onclick="setFilter(${i})">${m.name}</button>`;
+// TAB SWITCHING
+function showTab(t){
+  currentTab=t;
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['medicos','materiais','insights'][i]===t)
   });
-  el.innerHTML = html;
+  document.getElementById('tab-medicos').style.display=t==='medicos'?'':'none';
+  document.getElementById('tab-materiais').style.display=t==='materiais'?'block':'none';
+  document.getElementById('tab-insights').style.display=t==='insights'?'block':'none';
+  if(t==='materiais') renderMats();
+  if(t==='insights') renderInsights();
 }
 
-function setFilter(idx) {
-  activeFilter = idx;
-  document.querySelectorAll('.chip').forEach((c, i) => {
-    c.classList.remove('active');
-    if (i === 0 && idx === -1) c.classList.add('active');
-    if (i === idx + 1) c.classList.add('active');
+// ===== CHIPS =====
+function buildChips(){
+  let html=`<button class="chip all ${activeFilter===-1?'active':''}" onclick="setFilter(-1)">Todos</button>`;
+  materials.forEach((m,i)=>{
+    html+=`<button class="chip ${activeFilter===i?'active':''}" onclick="setFilter(${i})">${m.name}</button>`;
   });
-  render();
+  document.getElementById('chips').innerHTML=html;
 }
 
-function render() {
-  const q = document.getElementById('search').value.toLowerCase().trim();
-  const listEl = document.getElementById('list');
-  const statsEl = document.getElementById('stats');
+function setFilter(i){
+  activeFilter=i;
+  buildChips();
+  renderDocs();
+}
 
-  let docs = DATA.doctors.filter(d => {
-    if (q && !d.name.toLowerCase().includes(q)) return false;
-    if (activeFilter >= 0) {
-      // only show doctors who haven't received this material yet
-      // (show all, but highlight sent ones)
-    }
-    return true;
-  });
+// ===== DOCTORS LIST =====
+function renderDocs(){
+  buildChips();
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  let docs=[...doctors].map((d,i)=>({...d,_i:i})).filter(d=>!q||d.name.toLowerCase().includes(q));
+  docs.sort((a,b)=>(!!b.phone-!!a.phone)||a.name.localeCompare(b.name));
 
-  // Sort: with phone first
-  docs = docs.slice().sort((a, b) => {
-    if (!!a.phone !== !!b.phone) return a.phone ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
+  document.getElementById('stats').textContent=`${docs.length} médico${docs.length!==1?'s':''}`;
 
-  if (docs.length === 0) {
-    listEl.innerHTML = `<div class="empty"><div class="icon">🔍</div><div>Nenhum médico encontrado</div></div>`;
-    statsEl.textContent = '';
+  if(!docs.length){
+    document.getElementById('list').innerHTML=`<div class="empty">🔍 Nenhum médico encontrado</div>`;
     return;
   }
 
-  statsEl.textContent = `${docs.length} médico${docs.length !== 1 ? 's' : ''}`;
+  const mats=activeFilter>=0?[{m:materials[activeFilter],idx:activeFilter}]:materials.map((m,i)=>({m,idx:i}));
 
-  listEl.innerHTML = docs.map(doc => {
-    const name = toTitleCase(doc.name);
-    const phone = doc.phone;
-    const mats = activeFilter >= 0
-      ? [DATA.materials[activeFilter]].map((m, _) => ({ m, idx: activeFilter, sent: doc.marks[activeFilter] }))
-      : DATA.materials.map((m, i) => ({ m, idx: i, sent: doc.marks[i] }));
-
-    const rows = mats.map(({ m, idx, sent }) => {
-      const sentBadge = sent ? `<span class="sent-badge">✓ Enviado</span>` : '';
-      const btn = phone
-        ? `<a class="wpp-btn" href="${wppUrl(phone, m.msg)}" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  document.getElementById('list').innerHTML=docs.map(doc=>{
+    const di=doc._i;
+    const rows=mats.map(({m,idx})=>{
+      const sk=sentKey(doc.name,idx);
+      const sent=sentLog[sk];
+      const badge=sent?`<span class="sent-badge">✓ Enviado</span>`:'';
+      const btn=doc.phone
+        ?`<a class="wpp-btn" href="${wppUrl(doc.phone,m.msg)}" onclick="markSent('${doc.name.replace(/'/g,"\\'")}',${idx})" target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
             Enviar
           </a>`
-        : `<span class="no-phone">Sem número</span>`;
-
-      return `<div class="material-row">
-        <div class="mat-label">${m.name}${sentBadge}</div>
-        ${btn}
-      </div>`;
+        :`<span class="no-phone">Sem número</span>`;
+      return`<div class="mat-row"><div class="mat-label">${m.name}${badge}</div>${btn}</div>`;
     }).join('');
 
-    return `<div class="card" id="card-${doc.name}">
-      <div class="card-header" onclick="toggleCard('${doc.name.replace(/'/g,"\\'")}')">
-        <div>
-          <div class="doc-name">${name}</div>
-          ${phone ? `<div class="doc-phone">📱 ${phone}</div>` : `<div class="doc-phone" style="color:#ff3b30">Sem WhatsApp</div>`}
+    return`<div class="card" id="dc-${di}">
+      <div class="card-hd">
+        <div class="card-hd-info" onclick="toggleCard(${di})">
+          <div class="doc-name">${toTitle(doc.name)}</div>
+          <div class="doc-phone">${doc.phone?'📱 '+doc.phone:'⚠️ Sem WhatsApp'}</div>
         </div>
-        <div class="chevron">▼</div>
+        <div class="card-actions">
+          <button class="icon-btn" onclick="openDocModal(${di})">✏️</button>
+          <button class="icon-btn del" onclick="askDel('doc',${di})">🗑️</button>
+        </div>
+        <div class="chevron" onclick="toggleCard(${di})">▼</div>
       </div>
       <div class="card-body">${rows}</div>
     </div>`;
   }).join('');
 }
 
-function toggleCard(name) {
-  const card = document.getElementById('card-' + name);
-  if (card) card.classList.toggle('open');
+function toggleCard(i){document.getElementById('dc-'+i).classList.toggle('open')}
+
+function markSent(name,midx){
+  const k=sentKey(name,midx);
+  sentLog[k]=new Date().toISOString();
+  save();
+  setTimeout(renderDocs,500);
 }
 
-buildChips();
-render();
+// ===== DOC MODAL =====
+function openDocModal(idx){
+  document.getElementById('doc-idx').value=idx===undefined?'':idx;
+  if(idx!==undefined){
+    const d=doctors[idx];
+    document.getElementById('doc-name-inp').value=d.name;
+    document.getElementById('doc-phone-inp').value=d.phone;
+  } else {
+    document.getElementById('doc-name-inp').value='';
+    document.getElementById('doc-phone-inp').value='';
+  }
+  document.getElementById('doc-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('doc-name-inp').focus(),100);
+}
+function closeDocModal(){document.getElementById('doc-modal').classList.remove('open')}
+function saveDoc(){
+  const name=document.getElementById('doc-name-inp').value.trim().toUpperCase();
+  const phone=document.getElementById('doc-phone-inp').value.trim();
+  if(!name){alert('Informe o nome.');return;}
+  const idx=document.getElementById('doc-idx').value;
+  if(idx===''){
+    doctors.push({name,phone,marks:materials.map(()=>false)});
+  } else {
+    doctors[+idx].name=name;
+    doctors[+idx].phone=phone;
+  }
+  save(); closeDocModal(); renderDocs();
+}
+
+// ===== MATERIALS =====
+function renderMats(){
+  document.getElementById('mat-list').innerHTML=materials.map((m,i)=>`
+    <div class="mat-card">
+      <div class="mat-card-title">${m.name}</div>
+      <div class="mat-card-preview">${m.msg}</div>
+      <div class="mat-card-actions">
+        <button class="icon-btn" onclick="openMatModal(${i})">✏️ Editar</button>
+        <button class="icon-btn del" onclick="askDel('mat',${i})">🗑️ Excluir</button>
+      </div>
+    </div>`).join('');
+}
+
+function openMatModal(idx){
+  document.getElementById('mat-idx').value=idx===undefined?'':idx;
+  if(idx!==undefined){
+    document.getElementById('mat-name-inp').value=materials[idx].name;
+    document.getElementById('mat-msg-inp').value=materials[idx].msg;
+  } else {
+    document.getElementById('mat-name-inp').value='';
+    document.getElementById('mat-msg-inp').value='';
+  }
+  document.getElementById('mat-modal').classList.add('open');
+}
+function closeMatModal(){document.getElementById('mat-modal').classList.remove('open')}
+function saveMat(){
+  const name=document.getElementById('mat-name-inp').value.trim();
+  const msg=document.getElementById('mat-msg-inp').value.trim();
+  if(!name||!msg){alert('Preencha nome e mensagem.');return;}
+  const idx=document.getElementById('mat-idx').value;
+  if(idx===''){
+    materials.push({name,msg});
+    doctors.forEach(d=>d.marks.push(false));
+  } else {
+    materials[+idx].name=name;
+    materials[+idx].msg=msg;
+  }
+  save(); closeMatModal(); renderMats(); buildChips();
+}
+
+// ===== DELETE =====
+function askDel(type,idx){
+  delTarget={type,idx};
+  const label=type==='doc'?toTitle(doctors[idx].name):materials[idx].name;
+  document.getElementById('del-msg').textContent=`Excluir "${label}"? Esta ação não pode ser desfeita.`;
+  document.getElementById('del-modal').classList.add('open');
+}
+function closeDelModal(){document.getElementById('del-modal').classList.remove('open')}
+function confirmDel(){
+  if(!delTarget)return;
+  if(delTarget.type==='doc'){
+    doctors.splice(delTarget.idx,1);
+    save(); closeDelModal(); renderDocs();
+  } else {
+    const i=delTarget.idx;
+    materials.splice(i,1);
+    doctors.forEach(d=>d.marks.splice(i,1));
+    save(); closeDelModal(); renderMats(); buildChips();
+  }
+}
+
+// ===== INSIGHTS =====
+function renderInsights(){
+  const total=doctors.length;
+  const withPhone=doctors.filter(d=>d.phone).length;
+  const noPhone=total-withPhone;
+
+  // sent stats per material
+  const sentPerMat=materials.map((m,i)=>{
+    const count=doctors.filter(d=>sentLog[sentKey(d.name,i)]).length;
+    return{name:m.name,count,pct:total?Math.round(count/total*100):0};
+  }).sort((a,b)=>b.count-a.count);
+
+  // doctors with most materials sent
+  const docsSent=doctors.map(d=>{
+    const c=materials.filter((_,i)=>sentLog[sentKey(d.name,i)]).length;
+    return{name:d.name,c};
+  }).sort((a,b)=>b.c-a.c).slice(0,5);
+
+  const totalSent=Object.keys(sentLog).length;
+  const coverage=total*materials.length?Math.round(totalSent/(total*materials.length)*100):0;
+
+  document.getElementById('insights-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:#f3f0ff;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#7C3AED;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Médicos</div>
+        <div style="font-size:28px;font-weight:700;color:#7C3AED">${total}</div>
+      </div>
+      <div style="background:#e8f5e9;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#2e7d32;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Enviados</div>
+        <div style="font-size:28px;font-weight:700;color:#2e7d32">${totalSent}</div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <h3>📊 Cobertura por material</h3>
+      ${sentPerMat.map(m=>`
+        <div class="insight-row">
+          <span>${m.name}</span>
+          <span class="pill ${m.pct>=50?'green':m.pct>=20?'orange':'red'}">${m.count} (${m.pct}%)</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="insight-card">
+      <h3>📱 Cobertura de contatos</h3>
+      <div class="insight-row"><span>Com WhatsApp</span><span class="pill green">${withPhone}</span></div>
+      <div class="insight-row"><span>Sem número</span><span class="pill ${noPhone>0?'red':'green'}">${noPhone}</span></div>
+      <div class="insight-row"><span>Cobertura total</span><span class="pill blue">${coverage}%</span></div>
+    </div>
+
+    <div class="insight-card">
+      <h3>🏆 Médicos mais impactados</h3>
+      ${docsSent.map(d=>`
+        <div class="insight-row">
+          <span>${toTitle(d.name)}</span>
+          <span class="pill blue">${d.c} mat.</span>
+        </div>`).join('')}
+      ${docsSent.every(d=>d.c===0)?'<div style="font-size:13px;color:#8e8e93;padding:8px 0">Nenhum envio registrado ainda.</div>':''}
+    </div>
+
+    <div style="font-size:15px;font-weight:700;margin:14px 0 8px">💡 Sugestões de melhoria</div>
+
+    <div class="tip-box"><div class="tip-title">🖼️ Imagem no WhatsApp</div>O WhatsApp via link (wa.me) não permite pré-carregar imagens por limitação da plataforma. Solução: salve a imagem na galeria do celular antes de enviar → após clicar "Enviar" e o WhatsApp abrir, pressione o clipe 📎 e selecione a imagem. Outra alternativa: cole o link da imagem direto na mensagem pré-escrita.</div>
+
+    <div class="tip-box"><div class="tip-title">📅 Agendamento de envios</div>Adicione um campo "data de envio planejado" por médico+material, e filtre quem deve receber hoje. Isso transforma o app em um plano de comunicação completo.</div>
+
+    <div class="tip-box"><div class="tip-title">🏷️ Potencial do médico (A/B/C)</div>Integre o score de prioridade do painel (A/B/C) para ordenar médicos por impacto. Primeiro os de alta prioridade que ainda não receberam todos os materiais.</div>
+
+    <div class="tip-box"><div class="tip-title">📊 Histórico de interações</div>Registre a resposta do médico após o envio (ex: "Interessado", "Pediu mais info", "Sem retorno"). Isso cria um CRM básico de relacionamento.</div>
+
+    <div class="tip-box"><div class="tip-title">🔔 Lembretes de follow-up</div>Após marcar como enviado, agende um lembrete de 7 dias para follow-up. No iOS, um link <code>x-apple-reminderkit://</code> pode abrir o app Lembretes direto.</div>
+
+    <div class="tip-box"><div class="tip-title">☁️ Sincronização em nuvem</div>Hoje os dados ficam no navegador (localStorage). Para compartilhar com a equipe ou ter backup, integrar com Google Sheets via Apps Script ou Airtable seria o próximo passo natural.</div>
+
+    <div class="tip-box"><div class="tip-title">🎯 Segmentação por especialidade</div>Adicione tag de especialidade aos médicos (Hematologia, Farmácia) e filtre materiais sugeridos por perfil — ex: materiais de posologia para farmacêuticos.</div>
+  `;
+}
+
+// INIT
+renderDocs();
 </script>
 </body>
 </html>
