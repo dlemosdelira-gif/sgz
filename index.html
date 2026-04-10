@@ -4,535 +4,379 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Sarclisa Materiais</title>
+<title>Sarclisa</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, sans-serif; background: #f2f2f7; color: #1c1c1e; }
-
-.tabs { display: flex; background: #fff; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
-.tab-btn { flex: 1; padding: 12px 4px; font-size: 12px; font-weight: 600; color: #888; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
-.tab-btn.active { color: #6d28d9; border-bottom-color: #6d28d9; }
-
-.page { display: none; }
-.page.active { display: block; }
-
-.header { background: #6d28d9; color: #fff; padding: 14px 14px 12px; }
-.header h1 { font-size: 18px; font-weight: 700; }
-.header p { font-size: 12px; opacity: 0.8; margin-top: 3px; }
-
-.search-box { padding: 10px 12px; background: #f2f2f7; }
-.search-box input { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid #ddd; font-size: 15px; background: #fff; outline: none; }
-
-.filter-row { padding: 0 12px 8px; display: flex; gap: 6px; overflow-x: auto; }
-.filter-row::-webkit-scrollbar { display: none; }
-.fchip { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; background: #fff; color: #6d28d9; border: 1px solid #ddd; white-space: nowrap; }
-.fchip.active { background: #6d28d9; color: #fff; border-color: #6d28d9; }
-
-.pot-row { padding: 0 12px 6px; display: flex; gap: 6px; }
-.pchip { padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; }
-.pA { background: #d1fae5; color: #065f46; }
-.pB { background: #dbeafe; color: #1e40af; }
-.pC { background: #f3f4f6; color: #374151; }
-.pchip.dim { opacity: 0.35; }
-
-.info-box { margin: 0 12px 8px; background: #ede9fe; border-radius: 10px; padding: 9px 12px; font-size: 12px; color: #4c1d95; line-height: 1.5; }
-
-.stats-line { padding: 0 12px 6px; font-size: 12px; color: #888; }
-
-.doc-list { padding: 0 12px 80px; }
-
-.doc-card { background: #fff; border-radius: 14px; margin-bottom: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.doc-head { padding: 12px 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.doc-main { flex: 1; min-width: 0; }
-.doc-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.doc-sub { font-size: 11px; color: #888; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 700; margin-right: 4px; }
-.bA { background: #d1fae5; color: #065f46; }
-.bB { background: #dbeafe; color: #1e40af; }
-.bC { background: #f3f4f6; color: #374151; }
-
-.doc-btns { display: flex; gap: 5px; flex-shrink: 0; }
-.edit-btn { background: none; border: 1px solid #ddd; border-radius: 8px; padding: 5px 8px; font-size: 12px; cursor: pointer; }
-.del-btn { background: none; border: 1px solid #fca5a5; border-radius: 8px; padding: 5px 8px; font-size: 12px; cursor: pointer; color: #dc2626; }
-.chevron-btn { font-size: 10px; color: #ccc; padding: 4px 2px; background: none; border: none; cursor: pointer; transition: transform 0.2s; flex-shrink: 0; }
-.doc-card.open .chevron-btn { transform: rotate(180deg); }
-
-.doc-body { display: none; border-top: 1px solid #f2f2f7; }
-.doc-card.open .doc-body { display: block; }
-
-.doc-info { padding: 8px 13px; background: #fafafa; border-bottom: 1px solid #f2f2f7; font-size: 11px; color: #555; display: flex; flex-wrap: wrap; gap: 10px; }
-.doc-info span b { color: #1c1c1e; }
-
-.mat-item { display: flex; align-items: center; gap: 8px; padding: 10px 13px; border-bottom: 1px solid #f9f9f9; }
-.mat-item:last-child { border-bottom: none; }
-.mat-name { flex: 1; font-size: 13px; color: #333; min-width: 0; line-height: 1.3; }
-.sent-tag { display: inline-block; font-size: 9px; background: #d1fae5; color: #065f46; border-radius: 5px; padding: 1px 5px; font-weight: 700; margin-left: 4px; }
-.wpp-link { display: inline-flex; align-items: center; gap: 4px; background: #25D366; color: #fff; border: none; border-radius: 9px; padding: 8px 11px; font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
-.no-wpp { font-size: 11px; color: #dc2626; background: #fee2e2; padding: 5px 8px; border-radius: 7px; flex-shrink: 0; }
-
-.fab { position: fixed; bottom: 24px; right: 16px; width: 52px; height: 52px; border-radius: 50%; background: #6d28d9; color: #fff; font-size: 28px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(109,40,217,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; line-height: 1; }
-
-/* MATERIAIS PAGE */
-.mat-page { padding: 14px 12px 80px; }
-.mat-page-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.mat-page-hd h2 { font-size: 17px; font-weight: 700; }
-.add-btn { background: #6d28d9; color: #fff; border: none; border-radius: 18px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; }
-
-.mcard { background: #fff; border-radius: 13px; padding: 13px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.mcard-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.mcard-preview { font-size: 12px; color: #888; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.mcard-actions { display: flex; gap: 8px; margin-top: 10px; }
-
-/* INSIGHTS PAGE */
-.ins-page { padding: 14px 12px 80px; }
-.ins-page h2 { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
-.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.metric { border-radius: 12px; padding: 12px; text-align: center; }
-.metric .mlabel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
-.metric .mval { font-size: 26px; font-weight: 700; }
-.m1 { background: #ede9fe; } .m1 .mlabel { color: #6d28d9; } .m1 .mval { color: #6d28d9; }
-.m2 { background: #d1fae5; } .m2 .mlabel { color: #065f46; } .m2 .mval { color: #065f46; }
-.m3 { background: #dbeafe; } .m3 .mlabel { color: #1e40af; } .m3 .mval { color: #1e40af; }
-.m4 { background: #fef3c7; } .m4 .mlabel { color: #92400e; } .m4 .mval { color: #92400e; }
-.ins-card { background: #fff; border-radius: 13px; padding: 13px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.ins-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-.ins-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f2f2f7; font-size: 13px; gap: 8px; }
-.ins-row:last-child { border-bottom: none; }
-.ins-row span:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pill { padding: 2px 8px; border-radius: 14px; font-size: 11px; font-weight: 700; white-space: nowrap; }
-.pg { background: #d1fae5; color: #065f46; }
-.po { background: #fef3c7; color: #92400e; }
-.pr { background: #fee2e2; color: #b91c1c; }
-.pb { background: #dbeafe; color: #1e40af; }
-
-.prog { height: 5px; border-radius: 3px; background: #f2f2f7; overflow: hidden; width: 60px; }
-.prog-fill { height: 100%; border-radius: 3px; background: #6d28d9; }
-
-.tip { border-left: 3px solid #6d28d9; background: #f5f3ff; border-radius: 0 10px 10px 0; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; color: #4c1d95; line-height: 1.5; }
-.tip b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
-.section-title { font-size: 15px; font-weight: 700; margin: 14px 0 8px; }
-
-/* MODAL */
-.overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; }
-.overlay.active { display: flex; align-items: flex-end; justify-content: center; }
-.modal { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; padding: 20px 18px 40px; max-height: 90vh; overflow-y: auto; }
-.modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-.modal h2 button { background: none; border: none; font-size: 22px; color: #888; cursor: pointer; }
-.field { margin-bottom: 13px; }
-.field label { display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-.field input, .field textarea, .field select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 15px; font-family: -apple-system, sans-serif; background: #f9f9f9; color: #1c1c1e; outline: none; -webkit-appearance: none; }
-.field textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
-.field-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.btn-row { display: flex; gap: 9px; margin-top: 8px; }
-.btn-save { flex: 1; background: #6d28d9; color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; }
-.btn-del-conf { flex: 1; background: #dc2626; color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; }
-.btn-cancel { flex: 1; background: #f2f2f7; color: #333; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; }
-
-.empty { text-align: center; padding: 50px 20px; color: #888; font-size: 14px; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:15px;}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:100;}
+.tab-btn{flex:1;padding:11px 2px 9px;font-size:10px;font-weight:700;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;letter-spacing:.2px;}
+.tab-btn.on{color:#6d28d9;border-bottom-color:#6d28d9;}
+.page{display:none;}.page.on{display:block;}
+.hdr{background:#6d28d9;color:#fff;padding:13px 14px 11px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.hdr h1{font-size:17px;font-weight:700;}.hdr p{font-size:11px;opacity:.8;margin-top:2px;}
+.hdr-btn{background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:18px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.sbar{padding:9px 12px;background:#f2f2f7;}.sbar input{width:100%;padding:9px 14px;border-radius:11px;border:1px solid #ddd;font-size:15px;background:#fff;outline:none;}
+.chips{padding:0 12px 6px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}.chips::-webkit-scrollbar{display:none;}
+.chip{white-space:nowrap;padding:5px 11px;border-radius:18px;font-size:11px;font-weight:700;border:1px solid #ddd;cursor:pointer;background:#fff;color:#6d28d9;flex-shrink:0;}
+.chip.on{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.chip.all{background:#e5e7eb;color:#374151;border-color:#e5e7eb;}.chip.all.on{background:#374151;color:#fff;}
+.pot-row{padding:0 12px 6px;display:flex;gap:6px;}
+.pc{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;border:none;cursor:pointer;transition:opacity .15s;}
+.pcA{background:#d1fae5;color:#065f46;}.pcB{background:#dbeafe;color:#1e40af;}.pcC{background:#f3f4f6;color:#374151;}
+.pc.dim{opacity:.3;}
+.stline{padding:0 12px 5px;font-size:12px;color:#888;}
+.note{margin:0 12px 8px;background:#ede9fe;border-radius:10px;padding:8px 12px;font-size:12px;color:#4c1d95;line-height:1.5;}
+.dlist{padding:0 12px 90px;}
+.dc{background:#fff;border-radius:14px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.dc-hd{padding:12px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;}
+.dc-info{flex:1;min-width:0;}
+.dc-name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dc-sub{font-size:11px;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-right:4px;}
+.bA{background:#d1fae5;color:#065f46;}.bB{background:#dbeafe;color:#1e40af;}.bC{background:#f3f4f6;color:#374151;}
+.sc-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-left:3px;}
+.s-hi{background:#fef3c7;color:#92400e;}.s-md{background:#e0e7ff;color:#3730a3;}.s-lo{background:#f3f4f6;color:#6b7280;}
+.dc-acts{display:flex;gap:5px;flex-shrink:0;}
+.ibtn{background:none;border:1px solid #e5e5ea;border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;}
+.ibtn.d{border-color:#fca5a5;color:#dc2626;}
+.chev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
+.dc.open .chev{transform:rotate(180deg);}
+.dc-body{display:none;border-top:1px solid #f2f2f7;}.dc.open .dc-body{display:block;}
+.dc-detail{padding:8px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;font-size:11px;color:#555;display:flex;flex-wrap:wrap;gap:8px;}
+.dc-detail span b{color:#1c1c1e;}
+.score-detail{padding:8px 13px;background:#f5f3ff;border-bottom:1px solid #f2f2f7;}
+.sd-title{font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.sd-items{display:flex;flex-wrap:wrap;gap:5px;}
+.si{padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600;}
+.si-pos{background:#d1fae5;color:#065f46;}.si-neg{background:#fee2e2;color:#b91c1c;}.si-neu{background:#f3f4f6;color:#374151;}
+.mrow{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid #f9f9f9;}
+.mrow:last-child{border-bottom:none;}
+.mlabel{flex:1;font-size:13px;color:#333;min-width:0;line-height:1.3;}
+.stag{display:inline-block;font-size:9px;background:#d1fae5;color:#065f46;border-radius:5px;padding:2px 6px;font-weight:700;margin-left:4px;cursor:pointer;border:none;vertical-align:middle;}
+.stag:active{background:#a7f3d0;}
+.wbtn{display:inline-flex;align-items:center;gap:4px;background:#25D366;color:#fff;border:none;border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;}
+.nophone{font-size:11px;color:#dc2626;background:#fee2e2;padding:5px 8px;border-radius:7px;flex-shrink:0;}
+.fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
+.pwrap{padding:12px 12px 90px;}
+.phd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.phd h2{font-size:17px;font-weight:700;}
+.mcard{background:#fff;border-radius:13px;padding:13px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.mcard-t{font-size:14px;font-weight:600;margin-bottom:4px;}
+.mcard-p{font-size:12px;color:#888;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.mcard-a{display:flex;gap:8px;margin-top:10px;}
+.ccard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.ccard-hd{padding:12px 13px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.crank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.r1{background:#fef3c7;color:#92400e;}.r2{background:#f3f4f6;color:#374151;}.r3{background:#fce7f3;color:#9d174d;}.rn{background:#ede9fe;color:#5b21b6;}
+.ccard-main{flex:1;min-width:0;}
+.ccard-name{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ccard-sub{font-size:11px;color:#888;margin-top:2px;}
+.ccard-score{font-size:20px;font-weight:700;color:#6d28d9;flex-shrink:0;}
+.cchev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
+.ccard.open .cchev{transform:rotate(180deg);}
+.ccard-body{display:none;border-top:1px solid #f2f2f7;}.ccard.open .ccard-body{display:block;}
+.ccard-det{padding:10px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#555;}
+.ccard-det span b{color:#1c1c1e;}
+.sbars{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.sbar-r{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px;}
+.sbar-lbl{width:90px;color:#555;flex-shrink:0;}
+.sbar-out{flex:1;height:6px;background:#f2f2f7;border-radius:3px;overflow:hidden;}
+.sbar-in{height:100%;border-radius:3px;background:#6d28d9;}
+.sbar-v{width:12px;font-weight:700;color:#6d28d9;flex-shrink:0;}
+.barr-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.barr-lbl{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.barr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.bchip{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;}
+.bchip.sel{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.cdoc-list{padding:10px 13px;}
+.cdoc-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.cdoc-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f9f9f9;font-size:12px;}
+.cdoc-row:last-child{border-bottom:none;}
+.citycard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.citycard-hd{padding:12px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.city-ico{width:36px;height:36px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.city-main{flex:1;min-width:0;}
+.city-nm{font-size:15px;font-weight:700;}
+.city-sb{font-size:11px;color:#888;margin-top:2px;}
+.city-cnt{font-size:20px;font-weight:700;color:#6d28d9;flex-shrink:0;}
+.city-chev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
+.citycard.open .city-chev{transform:rotate(180deg);}
+.citycard-body{display:none;border-top:1px solid #f2f2f7;}.citycard.open .citycard-body{display:block;}
+.city-pot{padding:10px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;display:flex;gap:8px;align-items:center;}
+.cpot{padding:4px 10px;border-radius:14px;font-size:12px;font-weight:700;}
+.city-docs{padding:0 13px 8px;}
+.city-doc-item{padding:7px 0;border-bottom:1px solid #f9f9f9;font-size:13px;display:flex;align-items:center;gap:6px;}
+.city-doc-item:last-child{border-bottom:none;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.metric{border-radius:12px;padding:12px;text-align:center;}
+.metric .ml{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;}
+.metric .mv{font-size:26px;font-weight:700;}
+.m1{background:#ede9fe;}.m1 .ml{color:#6d28d9;}.m1 .mv{color:#6d28d9;}
+.m2{background:#d1fae5;}.m2 .ml{color:#065f46;}.m2 .mv{color:#065f46;}
+.m3{background:#dbeafe;}.m3 .ml{color:#1e40af;}.m3 .mv{color:#1e40af;}
+.m4{background:#fef3c7;}.m4 .ml{color:#92400e;}.m4 .mv{color:#92400e;}
+.icard{background:#fff;border-radius:13px;padding:13px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.icard h3{font-size:14px;font-weight:700;margin-bottom:8px;}
+.irow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f2f2f7;font-size:13px;gap:8px;}
+.irow:last-child{border-bottom:none;}
+.irow span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pill{padding:2px 8px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;}
+.pg{background:#d1fae5;color:#065f46;}.po{background:#fef3c7;color:#92400e;}.pr{background:#fee2e2;color:#b91c1c;}.pb{background:#dbeafe;color:#1e40af;}
+.prog{height:5px;border-radius:3px;background:#f2f2f7;overflow:hidden;width:60px;}
+.pf{height:100%;border-radius:3px;background:#6d28d9;}
+.tip{border-left:3px solid #6d28d9;background:#f5f3ff;border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#4c1d95;line-height:1.5;}
+.tip b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+.sec-title{font-size:15px;font-weight:700;margin:14px 0 8px;}
+.ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:500;}
+.ov.on{display:flex;align-items:flex-end;justify-content:center;}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:20px 18px 40px;max-height:90vh;overflow-y:auto;}
+.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.mhd h2{font-size:17px;font-weight:700;}
+.mhd button{background:none;border:none;font-size:22px;color:#888;cursor:pointer;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;font-size:15px;font-family:-apple-system,sans-serif;background:#f9f9f9;color:#1c1c1e;outline:none;-webkit-appearance:none;}
+.field textarea{resize:vertical;min-height:90px;line-height:1.5;}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.brow{display:flex;gap:9px;margin-top:8px;}
+.bsave{flex:1;background:#6d28d9;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
+.bdel{flex:1;background:#dc2626;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
+.bcanc{flex:1;background:#f2f2f7;color:#333;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;}
+.empty{text-align:center;padding:50px 20px;color:#888;font-size:14px;}
 </style>
 </head>
 <body>
 
 <div class="tabs">
-  <button class="tab-btn active" id="tab0" onclick="showTab(0)">👨‍⚕️ Médicos</button>
-  <button class="tab-btn" id="tab1" onclick="showTab(1)">📄 Materiais</button>
-  <button class="tab-btn" id="tab2" onclick="showTab(2)">📊 Insights</button>
+  <button class="tab-btn on" id="t0" onclick="goTab(0)">👨‍⚕️ Médicos</button>
+  <button class="tab-btn" id="t1" onclick="goTab(1)">📄 Materiais</button>
+  <button class="tab-btn" id="t2" onclick="goTab(2)">🏆 Contas</button>
+  <button class="tab-btn" id="t3" onclick="goTab(3)">🗺️ Cidades</button>
+  <button class="tab-btn" id="t4" onclick="goTab(4)">📊 Insights</button>
 </div>
 
-<!-- MÉDICOS -->
-<div class="page active" id="page0">
-  <div class="header">
-    <h1>Sarclisa · Materiais</h1>
-    <p>Toque no médico para ver e enviar materiais</p>
-  </div>
-  <div class="search-box">
-    <input id="searchInput" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false">
-  </div>
-  <div class="filter-row" id="filterRow"></div>
+<div class="page on" id="p0">
+  <div class="hdr"><div><h1>Sarclisa · Materiais</h1><p>Lista ordenada por score de prioridade</p></div><button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button></div>
+  <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+  <div class="chips" id="chipRow"></div>
   <div class="pot-row">
-    <button class="pchip pA" id="potA" onclick="togglePot('A')">● Pot. A</button>
-    <button class="pchip pB" id="potB" onclick="togglePot('B')">● Pot. B</button>
-    <button class="pchip pC" id="potC" onclick="togglePot('C')">● Pot. C</button>
+    <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
+    <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
+    <button class="pc pcC" id="pcC" onclick="togglePot('C')">● C</button>
   </div>
-  <div class="info-box">💡 Após clicar <strong>Enviar</strong>, o WhatsApp abre com o texto. Use o 📎 para anexar imagem, ou cole o link da imagem direto na mensagem.</div>
-  <div class="stats-line" id="statsLine"></div>
-  <div class="doc-list" id="docList"></div>
+  <div class="note">💡 Clique <strong>Enviar</strong> → WhatsApp abre com o texto. Use 📎 para imagem. Toque em <strong>✓ Enviado em DD/MM</strong> para desfazer o tique.</div>
+  <div class="stline" id="stline"></div>
+  <div class="dlist" id="dlist"></div>
   <button class="fab" onclick="openDocModal(-1)">+</button>
 </div>
 
-<!-- MATERIAIS -->
-<div class="page" id="page1">
-  <div class="mat-page">
-    <div class="mat-page-hd">
-      <h2>Materiais</h2>
-      <button class="add-btn" onclick="openMatModal(-1)">+ Novo</button>
-    </div>
+<div class="page" id="p1">
+  <div class="pwrap">
+    <div class="phd"><h2>Materiais</h2><button class="hdr-btn" style="background:#6d28d9;color:#fff" onclick="openMatModal(-1)">+ Novo</button></div>
     <div id="matList"></div>
   </div>
 </div>
 
-<!-- INSIGHTS -->
-<div class="page" id="page2">
-  <div class="ins-page">
-    <h2>📊 Insights</h2>
-    <div id="insContent"></div>
-  </div>
+<div class="page" id="p2">
+  <div class="pwrap"><div class="phd"><h2>Ranking de Contas</h2></div><div id="contaList"></div></div>
+</div>
+
+<div class="page" id="p3">
+  <div class="pwrap"><div class="phd"><h2>Clusters por Cidade</h2></div><div id="cityList"></div></div>
+</div>
+
+<div class="page" id="p4">
+  <div class="pwrap"><h2 style="margin-bottom:12px">📊 Insights</h2><div id="insDiv"></div></div>
 </div>
 
 <!-- MODAL MÉDICO -->
-<div class="overlay" id="docOverlay">
+<div class="ov" id="docOv">
   <div class="modal">
-    <h2 id="docModalTitle">Médico <button onclick="closeDocModal()">×</button></h2>
-    <div class="field"><label>Nome</label><input id="iName" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"></div>
-    <div class="field-2col">
-      <div class="field"><label>CRM</label><input id="iCrm" autocomplete="off" spellcheck="false"></div>
-      <div class="field"><label>Potencial</label>
-        <select id="iPot"><option value="A">A – Alta</option><option value="B">B – Média</option><option value="C" selected>C – Monitor.</option></select>
+    <div class="mhd"><h2 id="docMT">Médico</h2><button onclick="closeDocModal()">×</button></div>
+    <input type="hidden" id="dIdx">
+    <div class="field"><label>Nome</label><input id="dName" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"></div>
+    <div class="f2">
+      <div class="field"><label>CRM</label><input id="dCrm" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label>Potencial</label><select id="dPot"><option value="A">A – Alta</option><option value="B">B – Média</option><option value="C" selected>C – Monitor.</option></select></div>
+    </div>
+    <div class="field"><label>WhatsApp (ex: 19-99999-9999)</label><input id="dPhone" type="tel"></div>
+    <div class="f2">
+      <div class="field"><label>Cidade</label><input id="dCity" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+      <div class="field"><label>Especialidade</label><select id="dEsp"><option value="Hematologia (BR)">Hematologia</option><option value="Farmacia (BR)">Farmácia</option></select></div>
+    </div>
+    <div class="field"><label>Conta / Instituição</label><input id="dConta" autocomplete="off" spellcheck="false"></div>
+    <div class="field">
+      <label>Marcadores de score</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;" id="scoreChips">
+        <button type="button" class="bchip" data-v="testedSarc" onclick="toggleSc(this)">✓ Testou Sarclisa (+2)</button>
+        <button type="button" class="bchip" data-v="hasAccess" onclick="toggleSc(this)">✓ Acesso institucional (+3)</button>
+        <button type="button" class="bchip" data-v="noAccess" onclick="toggleSc(this)">✗ Sem acesso (−2)</button>
       </div>
     </div>
-    <div class="field"><label>WhatsApp (ex: 19-99999-9999)</label><input id="iPhone" type="tel"></div>
-    <div class="field-2col">
-      <div class="field"><label>Cidade</label><input id="iCity" autocomplete="off" autocorrect="off" spellcheck="false"></div>
-      <div class="field"><label>Especialidade</label>
-        <select id="iEsp"><option value="Hematologia (BR)">Hematologia</option><option value="Farmacia (BR)">Farmácia</option></select>
-      </div>
-    </div>
-    <div class="field"><label>Conta / Instituição</label><input id="iConta" autocomplete="off" spellcheck="false"></div>
-    <div class="btn-row">
-      <button class="btn-cancel" onclick="closeDocModal()">Cancelar</button>
-      <button class="btn-save" onclick="saveDoc()">Salvar</button>
-    </div>
+    <div class="brow"><button class="bcanc" onclick="closeDocModal()">Cancelar</button><button class="bsave" onclick="saveDoc()">Salvar</button></div>
   </div>
 </div>
 
 <!-- MODAL MATERIAL -->
-<div class="overlay" id="matOverlay">
+<div class="ov" id="matOv">
   <div class="modal">
-    <h2 id="matModalTitle">Material <button onclick="closeMatModal()">×</button></h2>
-    <div class="field"><label>Nome do material</label><input id="mName"></div>
+    <div class="mhd"><h2 id="matMT">Material</h2><button onclick="closeMatModal()">×</button></div>
+    <input type="hidden" id="mIdx">
+    <div class="field"><label>Nome</label><input id="mName"></div>
     <div class="field"><label>Mensagem WhatsApp</label><textarea id="mMsg" placeholder="Olá! ..."></textarea></div>
-    <div class="btn-row">
-      <button class="btn-cancel" onclick="closeMatModal()">Cancelar</button>
-      <button class="btn-save" onclick="saveMat()">Salvar</button>
-    </div>
+    <div class="brow"><button class="bcanc" onclick="closeMatModal()">Cancelar</button><button class="bsave" onclick="saveMat()">Salvar</button></div>
   </div>
 </div>
 
-<!-- MODAL CONFIRMAR DELETE -->
-<div class="overlay" id="delOverlay">
+<!-- MODAL DELETE -->
+<div class="ov" id="delOv">
   <div class="modal">
-    <h2>Excluir <button onclick="closeDelModal()">×</button></h2>
+    <div class="mhd"><h2>Confirmar</h2><button onclick="closeDelOv()">×</button></div>
     <p id="delMsg" style="font-size:14px;color:#333;margin-bottom:20px;line-height:1.5;"></p>
-    <div class="btn-row">
-      <button class="btn-cancel" onclick="closeDelModal()">Cancelar</button>
-      <button class="btn-del-conf" onclick="confirmDel()">Excluir</button>
-    </div>
+    <div class="brow"><button class="bcanc" onclick="closeDelOv()">Cancelar</button><button class="bdel" onclick="confirmDel()">Excluir</button></div>
   </div>
 </div>
 
 <script>
-// ─── MATERIAIS ───────────────────────────────────────────────────────────────
-var MATS = [
-  {name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm ponto que tem chamado atenção no HD7 é a rapidez da resposta já na indução com Sarclisa® + VRd nesse caso clínico elegível ao TMO. Caso tenha tido experiência, você tem percebido diferença quando intensifica com anti-CD38 logo na 1ª linha?\n\nVeja esse caso clínico com resposta rápida ao tratamento de indução em pacientes elegíveis ao TACT: https://bit.ly/4scupfx"},
-  {name:"HD7 – Eficácia (DRM na indução)",msg:"Olá!\n\nEsse dado do HD7 é interessante: aumento relevante de DRM negativa ainda antes do transplante com Sarclisa® + VRd. De que forma alcançar DRM- já na indução muda sua visão sobre a manutenção depois do TMO?\n\nVeja mais no nosso artigo de tratamento para pacientes MMRD elegíveis: análise da DRM e o impacto na SLP: https://bit.ly/46G6U6r"},
-  {name:"HD7 – Posologia (exposição curta)",msg:"Olá!\n\nUm detalhe prático do HD7 que costuma gerar discussão é o uso de Sarclisa® em apenas 11 doses durante a indução com VRd. Esse formato mais curto facilita considerar quadruplete na sua rotina?\n\nVeja mais sobre a posologia administração de Sarclisa® no HD7: https://bit.ly/4lIIoGA"},
-  {name:"IMROZ – Eficácia",msg:"Olá!\n\nNo IMROZ, chamou atenção a SLP mais longa com Sarclisa® + VRd já na 1ª linha dos pacientes sem indicação de TMO. Como você enxerga quadrupletes como estratégia inicial nesses casos?\n\nSaiba mais em: https://bit.ly/3BIcvM8"},
-  {name:"IMROZ – DRM longitudinal",msg:"Olá!\n\nOutro ponto interessante do IMROZ foi o aumento progressivo da DRM negativa ao longo do tratamento com Sarclisa®. Como esse aprofundamento contínuo da resposta influencia sua escolha do esquema inicial?\n\nSaiba mais sobre a dinâmica da negatividade da doença residual mínima em pacientes com mieloma múltiplo recém-diagnosticado: https://bit.ly/42izZRF"},
-  {name:"IMROZ – Caso clínico",msg:"Olá!\n\nEsse caso clínico mostra resposta já no primeiro ciclo com Sarclisa® + VRd em paciente inelegível ao transplante, bem alinhado com o IMROZ. Caso já tenha tido experiência, você tem observado respostas precoces assim com quadruplete na prática?\n\nSaiba mais nesse interessante caso clínico: https://bit.ly/4aBvlT5"}
-];
+var MATS_DEF=[{name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm ponto que tem chamado atenção no HD7 é a rapidez da resposta já na indução com Sarclisa® + VRd nesse caso clínico elegível ao TMO. Caso tenha tido experiência, você tem percebido diferença quando intensifica com anti-CD38 logo na 1ª linha?\n\nVeja esse caso clínico com resposta rápida ao tratamento de indução em pacientes elegíveis ao TACT: https://bit.ly/4scupfx"},{name:"HD7 – Eficácia (DRM na indução)",msg:"Olá!\n\nEsse dado do HD7 é interessante: aumento relevante de DRM negativa ainda antes do transplante com Sarclisa® + VRd. De que forma alcançar DRM- já na indução muda sua visão sobre a manutenção depois do TMO?\n\nVeja mais no nosso artigo de tratamento para pacientes MMRD elegíveis: análise da DRM e o impacto na SLP: https://bit.ly/46G6U6r"},{name:"HD7 – Posologia (exposição curta)",msg:"Olá!\n\nUm detalhe prático do HD7 que costuma gerar discussão é o uso de Sarclisa® em apenas 11 doses durante a indução com VRd. Esse formato mais curto facilita considerar quadruplete na sua rotina?\n\nVeja mais sobre a posologia administração de Sarclisa® no HD7: https://bit.ly/4lIIoGA"},{name:"IMROZ – Eficácia",msg:"Olá!\n\nNo IMROZ, chamou atenção a SLP mais longa com Sarclisa® + VRd já na 1ª linha dos pacientes sem indicação de TMO. Como você enxerga quadrupletes como estratégia inicial nesses casos?\n\nSaiba mais em: https://bit.ly/3BIcvM8"},{name:"IMROZ – DRM longitudinal",msg:"Olá!\n\nOutro ponto interessante do IMROZ foi o aumento progressivo da DRM negativa ao longo do tratamento com Sarclisa®. Como esse aprofundamento contínuo da resposta influencia sua escolha do esquema inicial?\n\nSaiba mais sobre a dinâmica da negatividade da doença residual mínima em pacientes com mieloma múltiplo recém-diagnosticado: https://bit.ly/42izZRF"},{name:"IMROZ – Caso clínico",msg:"Olá!\n\nEsse caso clínico mostra resposta já no primeiro ciclo com Sarclisa® + VRd em paciente inelegível ao transplante, bem alinhado com o IMROZ. Caso já tenha tido experiência, você tem observado respostas precoces assim com quadruplete na prática?\n\nSaiba mais nesse interessante caso clínico: https://bit.ly/4aBvlT5"}];
+var DOCS_DEF=[{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","pot":"C","phone":"19-99219-9293","city":"ARARAS","conta":"UNIMED Araras","esp":"Hematologia (BR)"},{"name":"ALINE SHIRATA","crm":"SP0066559","pot":"C","phone":"11-99190-9023","city":"SOROCABA","conta":"Centro de Hematologia Sorocaba","esp":"Farmacia (BR)"},{"name":"AMAURI GUIMARAES BARREIRO","crm":"MG0016661","pot":"C","phone":"35-98805-3242","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"ANA CLAUDIA CHIARI","crm":"SP0091141","pot":"C","phone":"11-97497-9698","city":"SALTO","conta":"UNIMED Salto Itu","esp":"Hematologia (BR)"},{"name":"ANA GABRIELA POVEDA BISMARA","crm":"SP0155612","pot":"C","phone":"15-97401-0226","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ANA PAULA VAZ DE CARVALHO","crm":"SP0124222","pot":"C","phone":"15-99837-9898","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"ANDREZA LAMONICA","crm":"SP0170196","pot":"B","phone":"14-99757-2922","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"ANTONIO PAULO SERVANTES","crm":"SP0120597","pot":"B","phone":"11-99658-9732","city":"BRAGANÇA PAULISTA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"ARIELLA CASSIA DE MOURA","crm":"SP0144898","pot":"B","phone":"15-98117-1088","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ARLETE DELFINA MARQUES MAIA","crm":"MS0001781","pot":"C","phone":"67-99983-2782","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BARBARA DE CAMPOS","crm":"SP0050377","pot":"C","phone":"19-99896-2012","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"BEATRIZ ESPERANCA DE LEO TEDDE","crm":"MS0011076","pot":"B","phone":"67-98185-1289","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"BIANCA RUIZ LIMA","crm":"MS0014139","pot":"B","phone":"17-99627-2767","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"BIANCA ZOCCA MOREIRA CALVILHO","crm":"SP0122878","pot":"C","phone":"11-98647-0067","city":"SOROCABA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BRUNA ADOLFO MESTIERI","crm":"SP0131046","pot":"B","phone":"11-96343-0217","city":"SALTO","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"CAMILA ALMEIDA DO AMARAL KRUZICH","crm":"SP0170850","pot":"A","phone":"19-98127-1677","city":"PIRACICABA","conta":"UNIMED Piracicaba","esp":"Hematologia (BR)"},{"name":"CAMILA GALATI ARAUJO","crm":"SP0139517","pot":"A","phone":"19-99203-0783","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILA HELENA GONZAGA DA SILVA","crm":"SP0185490","pot":"C","phone":"11-97054-4955","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"CAMILLA DELFINO DOS SANTOS","crm":"SP0120589","pot":"A","phone":"19-99210-5299","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILLA MARIA DE ALENCAR SARAIVA","crm":"SP0186160","pot":"A","phone":"19-93861-5507","city":"JUNDIAÍ","conta":"UNIMED Jundiaí","esp":"Hematologia (BR)"},{"name":"CARLOS EDUARDO ENGEL VELANO","crm":"MG0038289","pot":"C","phone":"35-98855-9623","city":"POÇOS DE CALDAS","conta":"CIOP","esp":"Hematologia (BR)"},{"name":"CARLOS WILSON DE ALENCAR CANO","crm":"MS0010775","pot":"B","phone":"67-99298-6769","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"CELSO RICARDO MARCONDES DOS SANTOS","crm":"SP0133318","pot":"C","phone":"19-99779-2759","city":"MOGI MIRIM","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"CHRISTIANE HATSUE NATORI","crm":"MS0005859","pot":"B","phone":"67-99931-4884","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"CLAUDIA HELENA RUBI IVAN CARNIELLI","crm":"SP0086931","pot":"C","phone":"19-99765-0337","city":"AMERICANA","conta":"UNIMED Americana","esp":"Hematologia (BR)"},{"name":"CLAUDIA MARIANA SOARES ASSATO","crm":"SP0080136","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIA TERESA DE OLIVEIRA","crm":"SP0079679","pot":"C","phone":"14-98111-3156","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIO RENATO CUNHA FREIRE","crm":"SP0165149","pot":"C","phone":"19-98428-4249","city":"PIRACICABA","conta":"HFC","esp":"Hematologia (BR)"},{"name":"DANIEL SALAS STEINBAUM","crm":"MS0006995","pot":"B","phone":"67-98186-6162","city":"DOURADOS","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"DEISE FERREIRA NANTES","crm":"MS0007182","pot":"B","phone":"67-99626-8780","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"DENISE BITTENCOURT SIQUEIRA","crm":"MG0064853","pot":"C","phone":"14-98100-0879","city":"TRÊS CORAÇÕES","conta":"UNIMED Três Corações","esp":"Hematologia (BR)"},{"name":"DIRCEU EURILIO SILVA","crm":"MG0023077","pot":"C","phone":"35-99989-6568","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"EDER SANTANA NAVARRO","crm":"SP0163202","pot":"B","phone":"15-99148-4884","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"EDERSON ROBERTO DE MATTOS","crm":"SP0102054","pot":"B","phone":"14-99133-7515","city":"JAU","conta":"UNIMED Jaú","esp":"Hematologia (BR)"},{"name":"ELAINE RODRIGUEIRO BELINI","crm":"MS0005330","pot":"C","phone":"67-99918-0823","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Farmacia (BR)"},{"name":"ELCIO FARIA","crm":"SP0072992","pot":"A","phone":"19-99269-5304","city":"LIMEIRA","conta":"UNIMED Limeira","esp":"Hematologia (BR)"},{"name":"EVENY CRISTINE LUNA DE OLIVEIRA","crm":"MS0003339","pot":"C","phone":"67-99886-2908","city":"CAMPO GRANDE","conta":"ITC","esp":"Hematologia (BR)"},{"name":"FABIO DE OLIVEIRA MARTIN","crm":"SP0105791","pot":"C","phone":"19-98210-1000","city":"INDAIATUBA","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"FABIO JOSE DELLA PIAZZA","crm":"SP0035390","pot":"C","phone":"19-99167-3832","city":"LIMEIRA","conta":"PHS","esp":"Hematologia (BR)"},{"name":"FAUSI PADILHA GONÇALVES","crm":"MS0003941","pot":"C","phone":"67-99629-0985","city":"DOURADOS","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"FERNANDO VIEIRA PERICOLE DE SOUZA","crm":"SP0115806","pot":"A","phone":"19-99167-0235","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GISLAINE BORBA OLIVEIRA","crm":"SP0077416","pot":"A","phone":"19-99111-3664","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GIULIA MARIA HAKIM GOMES","crm":"SP0092755","pot":"C","phone":"15-99736-5649","city":"SOROCABA","conta":"Clínica Devita","esp":"Farmacia (BR)"},{"name":"GRAZZIELLA CURADO SIUFI","crm":"MS0003940","pot":"C","phone":"67-98136-4547","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"GUILHERME FELIPE DONNANGELO MARTINS","crm":"SP0141014","pot":"C","phone":"19-99720-1637","city":"MOGI GUAÇU","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"GUSTAVO FERNANDO VERALDI ISMAEL","crm":"SP0111953","pot":"C","phone":"19-98328-3595","city":"RIO CLARO","conta":"UNIMED Rio Claro","esp":"Hematologia (BR)"},{"name":"ISOLMAR TADEU SCHETTERT","crm":"SP0077418","pot":"A","phone":"11-99204-0828","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"IVNA BALTAZAR FILGUEIRAS STUCCHI","crm":"SP0195674","pot":"C","phone":"19-98443-4272","city":"CAMPINAS","conta":"Oncocamp","esp":"Hematologia (BR)"},{"name":"JAIR ALVES BONFIM FILHO","crm":"MS0007667","pot":"B","phone":"67-98219-1787","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"JAMILLE ELITA DE CASTRO CUNHA HERCULANI","crm":"SP0165407","pot":"C","phone":"11-98711-2081","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"JIVIANE BEATRIZ CUNHA BARRETO DA SILVA","crm":"SP0130850","pot":"C","phone":"19-98207-2627","city":"CAMPINAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO GUILHERME MARTINS LUSVARGHI","crm":"MG0063578","pot":"C","phone":"35-99147-1807","city":"POÇOS DE CALDAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO PAULO MARQUES BIGHETTI","crm":"SP0081779","pot":"C","phone":"19-98105-3992","city":"LIMEIRA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO VICTOR VEZALI COSTARDI","crm":"SP0182816","pot":"C","phone":"67-99985-5233","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE","crm":"MG0059217","pot":"B","phone":"35-99896-6688","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"JULIANA LINO DE MATOS ROSA","crm":"SP0125303","pot":"C","phone":"11-98183-3301","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"JULIANE FONTES SEVERINO","crm":"MS0004494","pot":"C","phone":"67-98209-6367","city":"CAMPO GRANDE","conta":"CEON","esp":"Farmacia (BR)"},{"name":"JULIO ROBERTO CORREA","crm":"SP0030752","pot":"C","phone":"14-99798-9420","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JUNIA RODRIGUES BRANDAO FRANCO","crm":"","pot":"C","phone":"13-98160-8661","city":"SÃO JOÃO DA BOA VISTA","conta":"Clinion","esp":"Hematologia (BR)"},{"name":"KAREN DARIANE BARBOSA DE VASCONCELOS","crm":"MG0060816","pot":"C","phone":"35-9857-3052","city":"ITAJUBÁ","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"KLEBER KOBAYASHI","crm":"MS0006294","pot":"C","phone":"67-99940-4149","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"LARISSA TADEI DE MARQUI","crm":"SP0120705","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"LILIAN ZORTEA","crm":"MS0002863","pot":"C","phone":"67-99285-1305","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Farmacia (BR)"},{"name":"LISA AQUARONI RICCI","crm":"SP0109006","pot":"B","phone":"15-99787-2900","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"LORENA BEDOTTI RIBEIRO","crm":"SP0158055","pot":"C","phone":"19-99373-9827","city":"CAMPINAS","conta":"SOnHe","esp":"Hematologia (BR)"},{"name":"LUCAS OLIVEIRA CANTADORI","crm":"SP0134571","pot":"B","phone":"14-98124-2886","city":"BOTUCATU","conta":"UNIMED Botucatu","esp":"Hematologia (BR)"},{"name":"LUCIANO CARVALHO CAMPOS","crm":"MG0030620","pot":"C","phone":"35-99931-8459","city":"LAVRAS","conta":"UNIMED Lavras","esp":"Hematologia (BR)"},{"name":"LUCIANO FUZZATO SILVA","crm":"SP0105298","pot":"B","phone":"19-99939-9355","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"LUÍS HENRIQUE MASCARENHAS MOREIRA","crm":"MS0002209","pot":"A","phone":"67-99981-7430","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"LUIZ GUSTAVO RODRIGUES BARBOSA","crm":"SP0168761","pot":"C","phone":"14-98141-9491","city":"JAU","conta":"Hospital Amaral Carvalho","esp":"Hematologia (BR)"},{"name":"MARCELO AUGUSTO ARAUJO ASSUNCAO","crm":"MG0061475","pot":"C","phone":"31-99762-9558","city":"LAVRAS","conta":"Onco Lavras","esp":"Hematologia (BR)"},{"name":"MARCELO BERNARDINI ANTUNES","crm":"SP0104562","pot":"B","phone":"14-99792-3873","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"MARCELO DOS SANTOS SOUZA","crm":"MS0003287","pot":"C","phone":"67-99219-6811","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"MARCO TULIO CESTARI RODRIGUES","crm":"MS0010456","pot":"C","phone":"67-99913-0498","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"MARCOS PAULO COLELLA","crm":"SP0115844","pot":"C","phone":"19-99672-9777","city":"CAMPINAS","conta":"Américas","esp":"Hematologia (BR)"},{"name":"MARCUS VINICIUS FRANZIN BIZZARO","crm":"SP0104373","pot":"C","phone":"16-99606-8878","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"MARIA APARECIDA SANTOS PIRES","crm":"MS0001826","pot":"C","phone":"67-99971-5464","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Hematologia (BR)"},{"name":"MARIA PAULA NALESSO CAMARGO","crm":"SP0130139","pot":"C","phone":"15-99828-2282","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"MARIAMA NAKAMOTO FERNANDES DOS SANTOS","crm":"SP0175995","pot":"B","phone":"17-99709-5757","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"MARIANA CRISTTINA LIMA DE FALCO","crm":"SP0199193","pot":"C","phone":"19-99318-3106","city":"MOGI MIRIM","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARILIA SOARES E SILVA ARCADIPANE","crm":"SP0130636","pot":"C","phone":"11-99659-2105","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARINA MOSCA PEDROSO","crm":"SP0066536","pot":"C","phone":"19-99715-9343","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"MARTA APARECIDA SOARES ROSSINI","crm":"SP0051528","pot":"C","phone":"19-99791-6553","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"MARTA MARIA FALSETTI","crm":"SP0064717","pot":"C","phone":"19-99782-0795","city":"MOGI GUAÇU","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MELINA SALVI DIAS ATHAYDE","crm":"MG0046660","pot":"C","phone":"31-8636-6412","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"MICHELE KAMILA GALGANI AMARU","crm":"SP0152391","pot":"C","phone":"19-98159-4768","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"MONICA DE MACEDO SILVA","crm":"MG0025086","pot":"C","phone":"","city":"ITAJUBÁ","conta":"UNIMED Itajubá","esp":"Hematologia (BR)"},{"name":"PAMELA RISARDI FRANCELIN","crm":"SP0162649","pot":"C","phone":"16-99706-4239","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"PATRICIA GAMA","crm":"SP0080550","pot":"B","phone":"19-98314-7273","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"PAULA NATASHA RIBEIRO JONAS DE FARIA","crm":"MG0066565","pot":"B","phone":"35-99764-5849","city":"VARGINHA","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"PAULO EDUARDO DE SOUZA","crm":"SP0043194","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"PAULO RIBEIRO CALIL","crm":"SP0085651","pot":"C","phone":"19-99608-5236","city":"RIO CLARO","conta":"UNIMED SBO/Americana","esp":"Hematologia (BR)"},{"name":"RENATA BALDISSERA CARDOSO","crm":"SP0073499","pot":"C","phone":"14-99854-3939","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"RICARDO DAVID FROTA","crm":"MG0031433","pot":"B","phone":"35-9969-7573","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"ROBENILSON ALMEIDA SOUZA","crm":"SP0097171","pot":"B","phone":"","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ROGERIO CAMARA VALSANI","crm":"SP0044912","pot":"C","phone":"19-99604-6750","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"ROSANA FERREIRA GOMES SALMAZO","crm":"MS0002830","pot":"C","phone":"67-99618-1927","city":"DOURADOS","conta":"Oncoclínica Dourados","esp":"Farmacia (BR)"},{"name":"ROSELI NUNES DA SILVEIRA ANTUNES","crm":"SP0073565","pot":"C","phone":"14-98121-8959","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"SAMIRA DE OLIVEIRA LAUAR","crm":"SP0055618","pot":"A","phone":"19-99771-8182","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SONIA REGINA IANTAS","crm":"SP0062938","pot":"A","phone":"11-99654-1639","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SORAIA TEIXEIRA ROMANINI","crm":"MS0005113","pot":"C","phone":"67-98154-0224","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SULEY MARA CHADDAD VANCINE","crm":"SP0109239","pot":"C","phone":"11-99621-3922","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SUZANA DE FRANCA RIBEIRO GONZAGA","crm":"SP0148118","pot":"B","phone":"11-95425-4245","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"SUZANA SILVA PRADO ZINCONE","crm":"MG0029613","pot":"C","phone":"35-99146-8499","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"VALTER ADOLPHO MASSAGLI FILHO","crm":"SP0121800","pot":"A","phone":"15-99779-0506","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"VANESSA MOURA COVEZZI","crm":"SP0080419","pot":"C","phone":"19-99378-7233","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"VINICIUS BORGES GRILO","crm":"SP0130949","pot":"B","phone":"19-98431-1616","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VINICIUS MARTINS NASCIMENTO","crm":"SP0163864","pot":"A","phone":"13-99716-3844","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VITOR VASQUEZ DOS SANTOS","crm":"SP0162252","pot":"C","phone":"17-99769-8366","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"WALTER ASSUNCAO GONCALVES","crm":"MS0008678","pot":"C","phone":"67-98186-7166","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"WILLIAN PAIVA DA LUZ","crm":"MS0003713","pot":"C","phone":"67-98202-3177","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"}];
+var CONTAS_DEF=[{conta:"UNIMED Campinas",scoreTam:3,scoreMom:3,scorePot:3,scoreEsp:2,scoreTotal:11,mat:1904,ytd:129,prioridade:"Prioridade Máxima"},{conta:"UNIMED Jundiaí",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:144,ytd:11,prioridade:"Prioridade Alta"},{conta:"Vera Cruz",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:108,ytd:14,prioridade:"Prioridade Alta"},{conta:"UNIMED Bauru",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:142,ytd:16,prioridade:"Prioridade Alta"},{conta:"UNIMED Sorocaba",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:139,ytd:11,prioridade:"Prioridade Alta"},{conta:"UNIMED Americana",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:102,ytd:0,prioridade:"Prioridade Alta"},{conta:"UNIMED Limeira",scoreTam:2,scoreMom:3,scorePot:2,scoreEsp:2,scoreTotal:9,mat:33,ytd:8,prioridade:"Prioridade Alta"},{conta:"Oncominas",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:50,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Varginha",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:49,ytd:3,prioridade:"Prioridade Média"},{conta:"UNIMED Piracicaba",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:52,ytd:5,prioridade:"Prioridade Média"},{conta:"CASSEMS",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:68,ytd:0,prioridade:"Prioridade Média"},{conta:"Prognóstica",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:40,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED São Carlos",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:39,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Rio Claro",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:2,scoreTotal:7,mat:30,ytd:3,prioridade:"Prioridade Média"},{conta:"Centro de Hematologia Sorocaba",scoreTam:1,scoreMom:3,scorePot:1,scoreEsp:2,scoreTotal:7,mat:11,ytd:11,prioridade:"Prioridade Média"},{conta:"UNIMED Dourados",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Marília",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Campo Grande",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:1,scoreTotal:6,mat:40,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Poços de Caldas",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:5,mat:25,ytd:0,prioridade:"Monitoramento"},{conta:"Consultório",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:"Monitoramento"}];
+var BARREIRAS=['Acesso convênio','Protocolo institucional','Preferência por daratumumabe','Falta de experiência','Logística de infusão','Perfil de paciente','Sem barreiras identificadas'];
 
-// ─── MÉDICOS ─────────────────────────────────────────────────────────────────
-var DOCS = [{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","pot":"C","phone":"19-99219-9293","city":"ARARAS","conta":"UNIMED Araras","esp":"Hematologia (BR)"},{"name":"ALINE SHIRATA","crm":"SP0066559","pot":"C","phone":"11-99190-9023","city":"SOROCABA","conta":"Centro de Hematologia Sorocaba","esp":"Farmacia (BR)"},{"name":"AMAURI GUIMARAES BARREIRO","crm":"MG0016661","pot":"C","phone":"35-98805-3242","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"ANA CLAUDIA CHIARI","crm":"SP0091141","pot":"C","phone":"11-97497-9698","city":"SALTO","conta":"UNIMED Salto Itu","esp":"Hematologia (BR)"},{"name":"ANA GABRIELA POVEDA BISMARA","crm":"SP0155612","pot":"C","phone":"15-97401-0226","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ANA PAULA VAZ DE CARVALHO","crm":"SP0124222","pot":"C","phone":"15-99837-9898","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"ANDREZA LAMONICA","crm":"SP0170196","pot":"B","phone":"14-99757-2922","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"ANTONIO PAULO SERVANTES","crm":"SP0120597","pot":"B","phone":"11-99658-9732","city":"BRAGANÇA PAULISTA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"ARIELLA CASSIA DE MOURA","crm":"SP0144898","pot":"B","phone":"15-98117-1088","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ARLETE DELFINA MARQUES MAIA","crm":"MS0001781","pot":"C","phone":"67-99983-2782","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BARBARA DE CAMPOS","crm":"SP0050377","pot":"C","phone":"19-99896-2012","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"BEATRIZ ESPERANCA DE LEO TEDDE","crm":"MS0011076","pot":"B","phone":"67-98185-1289","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"BIANCA RUIZ LIMA","crm":"MS0014139","pot":"B","phone":"17-99627-2767","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"BIANCA ZOCCA MOREIRA CALVILHO","crm":"SP0122878","pot":"C","phone":"11-98647-0067","city":"SOROCABA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BRUNA ADOLFO MESTIERI","crm":"SP0131046","pot":"B","phone":"11-96343-0217","city":"SALTO","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"CAMILA ALMEIDA DO AMARAL KRUZICH","crm":"SP0170850","pot":"A","phone":"19-98127-1677","city":"PIRACICABA","conta":"UNIMED Piracicaba","esp":"Hematologia (BR)"},{"name":"CAMILA GALATI ARAUJO","crm":"SP0139517","pot":"A","phone":"19-99203-0783","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILA HELENA GONZAGA DA SILVA","crm":"SP0185490","pot":"C","phone":"11-97054-4955","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"CAMILLA DELFINO DOS SANTOS","crm":"SP0120589","pot":"A","phone":"19-99210-5299","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILLA MARIA DE ALENCAR SARAIVA","crm":"SP0186160","pot":"A","phone":"19-93861-5507","city":"JUNDIAÍ","conta":"UNIMED Jundiaí","esp":"Hematologia (BR)"},{"name":"CARLOS EDUARDO ENGEL VELANO","crm":"MG0038289","pot":"C","phone":"35-98855-9623","city":"POÇOS DE CALDAS","conta":"CIOP","esp":"Hematologia (BR)"},{"name":"CARLOS WILSON DE ALENCAR CANO","crm":"MS0010775","pot":"B","phone":"67-99298-6769","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"CELSO RICARDO MARCONDES DOS SANTOS","crm":"SP0133318","pot":"C","phone":"19-99779-2759","city":"MOGI MIRIM","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"CHRISTIANE HATSUE NATORI","crm":"MS0005859","pot":"B","phone":"67-99931-4884","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"CLAUDIA HELENA RUBI IVAN CARNIELLI","crm":"SP0086931","pot":"C","phone":"19-99765-0337","city":"AMERICANA","conta":"UNIMED Americana","esp":"Hematologia (BR)"},{"name":"CLAUDIA MARIANA SOARES ASSATO","crm":"SP0080136","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIA TERESA DE OLIVEIRA","crm":"SP0079679","pot":"C","phone":"14-98111-3156","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIO RENATO CUNHA FREIRE","crm":"SP0165149","pot":"C","phone":"19-98428-4249","city":"PIRACICABA","conta":"HFC","esp":"Hematologia (BR)"},{"name":"DANIEL SALAS STEINBAUM","crm":"MS0006995","pot":"B","phone":"67-98186-6162","city":"DOURADOS","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"DEISE FERREIRA NANTES","crm":"MS0007182","pot":"B","phone":"67-99626-8780","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"DENISE BITTENCOURT SIQUEIRA","crm":"MG0064853","pot":"C","phone":"14-98100-0879","city":"TRÊS CORAÇÕES","conta":"UNIMED Três Corações","esp":"Hematologia (BR)"},{"name":"DIRCEU EURILIO SILVA","crm":"MG0023077","pot":"C","phone":"35-99989-6568","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"EDER SANTANA NAVARRO","crm":"SP0163202","pot":"B","phone":"15-99148-4884","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"EDERSON ROBERTO DE MATTOS","crm":"SP0102054","pot":"B","phone":"14-99133-7515","city":"JAU","conta":"UNIMED Jaú","esp":"Hematologia (BR)"},{"name":"ELAINE RODRIGUEIRO BELINI","crm":"MS0005330","pot":"C","phone":"67-99918-0823","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Farmacia (BR)"},{"name":"ELCIO FARIA","crm":"SP0072992","pot":"A","phone":"19-99269-5304","city":"LIMEIRA","conta":"UNIMED Limeira","esp":"Hematologia (BR)"},{"name":"EVENY CRISTINE LUNA DE OLIVEIRA","crm":"MS0003339","pot":"C","phone":"67-99886-2908","city":"CAMPO GRANDE","conta":"ITC","esp":"Hematologia (BR)"},{"name":"FABIO DE OLIVEIRA MARTIN","crm":"SP0105791","pot":"C","phone":"19-98210-1000","city":"INDAIATUBA","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"FABIO JOSE DELLA PIAZZA","crm":"SP0035390","pot":"C","phone":"19-99167-3832","city":"LIMEIRA","conta":"PHS","esp":"Hematologia (BR)"},{"name":"FAUSI PADILHA GONÇALVES","crm":"MS0003941","pot":"C","phone":"67-99629-0985","city":"DOURADOS","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"FERNANDO VIEIRA PERICOLE DE SOUZA","crm":"SP0115806","pot":"A","phone":"19-99167-0235","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GISLAINE BORBA OLIVEIRA","crm":"SP0077416","pot":"A","phone":"19-99111-3664","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GIULIA MARIA HAKIM GOMES","crm":"SP0092755","pot":"C","phone":"15-99736-5649","city":"SOROCABA","conta":"Clínica Devita","esp":"Farmacia (BR)"},{"name":"GRAZZIELLA CURADO SIUFI","crm":"MS0003940","pot":"C","phone":"67-98136-4547","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"GUILHERME FELIPE DONNANGELO MARTINS","crm":"SP0141014","pot":"C","phone":"19-99720-1637","city":"MOGI GUAÇU","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"GUSTAVO FERNANDO VERALDI ISMAEL","crm":"SP0111953","pot":"C","phone":"19-98328-3595","city":"RIO CLARO","conta":"UNIMED Rio Claro","esp":"Hematologia (BR)"},{"name":"ISOLMAR TADEU SCHETTERT","crm":"SP0077418","pot":"A","phone":"11-99204-0828","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"IVNA BALTAZAR FILGUEIRAS STUCCHI","crm":"SP0195674","pot":"C","phone":"19-98443-4272","city":"CAMPINAS","conta":"Oncocamp","esp":"Hematologia (BR)"},{"name":"JAIR ALVES BONFIM FILHO","crm":"MS0007667","pot":"B","phone":"67-98219-1787","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"JAMILLE ELITA DE CASTRO CUNHA HERCULANI","crm":"SP0165407","pot":"C","phone":"11-98711-2081","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"JIVIANE BEATRIZ CUNHA BARRETO DA SILVA","crm":"SP0130850","pot":"C","phone":"19-98207-2627","city":"CAMPINAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO GUILHERME MARTINS LUSVARGHI","crm":"MG0063578","pot":"C","phone":"35-99147-1807","city":"POÇOS DE CALDAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO PAULO MARQUES BIGHETTI","crm":"SP0081779","pot":"C","phone":"19-98105-3992","city":"LIMEIRA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO VICTOR VEZALI COSTARDI","crm":"SP0182816","pot":"C","phone":"67-99985-5233","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE","crm":"MG0059217","pot":"B","phone":"35-99896-6688","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"JULIANA LINO DE MATOS ROSA","crm":"SP0125303","pot":"C","phone":"11-98183-3301","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"JULIANE FONTES SEVERINO","crm":"MS0004494","pot":"C","phone":"67-98209-6367","city":"CAMPO GRANDE","conta":"CEON","esp":"Farmacia (BR)"},{"name":"JULIO ROBERTO CORREA","crm":"SP0030752","pot":"C","phone":"14-99798-9420","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JUNIA RODRIGUES BRANDAO FRANCO","crm":"","pot":"C","phone":"13-98160-8661","city":"SÃO JOÃO DA BOA VISTA","conta":"Clinion","esp":"Hematologia (BR)"},{"name":"KAREN DARIANE BARBOSA DE VASCONCELOS","crm":"MG0060816","pot":"C","phone":"35-9857-3052","city":"ITAJUBÁ","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"KLEBER KOBAYASHI","crm":"MS0006294","pot":"C","phone":"67-99940-4149","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"LARISSA TADEI DE MARQUI","crm":"SP0120705","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"LILIAN ZORTEA","crm":"MS0002863","pot":"C","phone":"67-99285-1305","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Farmacia (BR)"},{"name":"LISA AQUARONI RICCI","crm":"SP0109006","pot":"B","phone":"15-99787-2900","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"LORENA BEDOTTI RIBEIRO","crm":"SP0158055","pot":"C","phone":"19-99373-9827","city":"CAMPINAS","conta":"SOnHe","esp":"Hematologia (BR)"},{"name":"LUCAS OLIVEIRA CANTADORI","crm":"SP0134571","pot":"B","phone":"14-98124-2886","city":"BOTUCATU","conta":"UNIMED Botucatu","esp":"Hematologia (BR)"},{"name":"LUCIANO CARVALHO CAMPOS","crm":"MG0030620","pot":"C","phone":"35-99931-8459","city":"LAVRAS","conta":"UNIMED Lavras","esp":"Hematologia (BR)"},{"name":"LUCIANO FUZZATO SILVA","crm":"SP0105298","pot":"B","phone":"19-99939-9355","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"LUÍS HENRIQUE MASCARENHAS MOREIRA","crm":"MS0002209","pot":"A","phone":"67-99981-7430","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"LUIZ GUSTAVO RODRIGUES BARBOSA","crm":"SP0168761","pot":"C","phone":"14-98141-9491","city":"JAU","conta":"Hospital Amaral Carvalho","esp":"Hematologia (BR)"},{"name":"MARCELO AUGUSTO ARAUJO ASSUNCAO","crm":"MG0061475","pot":"C","phone":"31-99762-9558","city":"LAVRAS","conta":"Onco Lavras","esp":"Hematologia (BR)"},{"name":"MARCELO BERNARDINI ANTUNES","crm":"SP0104562","pot":"B","phone":"14-99792-3873","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"MARCELO DOS SANTOS SOUZA","crm":"MS0003287","pot":"C","phone":"67-99219-6811","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"MARCO TULIO CESTARI RODRIGUES","crm":"MS0010456","pot":"C","phone":"67-99913-0498","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"MARCOS PAULO COLELLA","crm":"SP0115844","pot":"C","phone":"19-99672-9777","city":"CAMPINAS","conta":"Américas","esp":"Hematologia (BR)"},{"name":"MARCUS VINICIUS FRANZIN BIZZARO","crm":"SP0104373","pot":"C","phone":"16-99606-8878","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"MARIA APARECIDA SANTOS PIRES","crm":"MS0001826","pot":"C","phone":"67-99971-5464","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Hematologia (BR)"},{"name":"MARIA PAULA NALESSO CAMARGO","crm":"SP0130139","pot":"C","phone":"15-99828-2282","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"MARIAMA NAKAMOTO FERNANDES DOS SANTOS","crm":"SP0175995","pot":"B","phone":"17-99709-5757","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"MARIANA CRISTTINA LIMA DE FALCO","crm":"SP0199193","pot":"C","phone":"19-99318-3106","city":"MOGI MIRIM","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARILIA SOARES E SILVA ARCADIPANE","crm":"SP0130636","pot":"C","phone":"11-99659-2105","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARINA MOSCA PEDROSO","crm":"SP0066536","pot":"C","phone":"19-99715-9343","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"MARTA APARECIDA SOARES ROSSINI","crm":"SP0051528","pot":"C","phone":"19-99791-6553","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"MARTA MARIA FALSETTI","crm":"SP0064717","pot":"C","phone":"19-99782-0795","city":"MOGI GUAÇU","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MELINA SALVI DIAS ATHAYDE","crm":"MG0046660","pot":"C","phone":"31-8636-6412","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"MICHELE KAMILA GALGANI AMARU","crm":"SP0152391","pot":"C","phone":"19-98159-4768","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"MONICA DE MACEDO SILVA","crm":"MG0025086","pot":"C","phone":"","city":"ITAJUBÁ","conta":"UNIMED Itajubá","esp":"Hematologia (BR)"},{"name":"PAMELA RISARDI FRANCELIN","crm":"SP0162649","pot":"C","phone":"16-99706-4239","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"PATRICIA GAMA","crm":"SP0080550","pot":"B","phone":"19-98314-7273","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"PAULA NATASHA RIBEIRO JONAS DE FARIA","crm":"MG0066565","pot":"B","phone":"35-99764-5849","city":"VARGINHA","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"PAULO EDUARDO DE SOUZA","crm":"SP0043194","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"PAULO RIBEIRO CALIL","crm":"SP0085651","pot":"C","phone":"19-99608-5236","city":"RIO CLARO","conta":"UNIMED SBO/Americana","esp":"Hematologia (BR)"},{"name":"RENATA BALDISSERA CARDOSO","crm":"SP0073499","pot":"C","phone":"14-99854-3939","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"RICARDO DAVID FROTA","crm":"MG0031433","pot":"B","phone":"35-9969-7573","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"ROBENILSON ALMEIDA SOUZA","crm":"SP0097171","pot":"B","phone":"","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ROGERIO CAMARA VALSANI","crm":"SP0044912","pot":"C","phone":"19-99604-6750","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"ROSANA FERREIRA GOMES SALMAZO","crm":"MS0002830","pot":"C","phone":"67-99618-1927","city":"DOURADOS","conta":"Oncoclínica Dourados","esp":"Farmacia (BR)"},{"name":"ROSELI NUNES DA SILVEIRA ANTUNES","crm":"SP0073565","pot":"C","phone":"14-98121-8959","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"SAMIRA DE OLIVEIRA LAUAR","crm":"SP0055618","pot":"A","phone":"19-99771-8182","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SONIA REGINA IANTAS","crm":"SP0062938","pot":"A","phone":"11-99654-1639","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SORAIA TEIXEIRA ROMANINI","crm":"MS0005113","pot":"C","phone":"67-98154-0224","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SULEY MARA CHADDAD VANCINE","crm":"SP0109239","pot":"C","phone":"11-99621-3922","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SUZANA DE FRANCA RIBEIRO GONZAGA","crm":"SP0148118","pot":"B","phone":"11-95425-4245","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"SUZANA SILVA PRADO ZINCONE","crm":"MG0029613","pot":"C","phone":"35-99146-8499","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"VALTER ADOLPHO MASSAGLI FILHO","crm":"SP0121800","pot":"A","phone":"15-99779-0506","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"VANESSA MOURA COVEZZI","crm":"SP0080419","pot":"C","phone":"19-99378-7233","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"VINICIUS BORGES GRILO","crm":"SP0130949","pot":"B","phone":"19-98431-1616","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VINICIUS MARTINS NASCIMENTO","crm":"SP0163864","pot":"A","phone":"13-99716-3844","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VITOR VASQUEZ DOS SANTOS","crm":"SP0162252","pot":"C","phone":"17-99769-8366","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"WALTER ASSUNCAO GONCALVES","crm":"MS0008678","pot":"C","phone":"67-98186-7166","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"WILLIAN PAIVA DA LUZ","crm":"MS0003713","pot":"C","phone":"67-98202-3177","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"}];
+var mats,docs,sent,cExtra;
+function ld(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function persist(){try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5c',JSON.stringify(cExtra));}catch(e){}}
+mats=ld('s5m',null)||MATS_DEF;docs=ld('s5d',null)||DOCS_DEF;sent=ld('s5s',{});cExtra=ld('s5c',{});
+var activeMat=-1,potF={A:true,B:true,C:true},editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-var mats = MATS;
-var docs = DOCS;
-var sent = {};
-var activeMat = -1;
-var potFilter = {A:true, B:true, C:true};
-var editDocIdx = -1;
-var editMatIdx = -1;
-var delType = '';
-var delIdx = -1;
+function calcScore(d){var s=0;if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;if(d.scoreFlags){if(d.scoreFlags.hasAccess)s+=3;if(d.scoreFlags.testedSarc)s+=2;if(d.scoreFlags.noAccess)s-=2;}return s;}
+function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
+function tc(s){if(!s)return'';return s.toLowerCase().replace(/\b(\w)/g,function(c){return c.toUpperCase();});}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function wurl(ph,msg){return'https://wa.me/+55'+ph.replace(/\D/g,'')+' ?text='+encodeURIComponent(msg);}
+function sk(n,i){return n+'__'+i;}
+function fmtDate(iso){if(!iso)return'';var d=new Date(iso);return d.getDate()+'/'+(d.getMonth()+1).toString().padStart(2,'0');}
 
-try { var s = localStorage.getItem('sc_sent'); if (s) sent = JSON.parse(s); } catch(e) {}
-try { var dm = localStorage.getItem('sc_mats'); if (dm) mats = JSON.parse(dm); } catch(e) {}
-try { var dd = localStorage.getItem('sc_docs'); if (dd) docs = JSON.parse(dd); } catch(e) {}
+function goTab(n){for(var i=0;i<5;i++){document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('p'+i).classList.toggle('on',i===n);}if(n===1)renderMats();if(n===2)renderContas();if(n===3)renderCities();if(n===4)renderInsights();}
 
-function persist() {
-  try { localStorage.setItem('sc_sent', JSON.stringify(sent)); } catch(e) {}
-  try { localStorage.setItem('sc_mats', JSON.stringify(mats)); } catch(e) {}
-  try { localStorage.setItem('sc_docs', JSON.stringify(docs)); } catch(e) {}
-}
+function buildChips(){var h='<button class="chip all'+(activeMat===-1?' on':'')+'" onclick="setMat(-1)">Todos</button>';for(var i=0;i<mats.length;i++)h+='<button class="chip'+(activeMat===i?' on':'')+'" onclick="setMat('+i+')">'+esc(mats[i].name)+'</button>';document.getElementById('chipRow').innerHTML=h;}
+function setMat(i){activeMat=i;buildChips();renderDocs();}
+function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList.toggle('dim',!potF[p]);renderDocs();}
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function tc(s) {
-  if (!s) return '';
-  return s.toLowerCase().replace(/\b(\w)/g, function(c){ return c.toUpperCase(); });
-}
-function esc(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function wurl(phone, msg) {
-  var num = '+55' + phone.replace(/\D/g,'');
-  return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
-}
-function sk(name, i) { return name + '__' + i; }
-
-// ─── TABS ─────────────────────────────────────────────────────────────────────
-function showTab(n) {
-  for (var i = 0; i < 3; i++) {
-    document.getElementById('tab' + i).classList.toggle('active', i === n);
-    document.getElementById('page' + i).classList.toggle('active', i === n);
-  }
-  if (n === 1) renderMats();
-  if (n === 2) renderInsights();
-}
-
-// ─── CHIPS ───────────────────────────────────────────────────────────────────
-function buildChips() {
-  var html = '<button class="fchip' + (activeMat === -1 ? ' active' : '') + '" onclick="setMat(-1)">Todos</button>';
-  for (var i = 0; i < mats.length; i++) {
-    html += '<button class="fchip' + (activeMat === i ? ' active' : '') + '" onclick="setMat(' + i + ')">' + esc(mats[i].name) + '</button>';
-  }
-  document.getElementById('filterRow').innerHTML = html;
-}
-function setMat(i) { activeMat = i; buildChips(); renderDocs(); }
-
-function togglePot(p) {
-  potFilter[p] = !potFilter[p];
-  document.getElementById('pot' + p).classList.toggle('dim', !potFilter[p]);
-  renderDocs();
-}
-
-// ─── DOCS ─────────────────────────────────────────────────────────────────────
-function renderDocs() {
+function renderDocs(){
   buildChips();
-  var q = document.getElementById('searchInput').value.toLowerCase().trim();
-  var filtered = [];
-  for (var i = 0; i < docs.length; i++) {
-    var d = docs[i];
-    if (!potFilter[d.pot]) continue;
-    if (q) {
-      var hay = (d.name + ' ' + (d.city||'') + ' ' + (d.conta||'')).toLowerCase();
-      if (hay.indexOf(q) === -1) continue;
+  var q=document.getElementById('srch').value.toLowerCase().trim();
+  var filt=[];
+  for(var i=0;i<docs.length;i++){var d=docs[i];if(!potF[d.pot])continue;if(q&&(d.name+' '+(d.city||'')+' '+(d.conta||'')).toLowerCase().indexOf(q)<0)continue;filt.push({d:d,i:i});}
+  filt.sort(function(a,b){var sa=calcScore(a.d),sb=calcScore(b.d);if(sb!==sa)return sb-sa;if(!!b.d.phone!==!!a.d.phone)return a.d.phone?-1:1;return a.d.name.localeCompare(b.d.name);});
+  document.getElementById('stline').textContent=filt.length+' médico'+(filt.length!==1?'s':'')+' · ordenados por score';
+  if(!filt.length){document.getElementById('dlist').innerHTML='<div class="empty">Nenhum médico encontrado.</div>';return;}
+  var matList=activeMat>=0?[{m:mats[activeMat],mi:activeMat}]:mats.map(function(m,i){return{m:m,mi:i};});
+  var html='';
+  for(var f=0;f<filt.length;f++){
+    var d=filt[f].d,di=filt[f].i,sc=calcScore(d),sl=scoreLabel(sc);
+    var sentCnt=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])sentCnt++;}
+    var siHtml='<div class="score-detail"><div class="sd-title">Score: '+sc+'</div><div class="sd-items">';
+    if(d.pot==='A')siHtml+='<span class="si si-pos">+3 Pot.A</span>';else if(d.pot==='B')siHtml+='<span class="si si-neu">+1 Pot.B</span>';else siHtml+='<span class="si si-neu">+0 Pot.C</span>';
+    if(d.scoreFlags&&d.scoreFlags.hasAccess)siHtml+='<span class="si si-pos">+3 Acesso</span>';
+    if(d.scoreFlags&&d.scoreFlags.testedSarc)siHtml+='<span class="si si-pos">+2 Sarclisa</span>';
+    if(d.scoreFlags&&d.scoreFlags.noAccess)siHtml+='<span class="si si-neg">−2 Sem acesso</span>';
+    siHtml+='</div></div>';
+    var rows='';
+    for(var r=0;r<matList.length;r++){
+      var m=matList[r].m,midx=matList[r].mi,skey=sk(d.name,midx),wasSent=sent[skey];
+      var stag=wasSent?'<button class="stag" onclick="toggleSent(\''+di+'\',\''+midx+'\')">✓ Enviado em '+fmtDate(wasSent)+'</button>':'';
+      var btn=d.phone?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enviar</a>':'<span class="nophone">Sem número</span>';
+      rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+'</div>'+btn+'</div>';
     }
-    filtered.push({d: d, i: i});
+    html+='<div class="dc" id="dc'+di+'"><div class="dc-hd" onclick="toggleDc('+di+')">'+'<div class="dc-info"><div class="dc-name"><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'<span class="sc-badge '+sl.cls+'">'+sl.txt+' ('+sc+'pts)</span></div><div class="dc-sub">'+(d.phone?'📱 '+esc(d.phone):'⚠️ Sem WhatsApp')+' · '+esc(tc(d.city||''))+' · '+esc(d.conta||'')+'</div></div>'+'<div class="dc-acts" onclick="event.stopPropagation()"><button class="ibtn" onclick="openDocModal('+di+')">✏️</button><button class="ibtn d" onclick="askDel(\'doc\','+di+')">🗑️</button></div><button class="chev">▼</button></div>'+'<div class="dc-body"><div class="dc-detail"><span><b>CRM:</b> '+esc(d.crm||'—')+'</span><span><b>Cidade:</b> '+esc(tc(d.city||''))+'</span><span><b>Conta:</b> '+esc(d.conta||'—')+'</span><span><b>Enviados:</b> '+sentCnt+'/'+mats.length+'</span></div>'+siHtml+rows+'</div></div>';
   }
-  filtered.sort(function(a, b) {
-    var po = {A:0, B:1, C:2};
-    if (po[a.d.pot] !== po[b.d.pot]) return po[a.d.pot] - po[b.d.pot];
-    if (!!b.d.phone !== !!a.d.phone) return a.d.phone ? -1 : 1;
-    return a.d.name.localeCompare(b.d.name);
-  });
+  document.getElementById('dlist').innerHTML=html;
+}
 
-  document.getElementById('statsLine').textContent = filtered.length + ' médico' + (filtered.length !== 1 ? 's' : '');
+function toggleDc(i){var el=document.getElementById('dc'+i);if(el)el.classList.toggle('open');}
+function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();setTimeout(renderDocs,300);}
+function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();setTimeout(renderDocs,200);}
 
-  if (!filtered.length) {
-    document.getElementById('docList').innerHTML = '<div class="empty">Nenhum médico encontrado.</div>';
-    return;
+function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
+function openDocModal(idx){editDocIdx=idx;scFlags={};document.getElementById('docMT').childNodes[0].nodeValue=idx===-1?'Novo Médico ':'Editar Médico ';if(idx>=0){var d=docs[idx];document.getElementById('dName').value=d.name||'';document.getElementById('dCrm').value=d.crm||'';document.getElementById('dPot').value=d.pot||'C';document.getElementById('dPhone').value=d.phone||'';document.getElementById('dCity').value=d.city||'';document.getElementById('dEsp').value=d.esp||'Hematologia (BR)';document.getElementById('dConta').value=d.conta||'';scFlags=d.scoreFlags?JSON.parse(JSON.stringify(d.scoreFlags)):{};}else{['dName','dCrm','dPhone','dCity','dConta'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('dPot').value='C';document.getElementById('dEsp').value='Hematologia (BR)';}var bs=document.querySelectorAll('#scoreChips .bchip');for(var i=0;i<bs.length;i++){var v=bs[i].dataset.v;bs[i].classList.toggle('sel',!!scFlags[v]);}document.getElementById('docOv').classList.add('on');}
+function closeDocModal(){document.getElementById('docOv').classList.remove('on');}
+function saveDoc(){var nm=document.getElementById('dName').value.trim().toUpperCase();if(!nm){alert('Informe o nome.');return;}var d={name:nm,crm:document.getElementById('dCrm').value.trim(),pot:document.getElementById('dPot').value,phone:document.getElementById('dPhone').value.trim(),city:document.getElementById('dCity').value.trim().toUpperCase(),esp:document.getElementById('dEsp').value,conta:document.getElementById('dConta').value.trim(),scoreFlags:JSON.parse(JSON.stringify(scFlags))};if(editDocIdx===-1)docs.push(d);else docs[editDocIdx]=d;persist();closeDocModal();renderDocs();}
+
+function openMatModal(idx){editMatIdx=idx;document.getElementById('matMT').childNodes[0].nodeValue=idx===-1?'Novo Material ':'Editar Material ';document.getElementById('mName').value=idx>=0?mats[idx].name:'';document.getElementById('mMsg').value=idx>=0?mats[idx].msg:'';document.getElementById('matOv').classList.add('on');}
+function closeMatModal(){document.getElementById('matOv').classList.remove('on');}
+function saveMat(){var nm=document.getElementById('mName').value.trim(),msg=document.getElementById('mMsg').value.trim();if(!nm||!msg){alert('Preencha nome e mensagem.');return;}if(editMatIdx===-1)mats.push({name:nm,msg:msg});else mats[editMatIdx]={name:nm,msg:msg};persist();closeMatModal();renderMats();buildChips();}
+
+function askDel(type,idx){delType=type;delIdx=idx;var lb=type==='doc'?tc(docs[idx].name):mats[idx].name;document.getElementById('delMsg').textContent='Excluir "'+lb+'"?';document.getElementById('delOv').classList.add('on');}
+function closeDelOv(){document.getElementById('delOv').classList.remove('on');}
+function confirmDel(){if(delType==='doc')docs.splice(delIdx,1);else{mats.splice(delIdx,1);if(activeMat>=mats.length)activeMat=-1;}persist();closeDelOv();if(delType==='doc')renderDocs();else{renderMats();buildChips();}}
+
+function renderMats(){var h='';for(var i=0;i<mats.length;i++){var m=mats[i];h+='<div class="mcard"><div class="mcard-t">'+esc(m.name)+'</div><div class="mcard-p">'+esc(m.msg)+'</div><div class="mcard-a"><button class="ibtn" onclick="openMatModal('+i+')">✏️ Editar</button><button class="ibtn d" onclick="askDel(\'mat\','+i+')">🗑️ Excluir</button></div></div>';}document.getElementById('matList').innerHTML=h;}
+
+function renderContas(){
+  var cdMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.conta||'Sem conta';if(!cdMap[c])cdMap[c]=[];cdMap[c].push(d);}
+  var contas=CONTAS_DEF.slice();
+  for(var cn in cdMap){var found=false;for(var j=0;j<contas.length;j++){if(contas[j].conta===cn){found=true;break;}}if(!found)contas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
+  contas.sort(function(a,b){return b.scoreTotal-a.scoreTotal;});
+  var priCol={'Prioridade Máxima':'r1','Prioridade Alta':'r2','Prioridade Média':'r3','Monitoramento':'rn'};
+  var html='';
+  for(var idx=0;idx<contas.length;idx++){
+    var ct=contas[idx],cdocs=cdMap[ct.conta]||[],ext=cExtra[ct.conta]||{},barreira=ext.barreira||'',barreiraNota=ext.barreiraNota||'';
+    var pA=0,pB=0,pC=0;for(var k=0;k<cdocs.length;k++){if(cdocs[k].pot==='A')pA++;else if(cdocs[k].pot==='B')pB++;else pC++;}
+    var rc=priCol[ct.prioridade]||'rn';
+    var rk=idx<3?['🥇','🥈','🥉'][idx]:'#'+(idx+1);
+    var bchips='';for(var bi=0;bi<BARREIRAS.length;bi++){bchips+='<button class="bchip'+(barreira===BARREIRAS[bi]?' sel':'')+'" onclick="setBarreira(\''+esc(ct.conta)+'\',\''+esc(BARREIRAS[bi])+'\')">'+BARREIRAS[bi]+'</button>';}
+    var docRows='';for(var di=0;di<cdocs.length;di++){var dd=cdocs[di],dsc=calcScore(dd),dsl=scoreLabel(dsc);docRows+='<div class="cdoc-row"><span class="badge b'+dd.pot+'">'+dd.pot+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(dd.name))+'</span><span class="sc-badge '+dsl.cls+'" style="font-size:10px;">'+dsc+'pts</span></div>';}
+    html+='<div class="ccard" id="cc'+idx+'"><div class="ccard-hd" onclick="toggleCc('+idx+')"><div class="crank '+rc+'">'+rk+'</div><div class="ccard-main"><div class="ccard-name">'+esc(ct.conta)+'</div><div class="ccard-sub">'+ct.prioridade+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+(barreira?' · ⚠️ '+esc(barreira):'')+'</div></div><div class="ccard-score">'+ct.scoreTotal+'</div><button class="cchev">▼</button></div>'+'<div class="ccard-body"><div class="ccard-det"><span><b>MAT:</b> '+ct.mat+'</span><span><b>YTD:</b> '+ct.ytd+'</span><span><b>Tam:</b> '+ct.scoreTam+'/3</span><span><b>Mom:</b> '+ct.scoreMom+'/3</span><span><b>Pot:</b> '+ct.scorePot+'/3</span><span><b>Espaço:</b> '+ct.scoreEsp+'/3</span></div>'+'<div class="sbars">'+bar('Tamanho',ct.scoreTam)+bar('Momento',ct.scoreMom)+bar('Pot.estrat.',ct.scorePot)+bar('Espaço',ct.scoreEsp)+'</div>'+'<div class="barr-wrap"><div class="barr-lbl">Barreira principal</div><div class="barr-chips">'+bchips+'</div><input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" oninput="setBarreiraNota(\''+esc(ct.conta)+'\',this.value)"></div>'+'<div class="cdoc-list"><div class="cdoc-title">Médicos ('+cdocs.length+')</div>'+docRows+'</div></div></div>';
   }
+  document.getElementById('contaList').innerHTML=html;
+}
+function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(val/3*100)+'%"></div></div><span class="sbar-v">'+val+'</span></div>';}
+function toggleCc(i){var el=document.getElementById('cc'+i);if(el)el.classList.toggle('open');}
+function setBarreira(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreira=cExtra[conta].barreira===val?'':val;persist();renderContas();}
+function setBarreiraNota(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreiraNota=val;persist();}
 
-  var matList = activeMat >= 0 ? [{m: mats[activeMat], mi: activeMat}] : mats.map(function(m, i){ return {m:m, mi:i}; });
-
-  var html = '';
-  for (var f = 0; f < filtered.length; f++) {
-    var d = filtered[f].d;
-    var di = filtered[f].i;
-    var sentCount = 0;
-    for (var mi = 0; mi < mats.length; mi++) { if (sent[sk(d.name, mi)]) sentCount++; }
-
-    var rows = '';
-    for (var r = 0; r < matList.length; r++) {
-      var m = matList[r].m;
-      var midx = matList[r].mi;
-      var wasSent = sent[sk(d.name, midx)];
-      var badge = wasSent ? '<span class="sent-tag">✓ Enviado</span>' : '';
-      var btn = d.phone
-        ? '<a class="wpp-link" href="' + wurl(d.phone, m.msg) + '" onclick="markSent(\'' + di + '\',\'' + midx + '\')" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enviar</a>'
-        : '<span class="no-wpp">Sem número</span>';
-      rows += '<div class="mat-item"><div class="mat-name">' + esc(m.name) + badge + '</div>' + btn + '</div>';
-    }
-
-    var detail = '<div class="doc-info"><span><b>CRM:</b> ' + esc(d.crm||'—') + '</span><span><b>Cidade:</b> ' + esc(tc(d.city||'—')) + '</span><span><b>Conta:</b> ' + esc(d.conta||'—') + '</span><span><b>Enviados:</b> ' + sentCount + '/' + mats.length + '</span></div>';
-
-    html += '<div class="doc-card" id="dc' + di + '">' +
-      '<div class="doc-head">' +
-        '<div class="doc-main" onclick="toggleDoc(' + di + ')">' +
-          '<div class="doc-name"><span class="badge b' + d.pot + '">' + d.pot + '</span>' + esc(tc(d.name)) + '</div>' +
-          '<div class="doc-sub">' + (d.phone ? '📱 ' + esc(d.phone) : '⚠️ Sem WhatsApp') + ' · ' + esc(tc(d.city||'')) + ' · ' + esc(d.conta||'') + '</div>' +
-        '</div>' +
-        '<div class="doc-btns">' +
-          '<button class="edit-btn" onclick="openDocModal(' + di + ')">✏️</button>' +
-          '<button class="del-btn" onclick="askDel(\'doc\',' + di + ')">🗑️</button>' +
-        '</div>' +
-        '<button class="chevron-btn" onclick="toggleDoc(' + di + ')">▼</button>' +
-      '</div>' +
-      '<div class="doc-body">' + detail + rows + '</div>' +
-    '</div>';
+function renderCities(){
+  var cityMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.city||'Sem cidade';if(!cityMap[c])cityMap[c]=[];cityMap[c].push(d);}
+  var cities=Object.keys(cityMap).map(function(c){return{city:c,docs:cityMap[c]};});
+  cities.sort(function(a,b){return b.docs.length-a.docs.length;});
+  var icons={'CAMPINAS':'🏙️','CAMPO GRANDE':'🌿','SOROCABA':'⚙️','BAURU':'🌾','VARGINHA':'☕','DOURADOS':'🌻','PIRACICABA':'🏭','BRAGANÇA PAULISTA':'🏔️','JUNDIAÍ':'🍇','LIMEIRA':'🍊','POÇOS DE CALDAS':'♨️','MARILIA':'🌾','SALTO':'💧','JAU':'🎨','SÃO JOÃO DA BOA VISTA':'🌄','LAVRAS':'🌿','MOGI MIRIM':'🏘️','MOGI GUAÇU':'🌳','RIO CLARO':'💧','SAO CARLOS':'🎓','ITAJUBÁ':'⛰️','BOTUCATU':'🏥','AMERICANA':'🏭','INDAIATUBA':'🏘️','ARARAS':'🌾','TRÊS CORAÇÕES':'❤️'};
+  var html='';
+  for(var ci=0;ci<cities.length;ci++){
+    var ct=cities[ci],cdocs=ct.docs,pA=0,pB=0,pC=0,totalSc=0;
+    for(var di=0;di<cdocs.length;di++){var d=cdocs[di],sc=calcScore(d);if(d.pot==='A')pA++;else if(d.pot==='B')pB++;else pC++;totalSc+=sc;}
+    var avgSc=cdocs.length?(totalSc/cdocs.length).toFixed(1):0;
+    var icon=icons[ct.city]||'📍';
+    var sortedDocs=cdocs.slice().sort(function(a,b){return calcScore(b)-calcScore(a);});
+    var docRows='';for(var di=0;di<sortedDocs.length;di++){var d=sortedDocs[di],sc=calcScore(d),sl=scoreLabel(sc);docRows+='<div class="city-doc-item"><span class="badge b'+d.pot+'">'+d.pot+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(d.name))+'</span>'+(d.phone?'<span style="font-size:10px;color:#888;">'+esc(d.phone)+'</span>':'<span style="font-size:10px;color:#dc2626;">sem nº</span>')+'<span class="sc-badge '+sl.cls+'" style="font-size:10px;flex-shrink:0;">'+sc+'</span></div>';}
+    html+='<div class="citycard" id="cy'+ci+'"><div class="citycard-hd" onclick="toggleCity('+ci+')"><div class="city-ico">'+icon+'</div><div class="city-main"><div class="city-nm">'+esc(tc(ct.city))+'</div><div class="city-sb">Score médio: '+avgSc+' · A:'+pA+' B:'+pB+' C:'+pC+'</div></div><div class="city-cnt">'+cdocs.length+'</div><button class="city-chev">▼</button></div><div class="citycard-body"><div class="city-pot"><span class="cpot pcA">A: '+pA+'</span><span class="cpot pcB">B: '+pB+'</span><span class="cpot pcC">C: '+pC+'</span><span style="margin-left:auto;font-size:11px;color:#888;">Sc.médio: '+avgSc+'</span></div><div class="city-docs">'+docRows+'</div></div></div>';
   }
-  document.getElementById('docList').innerHTML = html;
+  document.getElementById('cityList').innerHTML=html;
+}
+function toggleCity(i){var el=document.getElementById('cy'+i);if(el)el.classList.toggle('open');}
+
+function renderInsights(){
+  var total=docs.length,withPhone=0,totalSent=Object.keys(sent).length;
+  for(var i=0;i<docs.length;i++){if(docs[i].phone)withPhone++;}
+  var cov=total*mats.length?Math.round(totalSent/(total*mats.length)*100):0;
+  var hiPri=0;for(var i=0;i<docs.length;i++){if(calcScore(docs[i])>=5)hiPri++;}
+  var byMat=mats.map(function(m,i){var c=0;docs.forEach(function(d){if(sent[sk(d.name,i)])c++;});return{name:m.name,c:c,pct:total?Math.round(c/total*100):0};}).sort(function(a,b){return b.c-a.c;});
+  var byCity={};docs.forEach(function(d){if(d.city)byCity[d.city]=(byCity[d.city]||0)+1;});
+  var topCities=Object.keys(byCity).map(function(c){return[c,byCity[c]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+  var topDocs=docs.map(function(d){var c=0;for(var i=0;i<mats.length;i++){if(sent[sk(d.name,i)])c++;}return{name:d.name,pot:d.pot,c:c};}).filter(function(d){return d.c>0;}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
+  document.getElementById('insDiv').innerHTML=
+    '<div class="mgrid"><div class="metric m1"><span class="ml">Médicos</span><span class="mv">'+total+'</span></div><div class="metric m2"><span class="ml">Enviados</span><span class="mv">'+totalSent+'</span></div><div class="metric m3"><span class="ml">Cobertura</span><span class="mv">'+cov+'%</span></div><div class="metric m4"><span class="ml">⚡ Alta pri.</span><span class="mv">'+hiPri+'</span></div></div>'+
+    '<div class="icard"><h3>📊 Cobertura por material</h3>'+byMat.map(function(m){var cls=m.pct>=50?'pg':m.pct>=20?'po':'pr';return'<div class="irow"><span>'+esc(m.name)+'</span><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><div class="prog"><div class="pf" style="width:'+m.pct+'%"></div></div><span class="pill '+cls+'">'+m.c+' ('+m.pct+'%)</span></div></div>';}).join('')+'</div>'+
+    '<div class="icard"><h3>🗺️ Top cidades</h3>'+topCities.map(function(c){return'<div class="irow"><span>'+esc(tc(c[0]))+'</span><span class="pill pb">'+c[1]+'</span></div>';}).join('')+'</div>'+
+    '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
+    (topDocs.length?'<div class="icard"><h3>🏆 Mais impactados</h3>'+topDocs.map(function(d){return'<div class="irow"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+'/'+mats.length+'</span></div>';}).join('')+'</div>':'')+
+    '<div class="sec-title">💡 Dicas</div>'+
+    '<div class="tip"><b>🎯 Score de prioridade</b>Edite o médico e marque os critérios. A lista sempre aparece ordenada do maior score para o menor — priorize os ⚡ Alta primeiro.</div>'+
+    '<div class="tip"><b>✓ Enviado — editar o tique</b>O badge verde "✓ Enviado em DD/MM" é clicável. Toque nele para desfazer o registro de envio.</div>'+
+    '<div class="tip"><b>🏦 Barreiras por conta</b>Na aba Contas, selecione a barreira de cada instituição para priorizar a abordagem correta.</div>'+
+    '<div class="tip"><b>📌 Instalar como app</b>Safari → Compartilhar (□↑) → "Adicionar à Tela de Início". Abre em tela cheia, funciona offline.</div>';
 }
 
-function toggleDoc(i) {
-  var el = document.getElementById('dc' + i);
-  if (el) el.classList.toggle('open');
-}
-
-function markSent(di, mi) {
-  var dname = docs[parseInt(di)].name;
-  sent[sk(dname, parseInt(mi))] = new Date().toISOString();
-  persist();
-  setTimeout(renderDocs, 300);
-}
-
-// ─── DOC MODAL ───────────────────────────────────────────────────────────────
-function openDocModal(idx) {
-  editDocIdx = idx;
-  document.getElementById('docModalTitle').childNodes[0].textContent = idx === -1 ? 'Novo Médico ' : 'Editar Médico ';
-  if (idx >= 0) {
-    var d = docs[idx];
-    document.getElementById('iName').value = d.name || '';
-    document.getElementById('iCrm').value = d.crm || '';
-    document.getElementById('iPot').value = d.pot || 'C';
-    document.getElementById('iPhone').value = d.phone || '';
-    document.getElementById('iCity').value = d.city || '';
-    document.getElementById('iEsp').value = d.esp || 'Hematologia (BR)';
-    document.getElementById('iConta').value = d.conta || '';
-  } else {
-    document.getElementById('iName').value = '';
-    document.getElementById('iCrm').value = '';
-    document.getElementById('iPot').value = 'C';
-    document.getElementById('iPhone').value = '';
-    document.getElementById('iCity').value = '';
-    document.getElementById('iEsp').value = 'Hematologia (BR)';
-    document.getElementById('iConta').value = '';
-  }
-  document.getElementById('docOverlay').classList.add('active');
-}
-function closeDocModal() { document.getElementById('docOverlay').classList.remove('active'); }
-function saveDoc() {
-  var name = document.getElementById('iName').value.trim().toUpperCase();
-  if (!name) { alert('Informe o nome.'); return; }
-  var d = {
-    name: name,
-    crm: document.getElementById('iCrm').value.trim(),
-    pot: document.getElementById('iPot').value,
-    phone: document.getElementById('iPhone').value.trim(),
-    city: document.getElementById('iCity').value.trim().toUpperCase(),
-    esp: document.getElementById('iEsp').value,
-    conta: document.getElementById('iConta').value.trim()
-  };
-  if (editDocIdx === -1) { docs.push(d); }
-  else { docs[editDocIdx] = d; }
-  persist(); closeDocModal(); renderDocs();
-}
-
-// ─── MAT MODAL ───────────────────────────────────────────────────────────────
-function openMatModal(idx) {
-  editMatIdx = idx;
-  document.getElementById('matModalTitle').childNodes[0].textContent = idx === -1 ? 'Novo Material ' : 'Editar Material ';
-  document.getElementById('mName').value = idx >= 0 ? mats[idx].name : '';
-  document.getElementById('mMsg').value = idx >= 0 ? mats[idx].msg : '';
-  document.getElementById('matOverlay').classList.add('active');
-}
-function closeMatModal() { document.getElementById('matOverlay').classList.remove('active'); }
-function saveMat() {
-  var name = document.getElementById('mName').value.trim();
-  var msg = document.getElementById('mMsg').value.trim();
-  if (!name || !msg) { alert('Preencha nome e mensagem.'); return; }
-  if (editMatIdx === -1) { mats.push({name:name, msg:msg}); }
-  else { mats[editMatIdx] = {name:name, msg:msg}; }
-  persist(); closeMatModal(); renderMats(); buildChips();
-}
-
-// ─── DELETE ───────────────────────────────────────────────────────────────────
-function askDel(type, idx) {
-  delType = type; delIdx = idx;
-  var label = type === 'doc' ? tc(docs[idx].name) : mats[idx].name;
-  document.getElementById('delMsg').textContent = 'Deseja excluir "' + label + '"? Esta ação não pode ser desfeita.';
-  document.getElementById('delOverlay').classList.add('active');
-}
-function closeDelModal() { document.getElementById('delOverlay').classList.remove('active'); }
-function confirmDel() {
-  if (delType === 'doc') { docs.splice(delIdx, 1); persist(); closeDelModal(); renderDocs(); }
-  else { mats.splice(delIdx, 1); if (activeMat >= mats.length) activeMat = -1; persist(); closeDelModal(); renderMats(); buildChips(); }
-}
-
-// ─── MATERIAIS PAGE ───────────────────────────────────────────────────────────
-function renderMats() {
-  var html = '';
-  for (var i = 0; i < mats.length; i++) {
-    var m = mats[i];
-    html += '<div class="mcard"><div class="mcard-title">' + esc(m.name) + '</div><div class="mcard-preview">' + esc(m.msg) + '</div><div class="mcard-actions"><button class="edit-btn" onclick="openMatModal(' + i + ')">✏️ Editar</button><button class="del-btn" onclick="askDel(\'mat\',' + i + ')">🗑️ Excluir</button></div></div>';
-  }
-  document.getElementById('matList').innerHTML = html;
-}
-
-// ─── INSIGHTS ────────────────────────────────────────────────────────────────
-function renderInsights() {
-  var total = docs.length;
-  var withPhone = 0;
-  for (var i = 0; i < docs.length; i++) { if (docs[i].phone) withPhone++; }
-  var totalSent = Object.keys(sent).length;
-  var coverage = total * mats.length ? Math.round(totalSent / (total * mats.length) * 100) : 0;
-  var potA = docs.filter(function(d){ return d.pot==='A'; }).length;
-  var potACov = 0;
-  if (potA > 0 && mats.length > 0) {
-    var potASent = 0;
-    docs.filter(function(d){ return d.pot==='A'; }).forEach(function(d){
-      for (var i = 0; i < mats.length; i++) { if (sent[sk(d.name,i)]) potASent++; }
-    });
-    potACov = Math.round(potASent / (potA * mats.length) * 100);
-  }
-
-  var byMat = mats.map(function(m, i) {
-    var c = 0; docs.forEach(function(d){ if (sent[sk(d.name,i)]) c++; });
-    return {name: m.name, c: c, pct: total ? Math.round(c/total*100) : 0};
-  }).sort(function(a,b){ return b.c-a.c; });
-
-  var byCity = {};
-  docs.forEach(function(d){ if (d.city) byCity[d.city] = (byCity[d.city]||0)+1; });
-  var topCities = Object.keys(byCity).map(function(k){ return [k, byCity[k]]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,6);
-
-  var topDocs = docs.map(function(d){
-    var c = 0; for(var i=0;i<mats.length;i++){if(sent[sk(d.name,i)])c++;} return {name:d.name,pot:d.pot,c:c};
-  }).filter(function(d){ return d.c>0; }).sort(function(a,b){ return b.c-a.c; }).slice(0,5);
-
-  var byMatsHtml = byMat.map(function(m){
-    var cls = m.pct>=50?'pg':m.pct>=20?'po':'pr';
-    return '<div class="ins-row"><span>'+esc(m.name)+'</span><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><div class="prog"><div class="prog-fill" style="width:'+m.pct+'%"></div></div><span class="pill '+cls+'">'+m.c+' ('+m.pct+'%)</span></div></div>';
-  }).join('');
-
-  var cityHtml = topCities.map(function(c){ return '<div class="ins-row"><span>'+esc(tc(c[0]))+'</span><span class="pill pb">'+c[1]+' médicos</span></div>'; }).join('');
-
-  var topDocsHtml = topDocs.length ? '<div class="ins-card"><h3>🏆 Mais impactados</h3>' + topDocs.map(function(d){ return '<div class="ins-row"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+'/'+mats.length+'</span></div>'; }).join('') + '</div>' : '';
-
-  document.getElementById('insContent').innerHTML =
-    '<div class="metric-grid">' +
-      '<div class="metric m1"><span class="mlabel">Total</span><span class="mval">'+total+'</span></div>' +
-      '<div class="metric m2"><span class="mlabel">Enviados</span><span class="mval">'+totalSent+'</span></div>' +
-      '<div class="metric m3"><span class="mlabel">Cobertura</span><span class="mval">'+coverage+'%</span></div>' +
-      '<div class="metric m4"><span class="mlabel">Potencial A</span><span class="mval">'+potACov+'%</span></div>' +
-    '</div>' +
-    '<div class="ins-card"><h3>📊 Cobertura por material</h3>' + byMatsHtml + '</div>' +
-    '<div class="ins-card"><h3>🗺️ Top cidades</h3>' + cityHtml + '</div>' +
-    '<div class="ins-card"><h3>📱 Contatos</h3>' +
-      '<div class="ins-row"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div>' +
-      '<div class="ins-row"><span>Sem número ⚠️</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div>' +
-    '</div>' +
-    topDocsHtml +
-    '<div class="section-title">💡 Como potencializar</div>' +
-    '<div class="tip"><b>🎯 Comece pelo Potencial A</b>São '+potA+' médicos. Filtrar só o Pot. A e garantir 100% de cobertura nesse grupo gera o maior retorno por envio.</div>' +
-    '<div class="tip"><b>🖼️ Imagem no WhatsApp</b>O link wa.me aceita apenas texto. Insira o link da imagem/PDF (Google Drive público, Dropbox) direto no texto da mensagem. O médico clica e vê o material instantaneamente.</div>' +
-    '<div class="tip"><b>📅 1 material por semana</b>Com 6 materiais, você tem 6 semanas de cadência. Envie 1 por semana por médico para manter presença sem saturar.</div>' +
-    '<div class="tip"><b>📌 Salvar como app no iPhone</b>Abra no Safari → Compartilhar (□↑) → "Adicionar à Tela de Início". Funciona como app, sem barra do browser, abre offline.</div>' +
-    '<div class="tip"><b>☁️ Sincronização em equipe</b>Para múltiplos usuários, o próximo passo é conectar a um Google Sheets via Apps Script — cada envio registra automaticamente na planilha.</div>' +
-    '<div class="tip"><b>💬 Mini-CRM</b>Adicionar um campo "Resposta do médico" por envio (Interessado / Neutro / Sem retorno) transforma o app em um rastreador de relacionamento.</div>';
-}
-
-// ─── INIT ─────────────────────────────────────────────────────────────────────
 renderDocs();
 </script>
 </body>
