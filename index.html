@@ -381,3 +381,193 @@ renderDocs();
 </script>
 </body>
 </html>
+<script>
+(function(){
+  // 1) Adiciona barra de controles (ordenar + exportar/importar), se não existir
+  function ensureControls(){
+    if(document.getElementById('docSort')) return;
+    var sbar = document.querySelector('#p0 .sbar');
+    if(!sbar) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'ctrl-row';
+    wrap.innerHTML = `
+      <select id="docSort">
+        <option value="score">Ordenar: Score</option>
+        <option value="nome">Ordenar: Nome</option>
+        <option value="cidade">Ordenar: Cidade</option>
+        <option value="potencial">Ordenar: Potencial</option>
+      </select>
+      <button class="ctrl-btn" id="btnExport">⬆️ Exportar</button>
+      <button class="ctrl-btn" id="btnImport">⬇️ Importar</button>
+      <input id="importFile" type="file" accept="application/json" style="display:none">
+    `;
+    sbar.insertAdjacentElement('afterend', wrap);
+
+    document.getElementById('docSort').addEventListener('change', function(){
+      if(typeof renderDocs === 'function') renderDocs();
+    });
+
+    document.getElementById('btnExport').addEventListener('click', function(){
+      var payload = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        mats: (window.mats || []),
+        docs: (window.docs || []),
+        sent: (window.sent || {}),
+        cExtra: (window.cExtra || {})
+      };
+      var blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'sarclisa-backup-' + new Date().toISOString().slice(0,10) + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 3000);
+    });
+
+    document.getElementById('btnImport').addEventListener('click', function(){
+      document.getElementById('importFile').click();
+    });
+
+    document.getElementById('importFile').addEventListener('change', function(evt){
+      var file = evt.target.files && evt.target.files[0];
+      if(!file) return;
+      var r = new FileReader();
+      r.onload = function(){
+        try{
+          var p = JSON.parse(String(r.result||'{}'));
+          if(!p || !Array.isArray(p.docs) || !Array.isArray(p.mats)) throw new Error();
+          window.docs = p.docs;
+          window.mats = p.mats;
+          window.sent = p.sent || {};
+          window.cExtra = p.cExtra || {};
+          if(typeof persist==='function') persist();
+          if(typeof renderDocs==='function') renderDocs();
+          if(typeof renderMats==='function') renderMats();
+          if(typeof renderContas==='function') renderContas();
+          if(typeof renderCities==='function') renderCities();
+          if(typeof renderInsights==='function') renderInsights();
+          alert('Importado com sucesso ✅');
+        }catch(e){
+          alert('Arquivo inválido para importação.');
+        }
+        evt.target.value = '';
+      };
+      r.readAsText(file);
+    });
+  }
+
+  // 2) Expande marcadores de score no modal, sem apagar os antigos
+  function ensureScoreChips(){
+    var box = document.getElementById('scoreChips');
+    if(!box) return;
+    var extras = [
+      ['concorrenciaForte','✗ Forte investimento da concorrência (−2)'],
+      ['daraRelacao','✓ Bastante mão com Dara (+1)'],
+      ['prefereSQ','✗ Preferência por esquema SC/SQ (−1)'],
+      ['aberturaGuideline','✓ Aberto a guideline/evidência (+2)']
+    ];
+    extras.forEach(function(it){
+      var key = it[0], label = it[1];
+      if(box.querySelector('[data-v="'+key+'"]')) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'bchip';
+      b.setAttribute('data-v', key);
+      b.textContent = label;
+      b.onclick = function(){ if(typeof toggleSc==='function') toggleSc(this); };
+      box.appendChild(b);
+    });
+  }
+
+  // 3) Amplia barreiras
+  function ensureBarreiras(){
+    if(!Array.isArray(window.BARREIRAS)) return;
+    var add = [
+      'Forte investimento da concorrência',
+      'Comitê de padronização lento',
+      'Restrição de budget',
+      'Preferência por esquema SC/SQ',
+      'Equipe sem treinamento para infusão',
+      'Perfil de paciente fora do protocolo',
+      'Baixo engajamento da farmácia clínica'
+    ];
+    add.forEach(function(x){
+      if(window.BARREIRAS.indexOf(x)===-1) window.BARREIRAS.push(x);
+    });
+  }
+
+  // 4) Reforça cálculo do score com novos marcadores
+  function patchCalcScore(){
+    var old = window.calcScore;
+    if(typeof old!=='function') return;
+    window.calcScore = function(d){
+      var s = old(d);
+      if(d && d.scoreFlags){
+        if(d.scoreFlags.concorrenciaForte) s -= 2;
+        if(d.scoreFlags.daraRelacao) s += 1;
+        if(d.scoreFlags.prefereSQ) s -= 1;
+        if(d.scoreFlags.aberturaGuideline) s += 2;
+      }
+      return s;
+    };
+  }
+
+  // 5) Força ordenação selecionada no renderDocs sem quebrar seu layout existente
+  function patchRenderDocsSort(){
+    if(typeof window.renderDocs!=='function') return;
+    var original = window.renderDocs;
+    var POT_ORDER={A:0,B:1,C:2};
+
+    window.renderDocs = function(){
+      // chama original (ele já monta UI/lista)
+      original();
+
+      // reordena cards já renderizados quando houver escolha diferente de score
+      var sel = document.getElementById('docSort');
+      if(!sel || sel.value==='score') return;
+
+      var dlist = document.getElementById('dlist');
+      if(!dlist) return;
+      var cards = Array.prototype.slice.call(dlist.querySelectorAll('.dc'));
+      if(!cards.length || !Array.isArray(window.docs)) return;
+
+      cards.sort(function(a,b){
+        var ia = Number((a.id||'').replace('dc',''));
+        var ib = Number((b.id||'').replace('dc',''));
+        var da = window.docs[ia] || {};
+        var db = window.docs[ib] || {};
+        if(sel.value==='nome') return String(da.name||'').localeCompare(String(db.name||''));
+        if(sel.value==='cidade'){
+          var c = String(da.city||'').localeCompare(String(db.city||''));
+          return c!==0 ? c : String(da.name||'').localeCompare(String(db.name||''));
+        }
+        if(sel.value==='potencial'){
+          var p = (POT_ORDER[da.pot]??99) - (POT_ORDER[db.pot]??99);
+          return p!==0 ? p : String(da.name||'').localeCompare(String(db.name||''));
+        }
+        return 0;
+      });
+
+      cards.forEach(function(c){ dlist.appendChild(c); });
+
+      var stline = document.getElementById('stline');
+      if(stline){
+        var txt = stline.textContent || '';
+        stline.textContent = txt.replace(/ordenados por .*/i, 'ordenados por ' + sel.value);
+      }
+    };
+  }
+
+  // aplica tudo
+  ensureControls();
+  ensureScoreChips();
+  ensureBarreiras();
+  patchCalcScore();
+  patchRenderDocsSort();
+
+  // rerender
+  if(typeof renderDocs==='function') renderDocs();
+  if(typeof renderContas==='function') renderContas();
+})();
+</script>
