@@ -610,6 +610,20 @@ renderDocs();
 
 })();
 </script>
+<script>
+(function(){
+  // Corrige geração do link do WhatsApp com texto pronto
+  window.wurl = function(ph,msg){
+    var num = String(ph||'').replace(/\D/g,'');      // só números
+    if(!num) return '#';
+    if(num.length<=11) num='55'+num;                 // garante DDI BR
+    return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg||'');
+  };
+
+  // Re-renderiza lista para recriar os botões com link correto
+  if(typeof renderDocs==='function') renderDocs();
+})();
+</script>
 </body>
 </html>
 <script>
