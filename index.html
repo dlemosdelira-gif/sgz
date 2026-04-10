@@ -509,6 +509,107 @@ renderDocs();
   ensureCSVButton();
 })();
 </script>
+<script>
+(function(){
+  // =========================
+  // 1) Estilo: aumenta fontes e remove barra de filtro por material
+  // =========================
+  var st=document.createElement('style');
+  st.innerHTML=`
+    body{font-size:16px!important;}
+    .dc-name{font-size:16px!important;}
+    .dc-sub{font-size:13px!important;}
+    .mrow{padding:12px 13px!important;}
+    .mlabel{font-size:14px!important;}
+    .stline{font-size:13px!important;}
+    .note{font-size:13px!important;}
+    #chipRow{display:none!important;} /* remove barra de filtro por material */
+  `;
+  document.head.appendChild(st);
+
+  // força "Todos os materiais"
+  if(typeof window.activeMat!=='undefined'){ window.activeMat=-1; }
+
+  // =========================
+  // 2) Marcadores no perfil médico (texto)
+  // =========================
+  function updateScoreLabels(){
+    var box=document.getElementById('scoreChips');
+    if(!box) return;
+
+    function txt(key,newText){
+      var b=box.querySelector('[data-v="'+key+'"]');
+      if(b) b.textContent=newText;
+    }
+
+    txt('hasAccess','✓ Acesso (+3)');
+    txt('daraRelacao','✓ Experiência com Dara (+1)');
+    txt('prefereSQ','✗ Preferência por esquema SC/SQ (−2)');
+    txt('concorrenciaForte','✗ Forte investimento da concorrência (−1)');
+  }
+  updateScoreLabels();
+
+  // =========================
+  // 3) Regras de score (pesos novos)
+  // =========================
+  window.calcScore=function(d){
+    var s=0;
+    if(d && d.pot==='A') s+=3;
+    else if(d && d.pot==='B') s+=1;
+
+    var f=(d&&d.scoreFlags)?d.scoreFlags:{};
+    if(f.hasAccess) s+=3;           // "Acesso"
+    if(f.testedSarc) s+=2;
+    if(f.noAccess) s-=2;
+    if(f.concorrenciaForte) s-=1;   // antes -2
+    if(f.daraRelacao) s+=1;         // "Experiência com Dara"
+    if(f.prefereSQ) s-=2;           // antes -1
+    if(f.aberturaGuideline) s+=1;
+
+    return s;
+  };
+
+  // =========================
+  // 4) Contas: lista EXATA de barreiras solicitadas
+  // =========================
+  window.BARREIRAS = [
+    'Acesso convênio',
+    'Protocolo institucional',
+    'Preferência por esquema SC/SQ',
+    'Sem barreiras identificadas',
+    'Forte investimento da concorrência',
+    'Comitê de padronização lento',
+    'Restrição orçamentária',
+    'Acesso ao corpo clínico',
+    'Engajamento do corpo clínico'
+  ];
+
+  // =========================
+  // 5) Ajusta detalhes de score renderizados no card médico
+  // =========================
+  if(typeof window.renderDocs==='function'){
+    var oldRenderDocs=window.renderDocs;
+    window.renderDocs=function(){
+      oldRenderDocs();
+
+      // Atualiza textos dos chips de score detalhado já renderizados
+      document.querySelectorAll('.score-detail .si').forEach(function(el){
+        var t=el.textContent||'';
+        t=t.replace('+3 Acesso institucional','+3 Acesso');
+        t=t.replace('+1 Mão com Dara','+1 Experiência com Dara');
+        t=t.replace('−1 Prefere SC/SQ','−2 Prefere SC/SQ');
+        t=t.replace('−2 Concorrência forte','−1 Concorrência forte');
+        el.textContent=t;
+      });
+    };
+  }
+
+  // re-render geral
+  if(typeof renderDocs==='function') renderDocs();
+  if(typeof renderContas==='function') renderContas();
+
+})();
+</script>
 </body>
 </html>
 <script>
@@ -592,10 +693,10 @@ renderDocs();
     var box = document.getElementById('scoreChips');
     if(!box) return;
     var extras = [
-      ['concorrenciaForte','✗ Forte investimento da concorrência (−2)'],
-      ['daraRelacao','✓ Bastante mão com Dara (+1)'],
-      ['prefereSQ','✗ Preferência por esquema SC/SQ (−1)'],
-      ['aberturaGuideline','✓ Aberto a guideline/evidência (+2)']
+      ['concorrenciaForte','✗ Forte investimento da concorrência (−1)'],
+      ['daraRelacao','✓ Experiência com Dara (+1)'],
+      ['prefereSQ','✗ Preferência por esquema SC/SQ (−2)'],
+      ['aberturaGuideline','✓ Aberto a guideline/evidência (+1)']
     ];
     extras.forEach(function(it){
       var key = it[0], label = it[1];
@@ -618,9 +719,6 @@ renderDocs();
       'Comitê de padronização lento',
       'Restrição de budget',
       'Preferência por esquema SC/SQ',
-      'Equipe sem treinamento para infusão',
-      'Perfil de paciente fora do protocolo',
-      'Baixo engajamento da farmácia clínica'
     ];
     add.forEach(function(x){
       if(window.BARREIRAS.indexOf(x)===-1) window.BARREIRAS.push(x);
@@ -637,7 +735,7 @@ renderDocs();
         if(d.scoreFlags.concorrenciaForte) s -= 2;
         if(d.scoreFlags.daraRelacao) s += 1;
         if(d.scoreFlags.prefereSQ) s -= 1;
-        if(d.scoreFlags.aberturaGuideline) s += 2;
+        if(d.scoreFlags.aberturaGuideline) s += 1;
       }
       return s;
     };
