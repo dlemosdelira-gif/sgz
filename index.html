@@ -126,9 +126,15 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 /* barreira */
 .barr-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
 .barr-lbl{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
-.barr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
-.bchip{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;}
+.barr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;align-items:center;}
+.bchip{padding:5px 11px;border-radius:16px;font-size:12px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;}
 .bchip.sel{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+/* add row e botão delete custom */
+.cmk-add-row{display:flex;gap:6px;margin-top:8px;align-items:center;}
+.cmk-add-input{flex:1;padding:7px 10px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;outline:none;font-family:-apple-system,sans-serif;}
+.cmk-add-pts{width:58px;padding:7px 8px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;outline:none;font-family:-apple-system,sans-serif;text-align:center;flex-shrink:0;}
+.cmk-add-btn{padding:7px 12px;border-radius:9px;border:none;background:#6d28d9;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.cmk-del{background:none;border:none;color:#dc2626;font-size:14px;font-weight:700;cursor:pointer;padding:2px 4px;line-height:1;flex-shrink:0;margin-left:-2px;}
 /* docs na conta */
 .cdoc-list{padding:10px 13px;}
 .cdoc-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
@@ -225,7 +231,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 <!-- MÉDICOS -->
 <div class="page on" id="p0">
   <div class="hdr">
-    <div><h1>Sarclisa · Materiais</h1><p>Sincronizado em todos os devices</p></div>
+    <div><h1>Sarclisa · Materiais</h1><p>Ordenados por score · sincronizado em todos os devices</p></div>
     <button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button>
   </div>
   <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
@@ -424,16 +430,23 @@ function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s
 
 // ══════════ FIREBASE ══════════
 dbRef.on('value',function(snap){
+  // Se foi a nossa própria escrita, só atualiza status e pula re-render
+  if(_skipNextRender){_skipNextRender=false;return;}
   var data=snap.val();
   if(data){mats=data.mats||MATS_DEF;docs=data.docs||DOCS_DEF;sent=data.sent||{};cExtra=data.cExtra||{};}
   else{mats=MATS_DEF;docs=DOCS_DEF;sent={};cExtra={};dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra});}
   fbLoaded=true;
   setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+  // Preserva cards abertos antes de re-renderizar
+  var openDc=saveOpenIds('dc');
+  var openCc=saveOpenIds('cc');
   renderDocs();
   if(document.getElementById('p1').classList.contains('on'))renderMats();
   if(document.getElementById('p2').classList.contains('on'))renderContas();
   if(document.getElementById('p3').classList.contains('on'))renderCities();
   if(document.getElementById('p4').classList.contains('on'))renderInsights();
+  restoreOpenIds(openDc);
+  restoreOpenIds(openCc);
 },function(){
   setSync('err','Offline — dados locais');
   try{var v=localStorage.getItem('s5m');mats=v?JSON.parse(v):MATS_DEF;}catch(e){mats=MATS_DEF;}
@@ -459,9 +472,36 @@ function calcScore(d){
 }
 function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
 
+function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(Math.max(0,Math.min(3,val||0))/3*100)+'%"></div></div><span class="sbar-v">'+(val||0)+'</span></div>';}
+function toggleCc(i){var el=document.getElementById('cc'+i);if(el)el.classList.toggle('open');}
+
+// ── Preserva estado aberto dos cards durante re-render ──
+function saveOpenIds(prefix){
+  var open=[];
+  var els=document.querySelectorAll('[id^="'+prefix+'"]');
+  for(var i=0;i<els.length;i++){if(els[i].classList.contains('open'))open.push(els[i].id);}
+  return open;
+}
+function restoreOpenIds(ids){
+  for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el)el.classList.add('open');}
+}
+// Wrapper para persist que NÃO re-renderiza via Firebase listener imediato —
+// em vez disso, salva localmente e aplica a mudança direto no DOM (só re-renderiza se vier de outro device)
+var _skipNextRender=false;
+function persistLocal(){
+  _skipNextRender=true;
+  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5c',JSON.stringify(cExtra));}catch(e){}
+  setSync('syncing','Salvando...');
+  dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra})
+    .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
+    .catch(function(){setSync('err','Erro ao salvar');_skipNextRender=false;});
+}
+
 function calcContaFlagScore(ext){
   var s=0,flags=ext.flags||{},keys=Object.keys(CONTA_FLAGS);
   for(var i=0;i<keys.length;i++){if(flags[keys[i]])s+=CONTA_FLAGS[keys[i]].pts;}
+  var cf=ext.customFlags||[];
+  for(var i=0;i<cf.length;i++){if(cf[i].active)s+=cf[i].pts;}
   return s;
 }
 function getContaData(ct){
@@ -648,22 +688,57 @@ function renderContas(){
     // Barras de auditoria
     var barsHtml='<div class="sbars">'+bar('Tamanho',cd.tam)+bar('Momento',cd.mom)+bar('Pot.estrat.',cd.pot)+bar('Espaço',cd.esp)+'</div>';
 
-    // Marcadores contextuais
+    // Marcadores globais
     var flagKeys=Object.keys(CONTA_FLAGS);
     var cmkPos='',cmkNeg='';
     for(var fi=0;fi<flagKeys.length;fi++){
       var fk=flagKeys[fi],fd=CONTA_FLAGS[fk],isSel=!!flags[fk];
       var cls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
-      var chip='<button class="'+cls+'" onclick="toggleContaFlag(\''+esc(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      var chip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+esc(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
       if(fd.type==='pos')cmkPos+=chip;else cmkNeg+=chip;
     }
-    var cmkHtml='<div class="cmk-wrap"><div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-pts '+(cd.flagScore>=0?'pos':'neg')+'">'+(cd.flagScore>0?'+':'')+cd.flagScore+' pts</span></div>'+
+    // Marcadores personalizados desta conta
+    var customFlags=ext.customFlags||[];
+    var cmkCustom='';
+    for(var ci2=0;ci2<customFlags.length;ci2++){
+      var cf=customFlags[ci2],cfSel=!!cf.active;
+      var cfCls='cmk-chip '+(cf.pts>=0?'pos':'neg')+(cfSel?' sel':'');
+      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+esc(ct.conta)+'\','+ci2+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+esc(ct.conta)+'\','+ci2+')" title="Remover">×</button>';
+    }
+    var flagTotal=cd.flagScore;
+    var cmkHtml='<div class="cmk-wrap" onclick="event.stopPropagation()">'+
+      '<div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-pts '+(flagTotal>=0?'pos':'neg')+'">'+(flagTotal>0?'+':'')+flagTotal+' pts</span></div>'+
       '<div class="cmk-section pos">Positivos</div><div class="cmk-chips">'+cmkPos+'</div>'+
-      '<div class="cmk-section neg">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div></div>';
+      '<div class="cmk-section neg">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div>'+
+      (cmkCustom?'<div class="cmk-section" style="color:#6d28d9;">Personalizados</div><div class="cmk-chips" style="align-items:center;">'+cmkCustom+'</div>':'')+
+      '<div class="cmk-add-row">'+
+        '<input class="cmk-add-input" id="cflabel_'+idx+'" placeholder="Nome do marcador" onclick="event.stopPropagation()">'+
+        '<input class="cmk-add-pts" id="cfpts_'+idx+'" type="number" placeholder="pts" onclick="event.stopPropagation()">'+
+        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+esc(ct.conta)+'\','+idx+')">+ Add</button>'+
+      '</div>'+
+    '</div>';
 
-    // Barreira
-    var bchips='';for(var bi=0;bi<BARREIRAS.length;bi++){bchips+='<button class="bchip'+(barreira===BARREIRAS[bi]?' sel':'')+'" onclick="setBarreira(\''+esc(ct.conta)+'\',\''+esc(BARREIRAS[bi])+'\')">'+BARREIRAS[bi]+'</button>';}
-    var barrHtml='<div class="barr-wrap"><div class="barr-lbl">Barreira principal</div><div class="barr-chips">'+bchips+'</div><input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" oninput="setBarreiraNota(\''+esc(ct.conta)+'\',this.value)"></div>';
+    // Barreiras (fixas + personalizadas)
+    var customBarreiras=ext.customBarreiras||[];
+    var todasBarreiras=BARREIRAS.concat(customBarreiras);
+    var barrSel=ext.barreiraSel||[];  // array de selecionadas (múltipla seleção)
+    var bchips='';
+    for(var bi=0;bi<todasBarreiras.length;bi++){
+      var bv=todasBarreiras[bi],bSel=barrSel.indexOf(bv)>=0;
+      var isCustom=bi>=BARREIRAS.length;
+      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+esc(ct.conta)+'\',\''+esc(bv)+'\')">'+esc(bv)+'</button>'+
+        (isCustom?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+esc(ct.conta)+'\',\''+esc(bv)+'\')" title="Remover">×</button>':'');
+    }
+    var barrHtml='<div class="barr-wrap" onclick="event.stopPropagation()">'+
+      '<div class="barr-lbl">Barreiras principais <span style="font-size:10px;color:#aaa;font-weight:400;">(selecione todas que se aplicam)</span></div>'+
+      '<div class="barr-chips">'+bchips+'</div>'+
+      '<div class="cmk-add-row">'+
+        '<input class="cmk-add-input" id="bclabel_'+idx+'" placeholder="Nova barreira personalizada" onclick="event.stopPropagation()">'+
+        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomBarreira(\''+esc(ct.conta)+'\','+idx+')">+ Add</button>'+
+      '</div>'+
+      '<input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;margin-top:8px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" onclick="event.stopPropagation()" oninput="setBarreiraNota(\''+esc(ct.conta)+'\',this.value)">'+
+    '</div>';
 
     // Médicos
     var docRows='';for(var di2=0;di2<cdocs.length;di2++){var dd=cdocs[di2],dsc=calcScore(dd),dsl=scoreLabel(dsc);docRows+='<div class="cdoc-row"><span class="badge b'+dd.pot+'">'+dd.pot+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(dd.name))+'</span><span class="sc-badge '+dsl.cls+'" style="font-size:10px;">'+dsc+'pts</span></div>';}
@@ -686,7 +761,7 @@ function renderContas(){
         '<button class="cchev">▼</button>'+
       '</div>'+
       '<div class="ccard-body">'+
-        '<div class="cinfo-row">'+
+        '<div class="cinfo-row" onclick="event.stopPropagation()">'+
           '<span><b>Tamanho:</b> '+cd.tam+'/3</span>'+
           '<span><b>Momento:</b> '+cd.mom+'/3</span>'+
           '<span><b>Pot.Estrat.:</b> '+cd.pot+'/3</span>'+
@@ -701,14 +776,135 @@ function renderContas(){
   document.getElementById('contaList').innerHTML=html;
 }
 
-function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(Math.max(0,Math.min(3,val||0))/3*100)+'%"></div></div><span class="sbar-v">'+(val||0)+'</span></div>';}
-function toggleCc(i){var el=document.getElementById('cc'+i);if(el)el.classList.toggle('open');}
 function toggleContaFlag(conta,key){
   if(!cExtra[conta])cExtra[conta]={};if(!cExtra[conta].flags)cExtra[conta].flags={};
-  cExtra[conta].flags[key]=!cExtra[conta].flags[key];persist();
+  cExtra[conta].flags[key]=!cExtra[conta].flags[key];
+  persistLocal();renderContaInPlace(conta);
 }
-function setBarreira(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreira=cExtra[conta].barreira===val?'':val;persist();}
-function setBarreiraNota(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreiraNota=val;persist();}
+
+// Custom flags por conta
+function addCustomFlag(conta,idx){
+  var labelEl=document.getElementById('cflabel_'+idx);
+  var ptsEl=document.getElementById('cfpts_'+idx);
+  if(!labelEl||!ptsEl)return;
+  var label=labelEl.value.trim();
+  var pts=parseInt(ptsEl.value)||0;
+  if(!label){alert('Informe o nome do marcador.');return;}
+  if(!cExtra[conta])cExtra[conta]={};
+  if(!cExtra[conta].customFlags)cExtra[conta].customFlags=[];
+  cExtra[conta].customFlags.push({label:label,pts:pts,active:true});
+  labelEl.value='';ptsEl.value='';
+  persistLocal();renderContaInPlace(conta);
+}
+function toggleCustomFlag(conta,ci){
+  if(!cExtra[conta]||!cExtra[conta].customFlags)return;
+  cExtra[conta].customFlags[ci].active=!cExtra[conta].customFlags[ci].active;
+  persistLocal();renderContaInPlace(conta);
+}
+function deleteCustomFlag(conta,ci){
+  if(!cExtra[conta]||!cExtra[conta].customFlags)return;
+  cExtra[conta].customFlags.splice(ci,1);
+  persistLocal();renderContaInPlace(conta);
+}
+
+// Barreiras — múltipla seleção + personalizadas por conta
+function toggleBarreira(conta,val){
+  if(!cExtra[conta])cExtra[conta]={};
+  if(!cExtra[conta].barreiraSel)cExtra[conta].barreiraSel=[];
+  var idx=cExtra[conta].barreiraSel.indexOf(val);
+  if(idx>=0)cExtra[conta].barreiraSel.splice(idx,1);
+  else cExtra[conta].barreiraSel.push(val);
+  persistLocal();renderContaInPlace(conta);
+}
+function addCustomBarreira(conta,idx){
+  var el=document.getElementById('bclabel_'+idx);
+  if(!el)return;
+  var val=el.value.trim();
+  if(!val){alert('Informe a barreira.');return;}
+  if(!cExtra[conta])cExtra[conta]={};
+  if(!cExtra[conta].customBarreiras)cExtra[conta].customBarreiras=[];
+  if(cExtra[conta].customBarreiras.indexOf(val)<0)cExtra[conta].customBarreiras.push(val);
+  if(!cExtra[conta].barreiraSel)cExtra[conta].barreiraSel=[];
+  if(cExtra[conta].barreiraSel.indexOf(val)<0)cExtra[conta].barreiraSel.push(val);
+  el.value='';
+  persistLocal();renderContaInPlace(conta);
+}
+function deleteCustomBarreira(conta,val){
+  if(!cExtra[conta])return;
+  if(cExtra[conta].customBarreiras){var i=cExtra[conta].customBarreiras.indexOf(val);if(i>=0)cExtra[conta].customBarreiras.splice(i,1);}
+  if(cExtra[conta].barreiraSel){var i=cExtra[conta].barreiraSel.indexOf(val);if(i>=0)cExtra[conta].barreiraSel.splice(i,1);}
+  persistLocal();renderContaInPlace(conta);
+}
+function setBarreiraNota(conta,val){
+  if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreiraNota=val;
+  persistLocal(); // nota: não re-renderiza para não perder o foco no input
+}
+
+// Re-renderiza APENAS o interior do card desta conta sem recriar o card inteiro
+// Isso mantém o card aberto e o foco nos inputs
+function renderContaInPlace(contaNome){
+  // encontra o card pelo nome da conta (varrendo todos os cc*)
+  var cards=document.querySelectorAll('[id^="cc"]');
+  for(var ci=0;ci<cards.length;ci++){
+    var nameEl=cards[ci].querySelector('.ccard-name');
+    if(!nameEl||nameEl.textContent.trim()!==contaNome)continue;
+    var bodyEl=cards[ci].querySelector('.ccard-body');
+    if(!bodyEl)continue;
+    // reconstrói apenas o interior: marcadores + barreiras
+    var ext=cExtra[contaNome]||{};
+    var flags=ext.flags||{};
+    var flagKeys=Object.keys(CONTA_FLAGS);
+    var cmkPos='',cmkNeg='';
+    var cardIdx=parseInt(cards[ci].id.replace('cc',''));
+    for(var fi=0;fi<flagKeys.length;fi++){
+      var fk=flagKeys[fi],fd=CONTA_FLAGS[fk],isSel=!!flags[fk];
+      var cls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
+      cmkChip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+esc(contaNome)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      if(fd.type==='pos')cmkPos+=cmkChip;else cmkNeg+=cmkChip;
+    }
+    var customFlags=ext.customFlags||[];
+    var cmkCustom='';
+    for(var fi=0;fi<customFlags.length;fi++){
+      var cf=customFlags[fi],cfSel=!!cf.active;
+      var cfCls='cmk-chip '+(cf.pts>=0?'pos':'neg')+(cfSel?' sel':'');
+      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+esc(contaNome)+'\','+fi+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+esc(contaNome)+'\','+fi+')" title="Remover">×</button>';
+    }
+    var flagTotal=calcContaFlagScore(ext);
+    var cmkWrap=bodyEl.querySelector('.cmk-wrap');
+    if(cmkWrap){
+      cmkWrap.innerHTML=
+        '<div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-pts '+(flagTotal>=0?'pos':'neg')+'">'+(flagTotal>0?'+':'')+flagTotal+' pts</span></div>'+
+        '<div class="cmk-section pos">Positivos</div><div class="cmk-chips">'+cmkPos+'</div>'+
+        '<div class="cmk-section neg">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div>'+
+        (cmkCustom?'<div class="cmk-section" style="color:#6d28d9;">Personalizados</div><div class="cmk-chips" style="align-items:center;">'+cmkCustom+'</div>':'')+
+        '<div class="cmk-add-row">'+
+          '<input class="cmk-add-input" id="cflabel_'+cardIdx+'" placeholder="Nome do marcador" onclick="event.stopPropagation()">'+
+          '<input class="cmk-add-pts" id="cfpts_'+cardIdx+'" type="number" placeholder="pts" onclick="event.stopPropagation()">'+
+          '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+esc(contaNome)+'\','+cardIdx+')">+ Add</button>'+
+        '</div>';
+    }
+    // Atualiza barreiras
+    var customBarreiras=ext.customBarreiras||[];
+    var todasBarreiras=BARREIRAS.concat(customBarreiras);
+    var barrSel=ext.barreiraSel||[];
+    var bchips='';
+    for(var bi=0;bi<todasBarreiras.length;bi++){
+      var bv=todasBarreiras[bi],bSel=barrSel.indexOf(bv)>=0,isCustomB=bi>=BARREIRAS.length;
+      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+esc(contaNome)+'\',\''+esc(bv)+'\')">'+esc(bv)+'</button>'+
+        (isCustomB?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+esc(contaNome)+'\',\''+esc(bv)+'\')" title="Remover">×</button>':'');
+    }
+    var barrChipsEl=bodyEl.querySelector('.barr-chips');
+    if(barrChipsEl)barrChipsEl.innerHTML=bchips;
+    // Atualiza score no header
+    var cd=getContaData({conta:contaNome,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0});
+    var scoreAuditEl=cards[ci].querySelector('.cscore-audit');
+    var scoreTotalEl=cards[ci].querySelector('.cscore-total');
+    if(scoreAuditEl)scoreAuditEl.textContent=cd.scoreAudit;
+    if(scoreTotalEl)scoreTotalEl.textContent=cd.scoreTotal;
+    break;
+  }
+}
 
 // ══════════ MODAL AUDITORIA (por conta) ══════════
 function openAuditModal(contaNome,idx){
