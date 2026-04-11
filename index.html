@@ -521,6 +521,9 @@ function getContaData(ct){
 // ══════════ HELPERS ══════════
 function tc(s){if(!s)return'';return s.toLowerCase().replace(/\b(\w)/g,function(c){return c.toUpperCase();});}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+// escJ: escapa para uso dentro de string JS em onclick="funcao('valor')"
+// substitui \ → \\ e ' → \' para não quebrar o atributo HTML
+function escJ(s){if(!s)return'';return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function wurl(ph,msg){var n=String(ph||'').replace(/\D/g,'');if(!n)return'#';if(n.length<=11)n='55'+n;return'https://wa.me/'+n+'?text='+encodeURIComponent(msg||'');}
 function sk(n,i){return n+'__'+i;}
 function fmtDate(iso){if(!iso)return'';var d=new Date(iso);return d.getDate()+'/'+(d.getMonth()+1).toString().padStart(2,'0');}
@@ -694,7 +697,7 @@ function renderContas(){
     for(var fi=0;fi<flagKeys.length;fi++){
       var fk=flagKeys[fi],fd=CONTA_FLAGS[fk],isSel=!!flags[fk];
       var cls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
-      var chip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+esc(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      var chip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+escJ(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
       if(fd.type==='pos')cmkPos+=chip;else cmkNeg+=chip;
     }
     // Marcadores personalizados desta conta
@@ -703,8 +706,8 @@ function renderContas(){
     for(var ci2=0;ci2<customFlags.length;ci2++){
       var cf=customFlags[ci2],cfSel=!!cf.active;
       var cfCls='cmk-chip '+(cf.pts>=0?'pos':'neg')+(cfSel?' sel':'');
-      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+esc(ct.conta)+'\','+ci2+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
-        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+esc(ct.conta)+'\','+ci2+')" title="Remover">×</button>';
+      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+escJ(ct.conta)+'\','+ci2+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+escJ(ct.conta)+'\','+ci2+')" title="Remover">×</button>';
     }
     var flagTotal=cd.flagScore;
     var cmkHtml='<div class="cmk-wrap" onclick="event.stopPropagation()">'+
@@ -715,7 +718,7 @@ function renderContas(){
       '<div class="cmk-add-row">'+
         '<input class="cmk-add-input" id="cflabel_'+idx+'" placeholder="Nome do marcador" onclick="event.stopPropagation()">'+
         '<input class="cmk-add-pts" id="cfpts_'+idx+'" type="number" placeholder="pts" onclick="event.stopPropagation()">'+
-        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+esc(ct.conta)+'\','+idx+')">+ Add</button>'+
+        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+escJ(ct.conta)+'\','+idx+')">+ Add</button>'+
       '</div>'+
     '</div>';
 
@@ -727,17 +730,17 @@ function renderContas(){
     for(var bi=0;bi<todasBarreiras.length;bi++){
       var bv=todasBarreiras[bi],bSel=barrSel.indexOf(bv)>=0;
       var isCustom=bi>=BARREIRAS.length;
-      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+esc(ct.conta)+'\',\''+esc(bv)+'\')">'+esc(bv)+'</button>'+
-        (isCustom?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+esc(ct.conta)+'\',\''+esc(bv)+'\')" title="Remover">×</button>':'');
+      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+escJ(ct.conta)+'\',\''+escJ(bv)+'\')">'+esc(bv)+'</button>'+
+        (isCustom?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+escJ(ct.conta)+'\',\''+escJ(bv)+'\')" title="Remover">×</button>':'');
     }
     var barrHtml='<div class="barr-wrap" onclick="event.stopPropagation()">'+
       '<div class="barr-lbl">Barreiras principais <span style="font-size:10px;color:#aaa;font-weight:400;">(selecione todas que se aplicam)</span></div>'+
       '<div class="barr-chips">'+bchips+'</div>'+
       '<div class="cmk-add-row">'+
         '<input class="cmk-add-input" id="bclabel_'+idx+'" placeholder="Nova barreira personalizada" onclick="event.stopPropagation()">'+
-        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomBarreira(\''+esc(ct.conta)+'\','+idx+')">+ Add</button>'+
+        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomBarreira(\''+escJ(ct.conta)+'\','+idx+')">+ Add</button>'+
       '</div>'+
-      '<input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;margin-top:8px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" onclick="event.stopPropagation()" oninput="setBarreiraNota(\''+esc(ct.conta)+'\',this.value)">'+
+      '<input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;margin-top:8px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" onclick="event.stopPropagation()" oninput="setBarreiraNota(\''+escJ(ct.conta)+'\',this.value)">'+
     '</div>';
 
     // Médicos
@@ -766,7 +769,7 @@ function renderContas(){
           '<span><b>Momento:</b> '+cd.mom+'/3</span>'+
           '<span><b>Pot.Estrat.:</b> '+cd.pot+'/3</span>'+
           '<span><b>Espaço:</b> '+cd.esp+'/3</span>'+
-          '<button class="ibtn" style="margin-left:auto" onclick="event.stopPropagation();openAuditModal(\''+esc(ct.conta)+'\','+idx+')">✏️ Editar auditoria</button>'+
+          '<button class="ibtn" style="margin-left:auto" onclick="event.stopPropagation();openAuditModal(\''+escJ(ct.conta)+'\','+idx+')">✏️ Editar auditoria</button>'+
         '</div>'+
         barsHtml+cmkHtml+barrHtml+
         '<div class="cdoc-list"><div class="cdoc-title">Médicos ('+cdocs.length+')</div>'+docRows+'</div>'+
@@ -859,7 +862,7 @@ function renderContaInPlace(contaNome){
     for(var fi=0;fi<flagKeys.length;fi++){
       var fk=flagKeys[fi],fd=CONTA_FLAGS[fk],isSel=!!flags[fk];
       var cls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
-      cmkChip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+esc(contaNome)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      cmkChip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+escJ(contaNome)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
       if(fd.type==='pos')cmkPos+=cmkChip;else cmkNeg+=cmkChip;
     }
     var customFlags=ext.customFlags||[];
@@ -867,8 +870,8 @@ function renderContaInPlace(contaNome){
     for(var fi=0;fi<customFlags.length;fi++){
       var cf=customFlags[fi],cfSel=!!cf.active;
       var cfCls='cmk-chip '+(cf.pts>=0?'pos':'neg')+(cfSel?' sel':'');
-      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+esc(contaNome)+'\','+fi+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
-        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+esc(contaNome)+'\','+fi+')" title="Remover">×</button>';
+      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+escJ(contaNome)+'\','+fi+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+escJ(contaNome)+'\','+fi+')" title="Remover">×</button>';
     }
     var flagTotal=calcContaFlagScore(ext);
     var cmkWrap=bodyEl.querySelector('.cmk-wrap');
@@ -881,7 +884,7 @@ function renderContaInPlace(contaNome){
         '<div class="cmk-add-row">'+
           '<input class="cmk-add-input" id="cflabel_'+cardIdx+'" placeholder="Nome do marcador" onclick="event.stopPropagation()">'+
           '<input class="cmk-add-pts" id="cfpts_'+cardIdx+'" type="number" placeholder="pts" onclick="event.stopPropagation()">'+
-          '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+esc(contaNome)+'\','+cardIdx+')">+ Add</button>'+
+          '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+escJ(contaNome)+'\','+cardIdx+')">+ Add</button>'+
         '</div>';
     }
     // Atualiza barreiras
@@ -891,8 +894,8 @@ function renderContaInPlace(contaNome){
     var bchips='';
     for(var bi=0;bi<todasBarreiras.length;bi++){
       var bv=todasBarreiras[bi],bSel=barrSel.indexOf(bv)>=0,isCustomB=bi>=BARREIRAS.length;
-      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+esc(contaNome)+'\',\''+esc(bv)+'\')">'+esc(bv)+'</button>'+
-        (isCustomB?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+esc(contaNome)+'\',\''+esc(bv)+'\')" title="Remover">×</button>':'');
+      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+escJ(contaNome)+'\',\''+escJ(bv)+'\')">'+esc(bv)+'</button>'+
+        (isCustomB?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+escJ(contaNome)+'\',\''+escJ(bv)+'\')" title="Remover">×</button>':'');
     }
     var barrChipsEl=bodyEl.querySelector('.barr-chips');
     if(barrChipsEl)barrChipsEl.innerHTML=bchips;
