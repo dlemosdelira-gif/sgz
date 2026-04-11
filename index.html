@@ -242,7 +242,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
         <button type="button" class="bchip" data-v="aberturaGuideline" onclick="toggleSc(this)">✓ Aberto a guideline (+1)</button>
         <button type="button" class="bchip" data-v="noAccess" onclick="toggleSc(this)">✗ Sem acesso (−2)</button>
         <button type="button" class="bchip" data-v="prefereSQ" onclick="toggleSc(this)">✗ Prefere SC/SQ (−2)</button>
-        <button type="button" class="bchip" data-v="concorrenciaForte" onclick="toggleSc(this)">✗ Concorrência forte (−1)</button>
+        <button type="button" class="bchip" data-v="concorrenciaForte" onclick="toggleSc(this)">✗ Concorrência forte (−2)</button>
       </div>
     </div>
     <div class="brow"><button class="bcanc" onclick="closeDocModal()">Cancelar</button><button class="bsave" onclick="saveDoc()">Salvar</button></div>
@@ -352,7 +352,7 @@ function persist(){
 // ══════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════
-function calcScore(d){var s=0;if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;var f=d.scoreFlags||{};if(f.hasAccess)s+=3;if(f.testedSarc)s+=2;if(f.daraRelacao)s+=1;if(f.aberturaGuideline)s+=1;if(f.noAccess)s-=2;if(f.prefereSQ)s-=2;if(f.concorrenciaForte)s-=1;return s;}
+function calcScore(d){var s=0;if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;var f=d.scoreFlags||{};if(f.hasAccess)s+=3;if(f.testedSarc)s+=2;if(f.daraRelacao)s+=1;if(f.aberturaGuideline)s+=1;if(f.noAccess)s-=2;if(f.prefereSQ)s-=2;if(f.concorrenciaForte)s-=2;return s;}
 function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
 function tc(s){if(!s)return'';return s.toLowerCase().replace(/\b(\w)/g,function(c){return c.toUpperCase();});}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -402,7 +402,7 @@ function renderDocs(){
     if(sf.aberturaGuideline)si+='<span class="si si-pos">+1 Guideline</span>';
     if(sf.noAccess)si+='<span class="si si-neg">−2 Sem acesso</span>';
     if(sf.prefereSQ)si+='<span class="si si-neg">−2 SC/SQ</span>';
-    if(sf.concorrenciaForte)si+='<span class="si si-neg">−1 Concorrência</span>';
+    if(sf.concorrenciaForte)si+='<span class="si si-neg">−2 Concorrência</span>';
     si+='</div></div>';
     var rows='';
     for(var r=0;r<ml.length;r++){
