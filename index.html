@@ -66,62 +66,69 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .nophone{font-size:11px;color:#dc2626;background:#fee2e2;padding:5px 8px;border-radius:7px;flex-shrink:0;}
 .fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
 .pwrap{padding:12px 12px 90px;}
-.phd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.phd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;}
 .phd h2{font-size:17px;font-weight:700;}
 .mcard{background:#fff;border-radius:13px;padding:13px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .mcard-t{font-size:14px;font-weight:600;margin-bottom:4px;}
 .mcard-p{font-size:12px;color:#888;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .mcard-a{display:flex;gap:8px;margin-top:10px;}
-/* CONTAS */
+
+/* ── CONTAS ── */
 .ccard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .ccard-hd{padding:12px 13px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
-.crank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.crank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:2px;}
 .r1{background:#fef3c7;color:#92400e;}.r2{background:#f3f4f6;color:#374151;}.r3{background:#fce7f3;color:#9d174d;}.rn{background:#ede9fe;color:#5b21b6;}
 .ccard-main{flex:1;min-width:0;}
 .ccard-name{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.ccard-sub{font-size:11px;color:#888;margin-top:2px;}
-.ccard-scores{display:flex;align-items:center;gap:4px;flex-shrink:0;}
-.cscore-audit{font-size:16px;font-weight:700;color:#888;}
-.cscore-sep{font-size:12px;color:#ccc;}
-.cscore-total{font-size:20px;font-weight:700;color:#6d28d9;}
-.cscore-label{font-size:9px;color:#888;text-align:center;line-height:1.2;}
-.cchev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
+.ccard-sub{font-size:11px;color:#888;margin-top:3px;}
+.ccard-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.cscore-box{text-align:center;}
+.cscore-audit{font-size:13px;font-weight:700;color:#aaa;line-height:1;}
+.cscore-total{font-size:22px;font-weight:700;color:#6d28d9;line-height:1;margin-top:2px;}
+.cscore-lbl{font-size:9px;color:#aaa;margin-top:1px;}
+.cscore-delta{font-size:11px;font-weight:700;padding:2px 6px;border-radius:8px;align-self:flex-start;margin-top:4px;}
+.cscore-delta.pos{background:#d1fae5;color:#065f46;}
+.cscore-delta.neg{background:#fee2e2;color:#b91c1c;}
+.cscore-delta.zero{background:#f3f4f6;color:#888;}
+.cchev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;margin-top:6px;}
 .ccard.open .cchev{transform:rotate(180deg);}
 .ccard-body{display:none;border-top:1px solid #f2f2f7;}.ccard.open .ccard-body{display:block;}
-.ccard-det{padding:10px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#555;}
-.ccard-det span b{color:#1c1c1e;}
+/* info row dentro do card */
+.cinfo-row{padding:8px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#555;align-items:center;}
+.cinfo-row span b{color:#1c1c1e;}
+/* barras */
 .sbars{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
 .sbar-r{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px;}
 .sbar-lbl{width:90px;color:#555;flex-shrink:0;}
 .sbar-out{flex:1;height:6px;background:#f2f2f7;border-radius:3px;overflow:hidden;}
 .sbar-in{height:100%;border-radius:3px;background:#6d28d9;}
 .sbar-v{width:16px;font-weight:700;color:#6d28d9;flex-shrink:0;text-align:right;}
-/* MARCADORES DE CONTA */
-.cmk-wrap{padding:10px 13px;background:#f5f3ff;border-bottom:1px solid #f2f2f7;}
-.cmk-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.cmk-title{font-size:11px;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.4px;}
-.cmk-score{font-size:11px;font-weight:700;color:#6d28d9;}
-.cmk-chips{display:flex;flex-wrap:wrap;gap:5px;}
-.cmk-chip{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;transition:all .15s;}
-.cmk-chip.pos{border-color:#86efac;}.cmk-chip.pos.sel{background:#22c55e;color:#fff;border-color:#22c55e;}
-.cmk-chip.neg{border-color:#fca5a5;}.cmk-chip.neg.sel{background:#ef4444;color:#fff;border-color:#ef4444;}
-/* AUDIT EDIT */
-.audit-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;background:#fafafa;}
-.audit-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-.audit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.audit-field{display:flex;flex-direction:column;gap:3px;}
-.audit-field label{font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
-.audit-field input{padding:6px 10px;border-radius:8px;border:1px solid #ddd;font-size:13px;background:#fff;outline:none;font-family:-apple-system,sans-serif;}
-.audit-save{margin-top:8px;width:100%;background:#6d28d9;color:#fff;border:none;border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;}
+/* marcadores de conta */
+.cmk-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.cmk-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.cmk-title{font-size:12px;font-weight:700;color:#1c1c1e;}
+.cmk-pts{font-size:12px;font-weight:700;}
+.cmk-pts.pos{color:#065f46;}.cmk-pts.neg{color:#b91c1c;}.cmk-pts.zero{color:#888;}
+.cmk-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.cmk-section.pos{color:#22c55e;}.cmk-section.neg{color:#ef4444;}
+.cmk-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.cmk-chip{padding:5px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1.5px solid #e5e7eb;cursor:pointer;background:#fff;color:#374151;transition:all .15s;}
+.cmk-chip.pos:not(.sel){border-color:#86efac;color:#166534;}
+.cmk-chip.pos.sel{background:#22c55e;color:#fff;border-color:#22c55e;}
+.cmk-chip.neg:not(.sel){border-color:#fca5a5;color:#991b1b;}
+.cmk-chip.neg.sel{background:#ef4444;color:#fff;border-color:#ef4444;}
+/* barreira */
 .barr-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
 .barr-lbl{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
 .barr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
 .bchip{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;}
 .bchip.sel{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+/* docs na conta */
 .cdoc-list{padding:10px 13px;}
 .cdoc-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
 .cdoc-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f9f9f9;font-size:12px;}
 .cdoc-row:last-child{border-bottom:none;}
+
 /* CIDADES */
 .citycard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .citycard-hd{padding:12px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;}
@@ -138,6 +145,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .city-docs{padding:0 13px 8px;}
 .city-doc-item{padding:7px 0;border-bottom:1px solid #f9f9f9;font-size:13px;display:flex;align-items:center;gap:6px;}
 .city-doc-item:last-child{border-bottom:none;}
+
 /* INSIGHTS */
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
 .metric{border-radius:12px;padding:12px;text-align:center;}
@@ -159,6 +167,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .tip{border-left:3px solid #6d28d9;background:#f5f3ff;border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#4c1d95;line-height:1.5;}
 .tip b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
 .sec-title{font-size:15px;font-weight:700;margin:14px 0 8px;}
+
 /* MODAIS */
 .ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:500;}
 .ov.on{display:flex;align-items:flex-end;justify-content:center;}
@@ -169,7 +178,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .field{margin-bottom:13px;}
 .field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
 .field input,.field textarea,.field select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;font-size:15px;font-family:-apple-system,sans-serif;background:#f9f9f9;color:#1c1c1e;outline:none;-webkit-appearance:none;}
-.field textarea{resize:vertical;min-height:90px;line-height:1.5;}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .brow{display:flex;gap:9px;margin-top:8px;}
 .bsave{flex:1;background:#6d28d9;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
@@ -177,6 +186,19 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .bcanc{flex:1;background:#f2f2f7;color:#333;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;}
 .empty{text-align:center;padding:50px 20px;color:#888;font-size:14px;}
 .score-section-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px;}
+
+/* MODAL AUDITORIA */
+.audit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.audit-field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+.audit-field input{width:100%;padding:9px 12px;border-radius:10px;border:1px solid #ddd;font-size:15px;background:#f9f9f9;outline:none;font-family:-apple-system,sans-serif;}
+.audit-preview{background:#f5f3ff;border-radius:10px;padding:10px 13px;margin-bottom:12px;font-size:12px;color:#4c1d95;line-height:1.6;}
+.audit-preview b{font-size:13px;}
+
+/* CSV IMPORT MODAL */
+.csv-info{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 13px;font-size:12px;color:#166534;line-height:1.6;margin-bottom:12px;}
+.csv-info code{display:block;font-family:monospace;background:#dcfce7;padding:4px 8px;border-radius:6px;margin-top:6px;font-size:11px;word-break:break-all;}
+.csv-result{margin-top:10px;font-size:12px;color:#555;background:#f9f9f9;border-radius:8px;padding:8px 12px;max-height:120px;overflow-y:auto;}
+.csv-result .ok{color:#065f46;}.csv-result .warn{color:#92400e;}
 </style>
 </head>
 <body>
@@ -235,7 +257,15 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 
 <!-- CONTAS -->
 <div class="page" id="p2">
-  <div class="pwrap"><div class="phd"><h2>Ranking de Contas</h2><span style="font-size:11px;color:#888;">Score auditoria + marcadores</span></div><div id="contaList"></div></div>
+  <div class="pwrap">
+    <div class="phd">
+      <h2>Ranking de Contas</h2>
+      <div style="display:flex;gap:6px;">
+        <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Importar auditoria</button>
+      </div>
+    </div>
+    <div id="contaList"></div>
+  </div>
 </div>
 
 <!-- CIDADES -->
@@ -248,11 +278,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <div class="pwrap"><h2 style="margin-bottom:12px">📊 Insights</h2><div id="insDiv"></div></div>
 </div>
 
-<!-- MODAL MÉDICO -->
+<!-- ══ MODAL MÉDICO ══ -->
 <div class="ov" id="docOv">
   <div class="modal">
     <div class="mhd"><h2 id="docMT">Médico</h2><button onclick="closeDocModal()">×</button></div>
-    <input type="hidden" id="dIdx">
     <div class="field"><label>Nome</label><input id="dName" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"></div>
     <div class="f2">
       <div class="field"><label>CRM</label><input id="dCrm" autocomplete="off" spellcheck="false"></div>
@@ -285,18 +314,61 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- MODAL MATERIAL -->
+<!-- ══ MODAL MATERIAL ══ -->
 <div class="ov" id="matOv">
   <div class="modal">
     <div class="mhd"><h2 id="matMT">Material</h2><button onclick="closeMatModal()">×</button></div>
-    <input type="hidden" id="mIdx">
     <div class="field"><label>Nome</label><input id="mName"></div>
     <div class="field"><label>Mensagem WhatsApp</label><textarea id="mMsg" placeholder="Olá! ..."></textarea></div>
     <div class="brow"><button class="bcanc" onclick="closeMatModal()">Cancelar</button><button class="bsave" onclick="saveMat()">Salvar</button></div>
   </div>
 </div>
 
-<!-- MODAL DELETE -->
+<!-- ══ MODAL AUDITORIA (edição de uma conta) ══ -->
+<div class="ov" id="auditOv">
+  <div class="modal">
+    <div class="mhd"><h2 id="auditTitle">Editar auditoria</h2><button onclick="closeAuditModal()">×</button></div>
+    <div class="audit-preview" id="auditPreview"></div>
+    <div class="audit-grid">
+      <div class="audit-field"><label>Score Tamanho (1-3)</label><input type="number" id="at_tam" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>Score Momento (1-3)</label><input type="number" id="at_mom" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>Score Pot. Estratégico (1-3)</label><input type="number" id="at_pot" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>Score Espaço (1-3)</label><input type="number" id="at_esp" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>MAT (unidades)</label><input type="number" id="at_mat" min="0" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>YTD (unidades)</label><input type="number" id="at_ytd" min="0" oninput="updateAuditPreview()"></div>
+    </div>
+    <div class="brow"><button class="bcanc" onclick="closeAuditModal()">Cancelar</button><button class="bsave" onclick="saveAuditModal()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL IMPORTAR AUDITORIA CSV ══ -->
+<div class="ov" id="csvAuditOv">
+  <div class="modal">
+    <div class="mhd"><h2>📊 Importar auditoria</h2><button onclick="closeCsvAuditModal()">×</button></div>
+    <div class="csv-info">
+      Cole os dados direto do Excel — ou importe um arquivo CSV.<br>
+      <strong>Formato esperado (com cabeçalho):</strong>
+      <code>Conta;MAT;YTD;Tamanho;Momento;Pot.Estrat.;Espaco</code>
+      As colunas Tamanho, Momento, Pot.Estrat. e Espaço são <strong>opcionais</strong> — se omitidas, só MAT e YTD são atualizados.
+    </div>
+    <div class="field">
+      <label>Cole o CSV aqui</label>
+      <textarea id="csvPaste" style="min-height:130px;font-family:monospace;font-size:12px;" placeholder="Conta;MAT;YTD&#10;UNIMED Campinas;1980;142&#10;CASSEMS;70;5"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button class="ctrl-btn primary" onclick="processCsvAudit()">✓ Processar</button>
+      <button class="ctrl-btn" onclick="document.getElementById('csvFileInput').click()">📂 Importar arquivo</button>
+      <input id="csvFileInput" type="file" accept=".csv,.txt" style="display:none" onchange="loadCsvFile(event)">
+    </div>
+    <div id="csvResult" class="csv-result" style="display:none"></div>
+    <div class="brow" style="margin-top:12px;">
+      <button class="bcanc" onclick="closeCsvAuditModal()">Fechar</button>
+      <button class="bsave" id="csvApplyBtn" style="display:none" onclick="applyCsvAudit()">Aplicar e salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DELETE ══ -->
 <div class="ov" id="delOv">
   <div class="modal">
     <div class="mhd"><h2>Confirmar</h2><button onclick="closeDelOv()">×</button></div>
@@ -307,27 +379,27 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
 <script>
 // ══════════ FIREBASE ══════════
-var firebaseConfig={apiKey:"AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",authDomain:"ssgz-16baf.firebaseapp.com",databaseURL:"https://ssgz-16baf-default-rtdb.firebaseio.com",projectId:"ssgz-16baf",storageBucket:"ssgz-16baf.firebasestorage.app",messagingSenderId:"838715682754",appId:"1:838715682754:web:b130266eb2e714e478705b",measurementId:"G-HJT68L87G1"};
+var firebaseConfig={apiKey:"AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",authDomain:"ssgz-16baf.firebaseapp.com",databaseURL:"https://ssgz-16baf-default-rtdb.firebaseio.com",projectId:"ssgz-16baf",storageBucket:"ssgz-16baf.firebasestorage.app",messagingSenderId:"838715682754",appId:"1:838715682754:web:b130266eb2e714e478705b"};
 firebase.initializeApp(firebaseConfig);
 var db=firebase.database();
 var dbRef=db.ref('sarclisa');
 
 // ══════════ MARCADORES DE CONTA ══════════
-// key → {label, pts, type: 'pos'|'neg'}
 var CONTA_FLAGS={
-  sem_protocolo:   {label:'Sem protocolo para MM',   pts:-2, type:'neg'},
-  convenio_rest:   {label:'Convênio com restrição',  pts:-1, type:'neg'},
-  comite_lento:    {label:'Comitê de padronização lento', pts:-1, type:'neg'},
-  pref_sq:         {label:'Preferência SC/SQ',       pts:-1, type:'neg'},
-  restricao_orc:   {label:'Restrição orçamentária',  pts:-1, type:'neg'},
-  protocolo_aberto:{label:'Protocolo aberto/em discussão', pts:+1, type:'pos'},
-  medico_chave:    {label:'Médico-chave prescriptor ativo', pts:+2, type:'pos'},
-  hist_inovacao:   {label:'Histórico de adoção de inovação', pts:+1, type:'pos'},
-  vol_crescendo:   {label:'Volume crescendo 2+ ciclos', pts:+1, type:'pos'}
+  protocolo_aberto:{label:'Protocolo aberto/em discussão',pts:+1,type:'pos'},
+  medico_chave:    {label:'Médico-chave prescriptor ativo',pts:+2,type:'pos'},
+  hist_inovacao:   {label:'Histórico de adoção de inovação',pts:+1,type:'pos'},
+  vol_crescendo:   {label:'Volume crescendo 2+ ciclos',pts:+1,type:'pos'},
+  sem_protocolo:   {label:'Sem protocolo para MM',pts:-2,type:'neg'},
+  convenio_rest:   {label:'Convênio com restrição',pts:-1,type:'neg'},
+  comite_lento:    {label:'Comitê de padronização lento',pts:-1,type:'neg'},
+  pref_sq:         {label:'Preferência SC/SQ',pts:-1,type:'neg'},
+  restricao_orc:   {label:'Restrição orçamentária',pts:-1,type:'neg'}
 };
+
+var BARREIRAS=['Acesso convênio','Protocolo institucional','Preferência por esquema SC/SQ','Forte investimento da concorrência','Comitê de padronização lento','Restrição orçamentária','Acesso ao corpo clínico','Engajamento do corpo clínico','Sem barreiras identificadas'];
 
 // ══════════ DADOS PADRÃO ══════════
 var MATS_DEF=[{name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm ponto que tem chamado atenção no HD7 é a rapidez da resposta já na indução com Sarclisa® + VRd nesse caso clínico elegível ao TMO. Caso tenha tido experiência, você tem percebido diferença quando intensifica com anti-CD38 logo na 1ª linha?\n\nVeja esse caso clínico com resposta rápida ao tratamento de indução em pacientes elegíveis ao TACT: https://bit.ly/4scupfx"},{name:"HD7 – Eficácia (DRM na indução)",msg:"Olá!\n\nEsse dado do HD7 é interessante: aumento relevante de DRM negativa ainda antes do transplante com Sarclisa® + VRd. De que forma alcançar DRM- já na indução muda sua visão sobre a manutenção depois do TMO?\n\nVeja mais no nosso artigo de tratamento para pacientes MMRD elegíveis: análise da DRM e o impacto na SLP: https://bit.ly/46G6U6r"},{name:"HD7 – Posologia (exposição curta)",msg:"Olá!\n\nUm detalhe prático do HD7 que costuma gerar discussão é o uso de Sarclisa® em apenas 11 doses durante a indução com VRd. Esse formato mais curto facilita considerar quadruplete na sua rotina?\n\nVeja mais sobre a posologia administração de Sarclisa® no HD7: https://bit.ly/4lIIoGA"},{name:"IMROZ – Eficácia",msg:"Olá!\n\nNo IMROZ, chamou atenção a SLP mais longa com Sarclisa® + VRd já na 1ª linha dos pacientes sem indicação de TMO. Como você enxerga quadrupletes como estratégia inicial nesses casos?\n\nSaiba mais em: https://bit.ly/3BIcvM8"},{name:"IMROZ – DRM longitudinal",msg:"Olá!\n\nOutro ponto interessante do IMROZ foi o aumento progressivo da DRM negativa ao longo do tratamento com Sarclisa®. Como esse aprofundamento contínuo da resposta influencia sua escolha do esquema inicial?\n\nSaiba mais sobre a dinâmica da negatividade da doença residual mínima em pacientes com mieloma múltiplo recém-diagnosticado: https://bit.ly/42izZRF"},{name:"IMROZ – Caso clínico",msg:"Olá!\n\nEsse caso clínico mostra resposta já no primeiro ciclo com Sarclisa® + VRd em paciente inelegível ao transplante, bem alinhado com o IMROZ. Caso já tenha tido experiência, você tem observado respostas precoces assim com quadruplete na prática?\n\nSaiba mais nesse interessante caso clínico: https://bit.ly/4aBvlT5"}];
@@ -336,18 +408,17 @@ var DOCS_DEF=[{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","po
 
 var CONTAS_DEF=[{conta:"UNIMED Campinas",scoreTam:3,scoreMom:3,scorePot:3,scoreEsp:2,scoreTotal:11,mat:1904,ytd:129,prioridade:"Prioridade Máxima"},{conta:"UNIMED Jundiaí",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:144,ytd:11,prioridade:"Prioridade Alta"},{conta:"Vera Cruz",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:108,ytd:14,prioridade:"Prioridade Alta"},{conta:"UNIMED Bauru",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:142,ytd:16,prioridade:"Prioridade Alta"},{conta:"UNIMED Sorocaba",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:139,ytd:11,prioridade:"Prioridade Alta"},{conta:"UNIMED Americana",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:102,ytd:0,prioridade:"Prioridade Alta"},{conta:"UNIMED Limeira",scoreTam:2,scoreMom:3,scorePot:2,scoreEsp:2,scoreTotal:9,mat:33,ytd:8,prioridade:"Prioridade Alta"},{conta:"Oncominas",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:50,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Varginha",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:49,ytd:3,prioridade:"Prioridade Média"},{conta:"UNIMED Piracicaba",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:52,ytd:5,prioridade:"Prioridade Média"},{conta:"CASSEMS",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:68,ytd:0,prioridade:"Prioridade Média"},{conta:"Prognóstica",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:40,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED São Carlos",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:39,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Rio Claro",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:2,scoreTotal:7,mat:30,ytd:3,prioridade:"Prioridade Média"},{conta:"Centro de Hematologia Sorocaba",scoreTam:1,scoreMom:3,scorePot:1,scoreEsp:2,scoreTotal:7,mat:11,ytd:11,prioridade:"Prioridade Média"},{conta:"UNIMED Dourados",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Marília",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Campo Grande",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:1,scoreTotal:6,mat:40,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Poços de Caldas",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:5,mat:25,ytd:0,prioridade:"Monitoramento"},{conta:"Consultório",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:"Monitoramento"}];
 
-var BARREIRAS=['Acesso convênio','Protocolo institucional','Preferência por esquema SC/SQ','Forte investimento da concorrência','Comitê de padronização lento','Restrição orçamentária','Acesso ao corpo clínico','Engajamento do corpo clínico','Sem barreiras identificadas'];
-
 // ══════════ STATE ══════════
 var mats=[],docs=[],sent={},cExtra={};
 var activeMat=-1,potF={A:true,B:true,C:true};
 var editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
+var auditContaNome='';
+var csvParsedData=[];
 var fbLoaded=false;
 
-// ══════════ SYNC STATUS ══════════
 function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncTxt').textContent=t;}
 
-// ══════════ FIREBASE LISTENER ══════════
+// ══════════ FIREBASE ══════════
 dbRef.on('value',function(snap){
   var data=snap.val();
   if(data){mats=data.mats||MATS_DEF;docs=data.docs||DOCS_DEF;sent=data.sent||{};cExtra=data.cExtra||{};}
@@ -374,10 +445,9 @@ function persist(){
   try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5c',JSON.stringify(cExtra));}catch(e){}
 }
 
-// ══════════ SCORE MÉDICO ══════════
+// ══════════ SCORES ══════════
 function calcScore(d){
-  var s=0;
-  if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;
+  var s=0;if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;
   var f=d.scoreFlags||{};
   if(f.hasAccess)s+=3;if(f.testedSarc)s+=2;if(f.daraRelacao)s+=1;if(f.aberturaGuideline)s+=1;
   if(f.noAccess)s-=2;if(f.prefereSQ)s-=2;if(f.concorrenciaForte)s-=1;if(f.daraLover)s-=2;
@@ -385,16 +455,24 @@ function calcScore(d){
 }
 function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
 
-// ══════════ SCORE CONTA ══════════
-// Score total = scoreTotal da auditoria (editável) + marcadores contextuais
 function calcContaFlagScore(ext){
-  var s=0;
-  var flags=ext.flags||{};
-  var keys=Object.keys(CONTA_FLAGS);
+  var s=0,flags=ext.flags||{},keys=Object.keys(CONTA_FLAGS);
   for(var i=0;i<keys.length;i++){if(flags[keys[i]])s+=CONTA_FLAGS[keys[i]].pts;}
   return s;
 }
-function calcContaTotal(ct,ext){return (ct.scoreTotal||0)+calcContaFlagScore(ext);}
+function getContaData(ct){
+  // aplica overrides de auditoria salvas em cExtra
+  var ext=cExtra[ct.conta]||{},ad=ext.auditData||{};
+  var tam=ad.scoreTam!=null?parseInt(ad.scoreTam):ct.scoreTam;
+  var mom=ad.scoreMom!=null?parseInt(ad.scoreMom):ct.scoreMom;
+  var pot=ad.scorePot!=null?parseInt(ad.scorePot):ct.scorePot;
+  var esp=ad.scoreEsp!=null?parseInt(ad.scoreEsp):ct.scoreEsp;
+  var mat=ad.mat!=null?parseFloat(ad.mat):ct.mat;
+  var ytd=ad.ytd!=null?parseFloat(ad.ytd):ct.ytd;
+  var scoreAudit=tam+mom+pot+esp;
+  var flagScore=calcContaFlagScore(ext);
+  return{tam:tam,mom:mom,pot:pot,esp:esp,mat:mat,ytd:ytd,scoreAudit:scoreAudit,flagScore:flagScore,scoreTotal:scoreAudit+flagScore};
+}
 
 // ══════════ HELPERS ══════════
 function tc(s){if(!s)return'';return s.toLowerCase().replace(/\b(\w)/g,function(c){return c.toUpperCase();});}
@@ -406,12 +484,11 @@ function fmtDate(iso){if(!iso)return'';var d=new Date(iso);return d.getDate()+'/
 // ══════════ TABS ══════════
 function goTab(n){for(var i=0;i<5;i++){document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('p'+i).classList.toggle('on',i===n);}if(n===1)renderMats();if(n===2)renderContas();if(n===3)renderCities();if(n===4)renderInsights();}
 
-// ══════════ CHIPS / FILTROS ══════════
+// ══════════ MÉDICOS ══════════
 function buildChips(){var h='<button class="chip all'+(activeMat===-1?' on':'')+'" onclick="setMat(-1)">Todos</button>';for(var i=0;i<mats.length;i++)h+='<button class="chip'+(activeMat===i?' on':'')+'" onclick="setMat('+i+')">'+esc(mats[i].name)+'</button>';document.getElementById('chipRow').innerHTML=h;}
 function setMat(i){activeMat=i;buildChips();renderDocs();}
 function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList.toggle('dim',!potF[p]);renderDocs();}
 
-// ══════════ RENDER MÉDICOS ══════════
 function renderDocs(){
   if(!fbLoaded){document.getElementById('dlist').innerHTML='<div class="empty">Conectando...</div>';return;}
   buildChips();
@@ -461,14 +538,13 @@ function toggleDc(i){var el=document.getElementById('dc'+i);if(el)el.classList.t
 function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();}
 function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();}
 
-// ══════════ MODAL MÉDICO ══════════
 function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
 function openDocModal(idx){
   editDocIdx=idx;scFlags={};
   document.getElementById('docMT').childNodes[0].nodeValue=idx===-1?'Novo Médico ':'Editar Médico ';
   if(idx>=0){var d=docs[idx];document.getElementById('dName').value=d.name||'';document.getElementById('dCrm').value=d.crm||'';document.getElementById('dPot').value=d.pot||'C';document.getElementById('dPhone').value=d.phone||'';document.getElementById('dCity').value=d.city||'';document.getElementById('dEsp').value=d.esp||'Hematologia (BR)';document.getElementById('dConta').value=d.conta||'';scFlags=d.scoreFlags?JSON.parse(JSON.stringify(d.scoreFlags)):{};}
   else{['dName','dCrm','dPhone','dCity','dConta'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('dPot').value='C';document.getElementById('dEsp').value='Hematologia (BR)';}
-  var allBtns=document.querySelectorAll('#scoreChipsPos .bchip, #scoreChipsNeg .bchip');
+  var allBtns=document.querySelectorAll('#scoreChipsPos .bchip,#scoreChipsNeg .bchip');
   for(var i=0;i<allBtns.length;i++){allBtns[i].classList.toggle('sel',!!scFlags[allBtns[i].dataset.v]);}
   document.getElementById('docOv').classList.add('on');
 }
@@ -496,123 +572,235 @@ function renderContas(){
   var cdMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.conta||'Sem conta';if(!cdMap[c])cdMap[c]=[];cdMap[c].push(d);}
   var contas=CONTAS_DEF.slice();
   for(var cn in cdMap){var found=false;for(var j=0;j<contas.length;j++){if(contas[j].conta===cn){found=true;break;}}if(!found)contas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
-
-  // Mescla com dados editados (cExtra pode ter scoreTam, scoreMom, etc.)
-  for(var i=0;i<contas.length;i++){
-    var ext=cExtra[contas[i].conta]||{};
-    if(ext.auditData){
-      if(ext.auditData.scoreTam!=null)contas[i].scoreTam=parseInt(ext.auditData.scoreTam)||contas[i].scoreTam;
-      if(ext.auditData.scoreMom!=null)contas[i].scoreMom=parseInt(ext.auditData.scoreMom)||contas[i].scoreMom;
-      if(ext.auditData.scorePot!=null)contas[i].scorePot=parseInt(ext.auditData.scorePot)||contas[i].scorePot;
-      if(ext.auditData.scoreEsp!=null)contas[i].scoreEsp=parseInt(ext.auditData.scoreEsp)||contas[i].scoreEsp;
-      if(ext.auditData.mat!=null)contas[i].mat=parseFloat(ext.auditData.mat)||contas[i].mat;
-      if(ext.auditData.ytd!=null)contas[i].ytd=parseFloat(ext.auditData.ytd)||contas[i].ytd;
-      contas[i].scoreTotal=contas[i].scoreTam+contas[i].scoreMom+contas[i].scorePot+contas[i].scoreEsp;
-    }
-  }
-
-  // Ordena por score total (auditoria + marcadores)
+  // ordena por score total final
   contas.sort(function(a,b){
-    var ea=cExtra[a.conta]||{},eb=cExtra[b.conta]||{};
-    return calcContaTotal(b,eb)-calcContaTotal(a,ea);
+    var da=getContaData(a),db=getContaData(b);
+    return db.scoreTotal-da.scoreTotal;
   });
-
   var priCol={'Prioridade Máxima':'r1','Prioridade Alta':'r2','Prioridade Média':'r3','Monitoramento':'rn'};
   var html='';
   for(var idx=0;idx<contas.length;idx++){
     var ct=contas[idx];
+    var cd=getContaData(ct);
     var ext=cExtra[ct.conta]||{};
-    var barreira=ext.barreira||'',barreiraNota=ext.barreiraNota||'';
-    var flags=ext.flags||{};
-    var flagScore=calcContaFlagScore(ext);
-    var totalFinal=calcContaTotal(ct,ext);
-    var pA=0,pB=0,pC=0;
+    var barreira=ext.barreira||'',barreiraNota=ext.barreiraNota||'',flags=ext.flags||{};
     var cdocs=cdMap[ct.conta]||[];
+    var pA=0,pB=0,pC=0;
     for(var k=0;k<cdocs.length;k++){if(cdocs[k].pot==='A')pA++;else if(cdocs[k].pot==='B')pB++;else pC++;}
     var rc=priCol[ct.prioridade]||'rn';
     var rk=idx<3?['🥇','🥈','🥉'][idx]:'#'+(idx+1);
+    var deltaSign=cd.flagScore>0?'+':cd.flagScore<0?'':'';
+    var deltaCls=cd.flagScore>0?'pos':cd.flagScore<0?'neg':'zero';
 
-    // Barras de score da auditoria
-    var barsHtml='<div class="sbars">'+bar('Tamanho',ct.scoreTam)+bar('Momento',ct.scoreMom)+bar('Pot.estrat.',ct.scorePot)+bar('Espaço',ct.scoreEsp)+'</div>';
+    // Barras de auditoria
+    var barsHtml='<div class="sbars">'+bar('Tamanho',cd.tam)+bar('Momento',cd.mom)+bar('Pot.estrat.',cd.pot)+bar('Espaço',cd.esp)+'</div>';
 
-    // Marcadores de conta — separados em positivos e negativos
-    var cmkPos='',cmkNeg='';
+    // Marcadores contextuais
     var flagKeys=Object.keys(CONTA_FLAGS);
+    var cmkPos='',cmkNeg='';
     for(var fi=0;fi<flagKeys.length;fi++){
-      var fk=flagKeys[fi],fd=CONTA_FLAGS[fk];
-      var isSel=!!flags[fk];
-      var chipCls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
-      var chip='<button class="'+chipCls+'" onclick="toggleContaFlag(\''+esc(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      var fk=flagKeys[fi],fd=CONTA_FLAGS[fk],isSel=!!flags[fk];
+      var cls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
+      var chip='<button class="'+cls+'" onclick="toggleContaFlag(\''+esc(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
       if(fd.type==='pos')cmkPos+=chip;else cmkNeg+=chip;
     }
-    var cmkHtml='<div class="cmk-wrap"><div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-score">'+(flagScore>=0?'+':'')+flagScore+' pts</span></div>'+
-      '<div style="font-size:10px;color:#22c55e;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Positivos</div><div class="cmk-chips">'+cmkPos+'</div>'+
-      '<div style="font-size:10px;color:#ef4444;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:6px 0 4px;">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div></div>';
+    var cmkHtml='<div class="cmk-wrap"><div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-pts '+(cd.flagScore>=0?'pos':'neg')+'">'+(cd.flagScore>0?'+':'')+cd.flagScore+' pts</span></div>'+
+      '<div class="cmk-section pos">Positivos</div><div class="cmk-chips">'+cmkPos+'</div>'+
+      '<div class="cmk-section neg">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div></div>';
 
-    // Edição dos dados de auditoria
-    var ad=ext.auditData||{};
-    var auditHtml='<div class="audit-wrap"><div class="audit-title"><span>📊 Dados da auditoria</span><span style="font-size:10px;color:#6d28d9;">edite ao atualizar</span></div>'+
-      '<div class="audit-grid">'+
-      '<div class="audit-field"><label>Score Tamanho (1-3)</label><input type="number" min="1" max="3" id="at_tam_'+idx+'" value="'+ct.scoreTam+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
-      '<div class="audit-field"><label>Score Momento (1-3)</label><input type="number" min="1" max="3" id="at_mom_'+idx+'" value="'+ct.scoreMom+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
-      '<div class="audit-field"><label>Score Pot.Estrat (1-3)</label><input type="number" min="1" max="3" id="at_pot_'+idx+'" value="'+ct.scorePot+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
-      '<div class="audit-field"><label>Score Espaço (1-3)</label><input type="number" min="1" max="3" id="at_esp_'+idx+'" value="'+ct.scoreEsp+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
-      '<div class="audit-field"><label>MAT (unid.)</label><input type="number" id="at_mat_'+idx+'" value="'+ct.mat+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
-      '<div class="audit-field"><label>YTD (unid.)</label><input type="number" id="at_ytd_'+idx+'" value="'+ct.ytd+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
-      '</div></div>';
-
-    // Chips de barreira (campo livre)
+    // Barreira
     var bchips='';for(var bi=0;bi<BARREIRAS.length;bi++){bchips+='<button class="bchip'+(barreira===BARREIRAS[bi]?' sel':'')+'" onclick="setBarreira(\''+esc(ct.conta)+'\',\''+esc(BARREIRAS[bi])+'\')">'+BARREIRAS[bi]+'</button>';}
     var barrHtml='<div class="barr-wrap"><div class="barr-lbl">Barreira principal</div><div class="barr-chips">'+bchips+'</div><input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" oninput="setBarreiraNota(\''+esc(ct.conta)+'\',this.value)"></div>';
 
-    // Médicos vinculados
+    // Médicos
     var docRows='';for(var di2=0;di2<cdocs.length;di2++){var dd=cdocs[di2],dsc=calcScore(dd),dsl=scoreLabel(dsc);docRows+='<div class="cdoc-row"><span class="badge b'+dd.pot+'">'+dd.pot+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(dd.name))+'</span><span class="sc-badge '+dsl.cls+'" style="font-size:10px;">'+dsc+'pts</span></div>';}
 
-    // Score display: auditoria + marcadores = total
-    var scoreDisplay='<div class="ccard-scores">'+
-      '<div style="text-align:center"><div class="cscore-audit">'+ct.scoreTotal+'</div><div class="cscore-label">auditoria</div></div>'+
-      '<div class="cscore-sep">'+(flagScore>=0?'+':'')+flagScore+'</div>'+
-      '<div style="text-align:center"><div class="cscore-total">'+totalFinal+'</div><div class="cscore-label">total</div></div>'+
-    '</div>';
-
-    html+='<div class="ccard" id="cc'+idx+'"><div class="ccard-hd" onclick="toggleCc('+idx+')">'+
-      '<div class="crank '+rc+'">'+rk+'</div>'+
-      '<div class="ccard-main"><div class="ccard-name">'+esc(ct.conta)+'</div>'+
-      '<div class="ccard-sub">'+ct.prioridade+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+(barreira?' · ⚠️ '+esc(barreira):'')+'</div></div>'+
-      scoreDisplay+
-      '<button class="cchev">▼</button></div>'+
+    html+='<div class="ccard" id="cc'+idx+'">'+
+      '<div class="ccard-hd" onclick="toggleCc('+idx+')">'+
+        '<div class="crank '+rc+'">'+rk+'</div>'+
+        '<div class="ccard-main">'+
+          '<div class="ccard-name">'+esc(ct.conta)+'</div>'+
+          '<div class="ccard-sub">MAT '+cd.mat+' · YTD '+cd.ytd+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+'</div>'+
+        '</div>'+
+        '<div class="ccard-right">'+
+          (cd.flagScore!==0?'<div class="cscore-delta '+deltaCls+'">'+deltaSign+cd.flagScore+'</div>':'')+
+          '<div class="cscore-box">'+
+            '<div class="cscore-audit">'+cd.scoreAudit+'</div>'+
+            '<div class="cscore-total">'+cd.scoreTotal+'</div>'+
+            '<div class="cscore-lbl">total</div>'+
+          '</div>'+
+        '</div>'+
+        '<button class="cchev">▼</button>'+
+      '</div>'+
       '<div class="ccard-body">'+
-        '<div class="ccard-det"><span><b>MAT:</b> '+ct.mat+'</span><span><b>YTD:</b> '+ct.ytd+'</span><span><b>Tam:</b> '+ct.scoreTam+'/3</span><span><b>Mom:</b> '+ct.scoreMom+'/3</span><span><b>Pot:</b> '+ct.scorePot+'/3</span><span><b>Espaço:</b> '+ct.scoreEsp+'/3</span></div>'+
-        barsHtml+cmkHtml+auditHtml+barrHtml+
+        '<div class="cinfo-row">'+
+          '<span><b>Tamanho:</b> '+cd.tam+'/3</span>'+
+          '<span><b>Momento:</b> '+cd.mom+'/3</span>'+
+          '<span><b>Pot.Estrat.:</b> '+cd.pot+'/3</span>'+
+          '<span><b>Espaço:</b> '+cd.esp+'/3</span>'+
+          '<button class="ibtn" style="margin-left:auto" onclick="event.stopPropagation();openAuditModal(\''+esc(ct.conta)+'\','+idx+')">✏️ Editar auditoria</button>'+
+        '</div>'+
+        barsHtml+cmkHtml+barrHtml+
         '<div class="cdoc-list"><div class="cdoc-title">Médicos ('+cdocs.length+')</div>'+docRows+'</div>'+
-      '</div></div>';
+      '</div>'+
+    '</div>';
   }
   document.getElementById('contaList').innerHTML=html;
 }
 
 function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(Math.max(0,Math.min(3,val||0))/3*100)+'%"></div></div><span class="sbar-v">'+(val||0)+'</span></div>';}
 function toggleCc(i){var el=document.getElementById('cc'+i);if(el)el.classList.toggle('open');}
-
 function toggleContaFlag(conta,key){
-  if(!cExtra[conta])cExtra[conta]={};
-  if(!cExtra[conta].flags)cExtra[conta].flags={};
-  cExtra[conta].flags[key]=!cExtra[conta].flags[key];
-  persist();
+  if(!cExtra[conta])cExtra[conta]={};if(!cExtra[conta].flags)cExtra[conta].flags={};
+  cExtra[conta].flags[key]=!cExtra[conta].flags[key];persist();
 }
 function setBarreira(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreira=cExtra[conta].barreira===val?'':val;persist();}
 function setBarreiraNota(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreiraNota=val;persist();}
 
-function saveAudit(conta,idx){
-  if(!cExtra[conta])cExtra[conta]={};
-  cExtra[conta].auditData={
-    scoreTam:document.getElementById('at_tam_'+idx).value,
-    scoreMom:document.getElementById('at_mom_'+idx).value,
-    scorePot:document.getElementById('at_pot_'+idx).value,
-    scoreEsp:document.getElementById('at_esp_'+idx).value,
-    mat:document.getElementById('at_mat_'+idx).value,
-    ytd:document.getElementById('at_ytd_'+idx).value
+// ══════════ MODAL AUDITORIA (por conta) ══════════
+function openAuditModal(contaNome,idx){
+  auditContaNome=contaNome;
+  document.getElementById('auditTitle').textContent='Editar auditoria';
+  // encontra a conta base
+  var ct=null;
+  for(var i=0;i<CONTAS_DEF.length;i++){if(CONTAS_DEF[i].conta===contaNome){ct=CONTAS_DEF[i];break;}}
+  if(!ct)ct={scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,mat:0,ytd:0};
+  var ext=cExtra[contaNome]||{},ad=ext.auditData||{};
+  document.getElementById('at_tam').value=ad.scoreTam!=null?ad.scoreTam:ct.scoreTam;
+  document.getElementById('at_mom').value=ad.scoreMom!=null?ad.scoreMom:ct.scoreMom;
+  document.getElementById('at_pot').value=ad.scorePot!=null?ad.scorePot:ct.scorePot;
+  document.getElementById('at_esp').value=ad.scoreEsp!=null?ad.scoreEsp:ct.scoreEsp;
+  document.getElementById('at_mat').value=ad.mat!=null?ad.mat:ct.mat;
+  document.getElementById('at_ytd').value=ad.ytd!=null?ad.ytd:ct.ytd;
+  document.getElementById('auditTitle').textContent='✏️ '+contaNome;
+  updateAuditPreview();
+  document.getElementById('auditOv').classList.add('on');
+}
+function closeAuditModal(){document.getElementById('auditOv').classList.remove('on');}
+function updateAuditPreview(){
+  var tam=parseInt(document.getElementById('at_tam').value)||0;
+  var mom=parseInt(document.getElementById('at_mom').value)||0;
+  var pot=parseInt(document.getElementById('at_pot').value)||0;
+  var esp=parseInt(document.getElementById('at_esp').value)||0;
+  var total=tam+mom+pot+esp;
+  var ext=cExtra[auditContaNome]||{};
+  var flagSc=calcContaFlagScore(ext);
+  document.getElementById('auditPreview').innerHTML='Score auditoria: <b>'+total+'</b> · Marcadores: <b>'+(flagSc>=0?'+':'')+flagSc+'</b> · <b>Total: '+(total+flagSc)+'</b>';
+}
+function saveAuditModal(){
+  if(!cExtra[auditContaNome])cExtra[auditContaNome]={};
+  cExtra[auditContaNome].auditData={
+    scoreTam:document.getElementById('at_tam').value,
+    scoreMom:document.getElementById('at_mom').value,
+    scorePot:document.getElementById('at_pot').value,
+    scoreEsp:document.getElementById('at_esp').value,
+    mat:document.getElementById('at_mat').value,
+    ytd:document.getElementById('at_ytd').value
   };
+  persist();closeAuditModal();
+}
+
+// ══════════ MODAL CSV AUDITORIA ══════════
+function openCsvAuditModal(){
+  document.getElementById('csvPaste').value='';
+  document.getElementById('csvResult').style.display='none';
+  document.getElementById('csvResult').innerHTML='';
+  document.getElementById('csvApplyBtn').style.display='none';
+  csvParsedData=[];
+  document.getElementById('csvAuditOv').classList.add('on');
+}
+function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.remove('on');}
+
+function loadCsvFile(evt){
+  var file=evt.target.files&&evt.target.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(){document.getElementById('csvPaste').value=String(r.result||'');};
+  r.readAsText(file,'UTF-8');
+  evt.target.value='';
+}
+
+function parseCsvLine(line){
+  // suporta ; e tab como separadores
+  var sep=line.indexOf(';')>=0?';':'\t';
+  return line.split(sep).map(function(c){return c.trim().replace(/^"|"$/g,'').trim();});
+}
+
+function processCsvAudit(){
+  var raw=document.getElementById('csvPaste').value.trim();
+  if(!raw){alert('Cole os dados primeiro.');return;}
+  var lines=raw.split(/\r?\n/).filter(function(l){return l.trim();});
+  if(lines.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
+
+  // detecta cabeçalho
+  var header=parseCsvLine(lines[0]).map(function(h){return h.toLowerCase().replace(/[^a-záàãâéêíóõôúç.\s]/gi,'').trim();});
+  var iConta=header.findIndex(function(h){return h.indexOf('conta')>=0;});
+  var iMat=header.findIndex(function(h){return h.indexOf('mat')>=0&&h.indexOf('evol')<0&&h.indexOf('atu')>=0||h==='mat'||h==='mat atu'||h==='mat (atu)'||h==='mat atu.';});
+  var iYtd=header.findIndex(function(h){return h.indexOf('ytd')>=0&&h.indexOf('evol')<0;});
+  var iTam=header.findIndex(function(h){return h.indexOf('tamanho')>=0||h.indexOf('tam')>=0;});
+  var iMom=header.findIndex(function(h){return h.indexOf('momento')>=0||h.indexOf('mom')>=0;});
+  var iPot=header.findIndex(function(h){return h.indexOf('pot')>=0&&h.indexOf('estrat')>=0||h==='pot'||h==='pot.estrat'||h==='pot.estrat.';});
+  var iEsp=header.findIndex(function(h){return h.indexOf('espa')>=0||h.indexOf('esp')>=0||h.indexOf('captura')>=0;});
+
+  // fallback de índice — assumir posição se não achar pelo nome
+  if(iConta<0)iConta=0;
+  if(iMat<0)iMat=1;
+  if(iYtd<0)iYtd=2;
+
+  var results=[],parsed=[];
+  var allContas=CONTAS_DEF.map(function(c){return c.conta.toLowerCase();});
+
+  for(var li=1;li<lines.length;li++){
+    var cols=parseCsvLine(lines[li]);
+    if(!cols[iConta])continue;
+    var contaRaw=cols[iConta];
+    var mat=parseFloat(String(cols[iMat]||'').replace(',','.'));
+    var ytd=parseFloat(String(cols[iYtd]||'').replace(',','.'));
+
+    // tenta match exato ou parcial
+    var matchNome='';
+    var allContaNomes=CONTAS_DEF.map(function(c){return c.conta;});
+    for(var ci=0;ci<allContaNomes.length;ci++){
+      if(allContaNomes[ci].toLowerCase()===contaRaw.toLowerCase()||(contaRaw.length>4&&allContaNomes[ci].toLowerCase().indexOf(contaRaw.toLowerCase())>=0)||(contaRaw.length>4&&contaRaw.toLowerCase().indexOf(allContaNomes[ci].toLowerCase().substring(0,8))>=0)){matchNome=allContaNomes[ci];break;}
+    }
+
+    var row={contaRaw:contaRaw,conta:matchNome,mat:isNaN(mat)?null:mat,ytd:isNaN(ytd)?null:ytd};
+    if(iTam>=0&&cols[iTam])row.scoreTam=parseInt(cols[iTam])||null;
+    if(iMom>=0&&cols[iMom])row.scoreMom=parseInt(cols[iMom])||null;
+    if(iPot>=0&&cols[iPot])row.scorePot=parseInt(cols[iPot])||null;
+    if(iEsp>=0&&cols[iEsp])row.scoreEsp=parseInt(cols[iEsp])||null;
+    parsed.push(row);
+
+    var status=matchNome?'<span class="ok">✓ '+contaRaw+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+contaRaw+'"</span>';
+    results.push(status);
+  }
+
+  csvParsedData=parsed;
+  var found=parsed.filter(function(r){return r.conta;}).length;
+  var resultEl=document.getElementById('csvResult');
+  resultEl.style.display='block';
+  resultEl.innerHTML='<b>'+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
+  document.getElementById('csvApplyBtn').style.display=found>0?'':'none';
+}
+
+function applyCsvAudit(){
+  var updated=0;
+  for(var i=0;i<csvParsedData.length;i++){
+    var row=csvParsedData[i];
+    if(!row.conta)continue;
+    if(!cExtra[row.conta])cExtra[row.conta]={};
+    if(!cExtra[row.conta].auditData)cExtra[row.conta].auditData={};
+    var ad=cExtra[row.conta].auditData;
+    if(row.mat!=null)ad.mat=row.mat;
+    if(row.ytd!=null)ad.ytd=row.ytd;
+    if(row.scoreTam!=null)ad.scoreTam=row.scoreTam;
+    if(row.scoreMom!=null)ad.scoreMom=row.scoreMom;
+    if(row.scorePot!=null)ad.scorePot=row.scorePot;
+    if(row.scoreEsp!=null)ad.scoreEsp=row.scoreEsp;
+    updated++;
+  }
   persist();
+  closeCsvAuditModal();
+  alert('✅ '+updated+' contas atualizadas e sincronizadas!');
 }
 
 // ══════════ CIDADES ══════════
@@ -652,10 +840,10 @@ function renderInsights(){
     '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
     (topDocs.length?'<div class="icard"><h3>🏆 Mais impactados</h3>'+topDocs.map(function(d){return'<div class="irow"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+'/'+mats.length+'</span></div>';}).join('')+'</div>':'')+
     '<div class="sec-title">💡 Dicas</div>'+
-    '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer edição feita no celular ou no computador aparece automaticamente em todos os devices via Firebase.</div>'+
-    '<div class="tip"><b>🎯 Score médico</b>Potencial A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
-    '<div class="tip"><b>🏦 Score de contas</b>O score total combina os dados da auditoria (Tamanho + Momento + Pot.Estrat. + Espaço) com os marcadores de contexto que você ativa. Ao receber nova auditoria, edite os campos diretamente no card da conta.</div>'+
-    '<div class="tip"><b>✓ Desfazer envio</b>Toque no badge verde "✓ Enviado em DD/MM" para remover o registro.</div>'+
+    '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer edição feita no celular ou computador aparece automaticamente em todos os devices via Firebase.</div>'+
+    '<div class="tip"><b>📊 Atualizar auditoria</b>Na aba Contas, clique em "📊 Importar auditoria" para colar o CSV do Excel e atualizar MAT, YTD e scores de todas as contas de uma vez. Ou expanda um card e clique em "✏️ Editar auditoria" para editar individualmente.</div>'+
+    '<div class="tip"><b>🏦 Score de contas</b>O número cinza é o score da auditoria. O roxo maior é o total somando os marcadores de contexto. O badge verde/vermelho mostra o delta dos marcadores.</div>'+
+    '<div class="tip"><b>🎯 Score médico</b>A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
     '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>';
 }
 
@@ -663,6 +851,9 @@ function renderInsights(){
 function exportJSON(){var p={version:2,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,cExtra:cExtra};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara exp.');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');if(f.daraLover)m.push('Dara Lover');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function importJSON(evt){var file=evt.target.files&&evt.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(String(r.result||'{}'));if(!p||!Array.isArray(p.docs)||!Array.isArray(p.mats))throw new Error();mats=p.mats;docs=p.docs;sent=p.sent||{};cExtra=p.cExtra||{};persist();alert('Importado ✅ — sincronizando em todos os devices...');}catch(e){alert('Arquivo inválido.');}evt.target.value='';};r.readAsText(file);}
+
+// polyfill findIndex para Safari antigo
+if(!Array.prototype.findIndex){Array.prototype.findIndex=function(fn){for(var i=0;i<this.length;i++){if(fn(this[i],i,this))return i;}return -1;};}
 </script>
 </body>
 </html>
