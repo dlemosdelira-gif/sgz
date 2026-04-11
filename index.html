@@ -72,14 +72,19 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .mcard-t{font-size:14px;font-weight:600;margin-bottom:4px;}
 .mcard-p{font-size:12px;color:#888;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .mcard-a{display:flex;gap:8px;margin-top:10px;}
+/* CONTAS */
 .ccard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .ccard-hd{padding:12px 13px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
-.crank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.crank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px;}
 .r1{background:#fef3c7;color:#92400e;}.r2{background:#f3f4f6;color:#374151;}.r3{background:#fce7f3;color:#9d174d;}.rn{background:#ede9fe;color:#5b21b6;}
 .ccard-main{flex:1;min-width:0;}
 .ccard-name{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ccard-sub{font-size:11px;color:#888;margin-top:2px;}
-.ccard-score{font-size:20px;font-weight:700;color:#6d28d9;flex-shrink:0;}
+.ccard-scores{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.cscore-audit{font-size:16px;font-weight:700;color:#888;}
+.cscore-sep{font-size:12px;color:#ccc;}
+.cscore-total{font-size:20px;font-weight:700;color:#6d28d9;}
+.cscore-label{font-size:9px;color:#888;text-align:center;line-height:1.2;}
 .cchev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
 .ccard.open .cchev{transform:rotate(180deg);}
 .ccard-body{display:none;border-top:1px solid #f2f2f7;}.ccard.open .ccard-body{display:block;}
@@ -90,7 +95,24 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .sbar-lbl{width:90px;color:#555;flex-shrink:0;}
 .sbar-out{flex:1;height:6px;background:#f2f2f7;border-radius:3px;overflow:hidden;}
 .sbar-in{height:100%;border-radius:3px;background:#6d28d9;}
-.sbar-v{width:12px;font-weight:700;color:#6d28d9;flex-shrink:0;}
+.sbar-v{width:16px;font-weight:700;color:#6d28d9;flex-shrink:0;text-align:right;}
+/* MARCADORES DE CONTA */
+.cmk-wrap{padding:10px 13px;background:#f5f3ff;border-bottom:1px solid #f2f2f7;}
+.cmk-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.cmk-title{font-size:11px;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.4px;}
+.cmk-score{font-size:11px;font-weight:700;color:#6d28d9;}
+.cmk-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.cmk-chip{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;transition:all .15s;}
+.cmk-chip.pos{border-color:#86efac;}.cmk-chip.pos.sel{background:#22c55e;color:#fff;border-color:#22c55e;}
+.cmk-chip.neg{border-color:#fca5a5;}.cmk-chip.neg.sel{background:#ef4444;color:#fff;border-color:#ef4444;}
+/* AUDIT EDIT */
+.audit-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;background:#fafafa;}
+.audit-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.audit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.audit-field{display:flex;flex-direction:column;gap:3px;}
+.audit-field label{font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.audit-field input{padding:6px 10px;border-radius:8px;border:1px solid #ddd;font-size:13px;background:#fff;outline:none;font-family:-apple-system,sans-serif;}
+.audit-save{margin-top:8px;width:100%;background:#6d28d9;color:#fff;border:none;border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;}
 .barr-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
 .barr-lbl{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
 .barr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
@@ -100,6 +122,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .cdoc-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
 .cdoc-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f9f9f9;font-size:12px;}
 .cdoc-row:last-child{border-bottom:none;}
+/* CIDADES */
 .citycard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .citycard-hd{padding:12px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;}
 .city-ico{width:36px;height:36px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
@@ -115,6 +138,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .city-docs{padding:0 13px 8px;}
 .city-doc-item{padding:7px 0;border-bottom:1px solid #f9f9f9;font-size:13px;display:flex;align-items:center;gap:6px;}
 .city-doc-item:last-child{border-bottom:none;}
+/* INSIGHTS */
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
 .metric{border-radius:12px;padding:12px;text-align:center;}
 .metric .ml{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;}
@@ -135,6 +159,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .tip{border-left:3px solid #6d28d9;background:#f5f3ff;border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#4c1d95;line-height:1.5;}
 .tip b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
 .sec-title{font-size:15px;font-weight:700;margin:14px 0 8px;}
+/* MODAIS */
 .ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:500;}
 .ov.on{display:flex;align-items:flex-end;justify-content:center;}
 .modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:20px 18px 40px;max-height:90vh;overflow-y:auto;}
@@ -151,6 +176,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .bdel{flex:1;background:#dc2626;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
 .bcanc{flex:1;background:#f2f2f7;color:#333;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;}
 .empty{text-align:center;padding:50px 20px;color:#888;font-size:14px;}
+.score-section-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px;}
 </style>
 </head>
 <body>
@@ -168,9 +194,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <span id="syncTxt">Conectando ao Firebase...</span>
 </div>
 
+<!-- MÉDICOS -->
 <div class="page on" id="p0">
   <div class="hdr">
-    <div><h1>Sarclisa · Materiais</h1><p>Sincronizado em todos os devices 🔄</p></div>
+    <div><h1>Sarclisa · Materiais</h1><p>Ordenados por score · sincronizado em todos os devices</p></div>
     <button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button>
   </div>
   <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
@@ -192,12 +219,13 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
     <button class="pc pcC" id="pcC" onclick="togglePot('C')">● C</button>
   </div>
-  <div class="note">💡 Clique <strong>Enviar</strong> → WhatsApp abre com texto. Use 📎 para imagem. Toque em <strong>✓ Enviado em DD/MM</strong> para desfazer.</div>
+  <div class="note">💡 Clique <strong>Enviar</strong> → WhatsApp abre com texto. Toque em <strong>✓ Enviado em DD/MM</strong> para desfazer. Dados sincronizados em tempo real 🔄</div>
   <div class="stline" id="stline"></div>
   <div class="dlist" id="dlist"></div>
   <button class="fab" onclick="openDocModal(-1)">+</button>
 </div>
 
+<!-- MATERIAIS -->
 <div class="page" id="p1">
   <div class="pwrap">
     <div class="phd"><h2>Materiais</h2><button class="hdr-btn" style="background:#6d28d9;color:#fff" onclick="openMatModal(-1)">+ Novo</button></div>
@@ -205,14 +233,17 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
+<!-- CONTAS -->
 <div class="page" id="p2">
-  <div class="pwrap"><div class="phd"><h2>Ranking de Contas</h2></div><div id="contaList"></div></div>
+  <div class="pwrap"><div class="phd"><h2>Ranking de Contas</h2><span style="font-size:11px;color:#888;">Score auditoria + marcadores</span></div><div id="contaList"></div></div>
 </div>
 
+<!-- CIDADES -->
 <div class="page" id="p3">
   <div class="pwrap"><div class="phd"><h2>Clusters por Cidade</h2></div><div id="cityList"></div></div>
 </div>
 
+<!-- INSIGHTS -->
 <div class="page" id="p4">
   <div class="pwrap"><h2 style="margin-bottom:12px">📊 Insights</h2><div id="insDiv"></div></div>
 </div>
@@ -235,14 +266,19 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <div class="field"><label>Conta / Instituição</label><input id="dConta" autocomplete="off" spellcheck="false"></div>
     <div class="field">
       <label>Marcadores de score</label>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;" id="scoreChips">
+      <div class="score-section-label">✅ Positivos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="scoreChipsPos">
         <button type="button" class="bchip" data-v="hasAccess" onclick="toggleSc(this)">✓ Acesso institucional (+3)</button>
         <button type="button" class="bchip" data-v="testedSarc" onclick="toggleSc(this)">✓ Testou Sarclisa (+2)</button>
         <button type="button" class="bchip" data-v="daraRelacao" onclick="toggleSc(this)">✓ Experiência com Dara (+1)</button>
         <button type="button" class="bchip" data-v="aberturaGuideline" onclick="toggleSc(this)">✓ Aberto a guideline (+1)</button>
+      </div>
+      <div class="score-section-label">❌ Negativos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="scoreChipsNeg">
         <button type="button" class="bchip" data-v="noAccess" onclick="toggleSc(this)">✗ Sem acesso (−2)</button>
         <button type="button" class="bchip" data-v="prefereSQ" onclick="toggleSc(this)">✗ Prefere SC/SQ (−2)</button>
-        <button type="button" class="bchip" data-v="concorrenciaForte" onclick="toggleSc(this)">✗ Concorrência forte (−2)</button>
+        <button type="button" class="bchip" data-v="concorrenciaForte" onclick="toggleSc(this)">✗ Concorrência forte (−1)</button>
+        <button type="button" class="bchip" data-v="daraLover" onclick="toggleSc(this)">✗ Dara Lover (−2)</button>
       </div>
     </div>
     <div class="brow"><button class="bcanc" onclick="closeDocModal()">Cancelar</button><button class="bsave" onclick="saveDoc()">Salvar</button></div>
@@ -269,63 +305,53 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- FIREBASE SDK (compat — funciona sem bundler, direto no browser) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
-// ══════════════════════════════════════════════════════
-// FIREBASE CONFIG
-// ══════════════════════════════════════════════════════
-var firebaseConfig = {
-  apiKey: "AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",
-  authDomain: "ssgz-16baf.firebaseapp.com",
-  databaseURL: "https://ssgz-16baf-default-rtdb.firebaseio.com",
-  projectId: "ssgz-16baf",
-  storageBucket: "ssgz-16baf.firebasestorage.app",
-  messagingSenderId: "838715682754",
-  appId: "1:838715682754:web:b130266eb2e714e478705b",
-  measurementId: "G-HJT68L87G1"
-};
+// ══════════ FIREBASE ══════════
+var firebaseConfig={apiKey:"AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",authDomain:"ssgz-16baf.firebaseapp.com",databaseURL:"https://ssgz-16baf-default-rtdb.firebaseio.com",projectId:"ssgz-16baf",storageBucket:"ssgz-16baf.firebasestorage.app",messagingSenderId:"838715682754",appId:"1:838715682754:web:b130266eb2e714e478705b",measurementId:"G-HJT68L87G1"};
 firebase.initializeApp(firebaseConfig);
-var db = firebase.database();
-var dbRef = db.ref('sarclisa');
+var db=firebase.database();
+var dbRef=db.ref('sarclisa');
 
-// ══════════════════════════════════════════════════════
-// DADOS PADRÃO
-// ══════════════════════════════════════════════════════
+// ══════════ MARCADORES DE CONTA ══════════
+// key → {label, pts, type: 'pos'|'neg'}
+var CONTA_FLAGS={
+  sem_protocolo:   {label:'Sem protocolo para MM',   pts:-2, type:'neg'},
+  convenio_rest:   {label:'Convênio com restrição',  pts:-1, type:'neg'},
+  comite_lento:    {label:'Comitê de padronização lento', pts:-1, type:'neg'},
+  pref_sq:         {label:'Preferência SC/SQ',       pts:-1, type:'neg'},
+  restricao_orc:   {label:'Restrição orçamentária',  pts:-1, type:'neg'},
+  protocolo_aberto:{label:'Protocolo aberto/em discussão', pts:+1, type:'pos'},
+  medico_chave:    {label:'Médico-chave prescriptor ativo', pts:+2, type:'pos'},
+  hist_inovacao:   {label:'Histórico de adoção de inovação', pts:+1, type:'pos'},
+  vol_crescendo:   {label:'Volume crescendo 2+ ciclos', pts:+1, type:'pos'}
+};
+
+// ══════════ DADOS PADRÃO ══════════
 var MATS_DEF=[{name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm ponto que tem chamado atenção no HD7 é a rapidez da resposta já na indução com Sarclisa® + VRd nesse caso clínico elegível ao TMO. Caso tenha tido experiência, você tem percebido diferença quando intensifica com anti-CD38 logo na 1ª linha?\n\nVeja esse caso clínico com resposta rápida ao tratamento de indução em pacientes elegíveis ao TACT: https://bit.ly/4scupfx"},{name:"HD7 – Eficácia (DRM na indução)",msg:"Olá!\n\nEsse dado do HD7 é interessante: aumento relevante de DRM negativa ainda antes do transplante com Sarclisa® + VRd. De que forma alcançar DRM- já na indução muda sua visão sobre a manutenção depois do TMO?\n\nVeja mais no nosso artigo de tratamento para pacientes MMRD elegíveis: análise da DRM e o impacto na SLP: https://bit.ly/46G6U6r"},{name:"HD7 – Posologia (exposição curta)",msg:"Olá!\n\nUm detalhe prático do HD7 que costuma gerar discussão é o uso de Sarclisa® em apenas 11 doses durante a indução com VRd. Esse formato mais curto facilita considerar quadruplete na sua rotina?\n\nVeja mais sobre a posologia administração de Sarclisa® no HD7: https://bit.ly/4lIIoGA"},{name:"IMROZ – Eficácia",msg:"Olá!\n\nNo IMROZ, chamou atenção a SLP mais longa com Sarclisa® + VRd já na 1ª linha dos pacientes sem indicação de TMO. Como você enxerga quadrupletes como estratégia inicial nesses casos?\n\nSaiba mais em: https://bit.ly/3BIcvM8"},{name:"IMROZ – DRM longitudinal",msg:"Olá!\n\nOutro ponto interessante do IMROZ foi o aumento progressivo da DRM negativa ao longo do tratamento com Sarclisa®. Como esse aprofundamento contínuo da resposta influencia sua escolha do esquema inicial?\n\nSaiba mais sobre a dinâmica da negatividade da doença residual mínima em pacientes com mieloma múltiplo recém-diagnosticado: https://bit.ly/42izZRF"},{name:"IMROZ – Caso clínico",msg:"Olá!\n\nEsse caso clínico mostra resposta já no primeiro ciclo com Sarclisa® + VRd em paciente inelegível ao transplante, bem alinhado com o IMROZ. Caso já tenha tido experiência, você tem observado respostas precoces assim com quadruplete na prática?\n\nSaiba mais nesse interessante caso clínico: https://bit.ly/4aBvlT5"}];
+
 var DOCS_DEF=[{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","pot":"C","phone":"19-99219-9293","city":"ARARAS","conta":"UNIMED Araras","esp":"Hematologia (BR)"},{"name":"ALINE SHIRATA","crm":"SP0066559","pot":"C","phone":"11-99190-9023","city":"SOROCABA","conta":"Centro de Hematologia Sorocaba","esp":"Farmacia (BR)"},{"name":"AMAURI GUIMARAES BARREIRO","crm":"MG0016661","pot":"C","phone":"35-98805-3242","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"ANA CLAUDIA CHIARI","crm":"SP0091141","pot":"C","phone":"11-97497-9698","city":"SALTO","conta":"UNIMED Salto Itu","esp":"Hematologia (BR)"},{"name":"ANA GABRIELA POVEDA BISMARA","crm":"SP0155612","pot":"C","phone":"15-97401-0226","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ANA PAULA VAZ DE CARVALHO","crm":"SP0124222","pot":"C","phone":"15-99837-9898","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"ANDREZA LAMONICA","crm":"SP0170196","pot":"B","phone":"14-99757-2922","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"ANTONIO PAULO SERVANTES","crm":"SP0120597","pot":"B","phone":"11-99658-9732","city":"BRAGANÇA PAULISTA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"ARIELLA CASSIA DE MOURA","crm":"SP0144898","pot":"B","phone":"15-98117-1088","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ARLETE DELFINA MARQUES MAIA","crm":"MS0001781","pot":"C","phone":"67-99983-2782","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BARBARA DE CAMPOS","crm":"SP0050377","pot":"C","phone":"19-99896-2012","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"BEATRIZ ESPERANCA DE LEO TEDDE","crm":"MS0011076","pot":"B","phone":"67-98185-1289","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"BIANCA RUIZ LIMA","crm":"MS0014139","pot":"B","phone":"17-99627-2767","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"BIANCA ZOCCA MOREIRA CALVILHO","crm":"SP0122878","pot":"C","phone":"11-98647-0067","city":"SOROCABA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BRUNA ADOLFO MESTIERI","crm":"SP0131046","pot":"B","phone":"11-96343-0217","city":"SALTO","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"CAMILA ALMEIDA DO AMARAL KRUZICH","crm":"SP0170850","pot":"A","phone":"19-98127-1677","city":"PIRACICABA","conta":"UNIMED Piracicaba","esp":"Hematologia (BR)"},{"name":"CAMILA GALATI ARAUJO","crm":"SP0139517","pot":"A","phone":"19-99203-0783","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILA HELENA GONZAGA DA SILVA","crm":"SP0185490","pot":"C","phone":"11-97054-4955","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"CAMILLA DELFINO DOS SANTOS","crm":"SP0120589","pot":"A","phone":"19-99210-5299","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILLA MARIA DE ALENCAR SARAIVA","crm":"SP0186160","pot":"A","phone":"19-93861-5507","city":"JUNDIAÍ","conta":"UNIMED Jundiaí","esp":"Hematologia (BR)"},{"name":"CARLOS EDUARDO ENGEL VELANO","crm":"MG0038289","pot":"C","phone":"35-98855-9623","city":"POÇOS DE CALDAS","conta":"CIOP","esp":"Hematologia (BR)"},{"name":"CARLOS WILSON DE ALENCAR CANO","crm":"MS0010775","pot":"B","phone":"67-99298-6769","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"CELSO RICARDO MARCONDES DOS SANTOS","crm":"SP0133318","pot":"C","phone":"19-99779-2759","city":"MOGI MIRIM","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"CHRISTIANE HATSUE NATORI","crm":"MS0005859","pot":"B","phone":"67-99931-4884","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"CLAUDIA HELENA RUBI IVAN CARNIELLI","crm":"SP0086931","pot":"C","phone":"19-99765-0337","city":"AMERICANA","conta":"UNIMED Americana","esp":"Hematologia (BR)"},{"name":"CLAUDIA MARIANA SOARES ASSATO","crm":"SP0080136","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIA TERESA DE OLIVEIRA","crm":"SP0079679","pot":"C","phone":"14-98111-3156","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIO RENATO CUNHA FREIRE","crm":"SP0165149","pot":"C","phone":"19-98428-4249","city":"PIRACICABA","conta":"HFC","esp":"Hematologia (BR)"},{"name":"DANIEL SALAS STEINBAUM","crm":"MS0006995","pot":"B","phone":"67-98186-6162","city":"DOURADOS","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"DEISE FERREIRA NANTES","crm":"MS0007182","pot":"B","phone":"67-99626-8780","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"DENISE BITTENCOURT SIQUEIRA","crm":"MG0064853","pot":"C","phone":"14-98100-0879","city":"TRÊS CORAÇÕES","conta":"UNIMED Três Corações","esp":"Hematologia (BR)"},{"name":"DIRCEU EURILIO SILVA","crm":"MG0023077","pot":"C","phone":"35-99989-6568","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"EDER SANTANA NAVARRO","crm":"SP0163202","pot":"B","phone":"15-99148-4884","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"EDERSON ROBERTO DE MATTOS","crm":"SP0102054","pot":"B","phone":"14-99133-7515","city":"JAU","conta":"UNIMED Jaú","esp":"Hematologia (BR)"},{"name":"ELAINE RODRIGUEIRO BELINI","crm":"MS0005330","pot":"C","phone":"67-99918-0823","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Farmacia (BR)"},{"name":"ELCIO FARIA","crm":"SP0072992","pot":"A","phone":"19-99269-5304","city":"LIMEIRA","conta":"UNIMED Limeira","esp":"Hematologia (BR)"},{"name":"EVENY CRISTINE LUNA DE OLIVEIRA","crm":"MS0003339","pot":"C","phone":"67-99886-2908","city":"CAMPO GRANDE","conta":"ITC","esp":"Hematologia (BR)"},{"name":"FABIO DE OLIVEIRA MARTIN","crm":"SP0105791","pot":"C","phone":"19-98210-1000","city":"INDAIATUBA","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"FABIO JOSE DELLA PIAZZA","crm":"SP0035390","pot":"C","phone":"19-99167-3832","city":"LIMEIRA","conta":"PHS","esp":"Hematologia (BR)"},{"name":"FAUSI PADILHA GONÇALVES","crm":"MS0003941","pot":"C","phone":"67-99629-0985","city":"DOURADOS","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"FERNANDO VIEIRA PERICOLE DE SOUZA","crm":"SP0115806","pot":"A","phone":"19-99167-0235","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GISLAINE BORBA OLIVEIRA","crm":"SP0077416","pot":"A","phone":"19-99111-3664","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GIULIA MARIA HAKIM GOMES","crm":"SP0092755","pot":"C","phone":"15-99736-5649","city":"SOROCABA","conta":"Clínica Devita","esp":"Farmacia (BR)"},{"name":"GRAZZIELLA CURADO SIUFI","crm":"MS0003940","pot":"C","phone":"67-98136-4547","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"GUILHERME FELIPE DONNANGELO MARTINS","crm":"SP0141014","pot":"C","phone":"19-99720-1637","city":"MOGI GUAÇU","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"GUSTAVO FERNANDO VERALDI ISMAEL","crm":"SP0111953","pot":"C","phone":"19-98328-3595","city":"RIO CLARO","conta":"UNIMED Rio Claro","esp":"Hematologia (BR)"},{"name":"ISOLMAR TADEU SCHETTERT","crm":"SP0077418","pot":"A","phone":"11-99204-0828","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"IVNA BALTAZAR FILGUEIRAS STUCCHI","crm":"SP0195674","pot":"C","phone":"19-98443-4272","city":"CAMPINAS","conta":"Oncocamp","esp":"Hematologia (BR)"},{"name":"JAIR ALVES BONFIM FILHO","crm":"MS0007667","pot":"B","phone":"67-98219-1787","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"JAMILLE ELITA DE CASTRO CUNHA HERCULANI","crm":"SP0165407","pot":"C","phone":"11-98711-2081","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"JIVIANE BEATRIZ CUNHA BARRETO DA SILVA","crm":"SP0130850","pot":"C","phone":"19-98207-2627","city":"CAMPINAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO GUILHERME MARTINS LUSVARGHI","crm":"MG0063578","pot":"C","phone":"35-99147-1807","city":"POÇOS DE CALDAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO PAULO MARQUES BIGHETTI","crm":"SP0081779","pot":"C","phone":"19-98105-3992","city":"LIMEIRA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO VICTOR VEZALI COSTARDI","crm":"SP0182816","pot":"C","phone":"67-99985-5233","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE","crm":"MG0059217","pot":"B","phone":"35-99896-6688","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"JULIANA LINO DE MATOS ROSA","crm":"SP0125303","pot":"C","phone":"11-98183-3301","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"JULIANE FONTES SEVERINO","crm":"MS0004494","pot":"C","phone":"67-98209-6367","city":"CAMPO GRANDE","conta":"CEON","esp":"Farmacia (BR)"},{"name":"JULIO ROBERTO CORREA","crm":"SP0030752","pot":"C","phone":"14-99798-9420","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JUNIA RODRIGUES BRANDAO FRANCO","crm":"","pot":"C","phone":"13-98160-8661","city":"SÃO JOÃO DA BOA VISTA","conta":"Clinion","esp":"Hematologia (BR)"},{"name":"KAREN DARIANE BARBOSA DE VASCONCELOS","crm":"MG0060816","pot":"C","phone":"35-9857-3052","city":"ITAJUBÁ","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"KLEBER KOBAYASHI","crm":"MS0006294","pot":"C","phone":"67-99940-4149","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"LARISSA TADEI DE MARQUI","crm":"SP0120705","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"LILIAN ZORTEA","crm":"MS0002863","pot":"C","phone":"67-99285-1305","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Farmacia (BR)"},{"name":"LISA AQUARONI RICCI","crm":"SP0109006","pot":"B","phone":"15-99787-2900","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"LORENA BEDOTTI RIBEIRO","crm":"SP0158055","pot":"C","phone":"19-99373-9827","city":"CAMPINAS","conta":"SOnHe","esp":"Hematologia (BR)"},{"name":"LUCAS OLIVEIRA CANTADORI","crm":"SP0134571","pot":"B","phone":"14-98124-2886","city":"BOTUCATU","conta":"UNIMED Botucatu","esp":"Hematologia (BR)"},{"name":"LUCIANO CARVALHO CAMPOS","crm":"MG0030620","pot":"C","phone":"35-99931-8459","city":"LAVRAS","conta":"UNIMED Lavras","esp":"Hematologia (BR)"},{"name":"LUCIANO FUZZATO SILVA","crm":"SP0105298","pot":"B","phone":"19-99939-9355","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"LUÍS HENRIQUE MASCARENHAS MOREIRA","crm":"MS0002209","pot":"A","phone":"67-99981-7430","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"LUIZ GUSTAVO RODRIGUES BARBOSA","crm":"SP0168761","pot":"C","phone":"14-98141-9491","city":"JAU","conta":"Hospital Amaral Carvalho","esp":"Hematologia (BR)"},{"name":"MARCELO AUGUSTO ARAUJO ASSUNCAO","crm":"MG0061475","pot":"C","phone":"31-99762-9558","city":"LAVRAS","conta":"Onco Lavras","esp":"Hematologia (BR)"},{"name":"MARCELO BERNARDINI ANTUNES","crm":"SP0104562","pot":"B","phone":"14-99792-3873","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"MARCELO DOS SANTOS SOUZA","crm":"MS0003287","pot":"C","phone":"67-99219-6811","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"MARCO TULIO CESTARI RODRIGUES","crm":"MS0010456","pot":"C","phone":"67-99913-0498","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"MARCOS PAULO COLELLA","crm":"SP0115844","pot":"C","phone":"19-99672-9777","city":"CAMPINAS","conta":"Américas","esp":"Hematologia (BR)"},{"name":"MARCUS VINICIUS FRANZIN BIZZARO","crm":"SP0104373","pot":"C","phone":"16-99606-8878","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"MARIA APARECIDA SANTOS PIRES","crm":"MS0001826","pot":"C","phone":"67-99971-5464","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Hematologia (BR)"},{"name":"MARIA PAULA NALESSO CAMARGO","crm":"SP0130139","pot":"C","phone":"15-99828-2282","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"MARIAMA NAKAMOTO FERNANDES DOS SANTOS","crm":"SP0175995","pot":"B","phone":"17-99709-5757","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"MARIANA CRISTTINA LIMA DE FALCO","crm":"SP0199193","pot":"C","phone":"19-99318-3106","city":"MOGI MIRIM","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARILIA SOARES E SILVA ARCADIPANE","crm":"SP0130636","pot":"C","phone":"11-99659-2105","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARINA MOSCA PEDROSO","crm":"SP0066536","pot":"C","phone":"19-99715-9343","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"MARTA APARECIDA SOARES ROSSINI","crm":"SP0051528","pot":"C","phone":"19-99791-6553","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"MARTA MARIA FALSETTI","crm":"SP0064717","pot":"C","phone":"19-99782-0795","city":"MOGI GUAÇU","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MELINA SALVI DIAS ATHAYDE","crm":"MG0046660","pot":"C","phone":"31-8636-6412","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"MICHELE KAMILA GALGANI AMARU","crm":"SP0152391","pot":"C","phone":"19-98159-4768","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"MONICA DE MACEDO SILVA","crm":"MG0025086","pot":"C","phone":"","city":"ITAJUBÁ","conta":"UNIMED Itajubá","esp":"Hematologia (BR)"},{"name":"PAMELA RISARDI FRANCELIN","crm":"SP0162649","pot":"C","phone":"16-99706-4239","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"PATRICIA GAMA","crm":"SP0080550","pot":"B","phone":"19-98314-7273","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"PAULA NATASHA RIBEIRO JONAS DE FARIA","crm":"MG0066565","pot":"B","phone":"35-99764-5849","city":"VARGINHA","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"PAULO EDUARDO DE SOUZA","crm":"SP0043194","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"PAULO RIBEIRO CALIL","crm":"SP0085651","pot":"C","phone":"19-99608-5236","city":"RIO CLARO","conta":"UNIMED SBO/Americana","esp":"Hematologia (BR)"},{"name":"RENATA BALDISSERA CARDOSO","crm":"SP0073499","pot":"C","phone":"14-99854-3939","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"RICARDO DAVID FROTA","crm":"MG0031433","pot":"B","phone":"35-9969-7573","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"ROBENILSON ALMEIDA SOUZA","crm":"SP0097171","pot":"B","phone":"","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ROGERIO CAMARA VALSANI","crm":"SP0044912","pot":"C","phone":"19-99604-6750","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"ROSANA FERREIRA GOMES SALMAZO","crm":"MS0002830","pot":"C","phone":"67-99618-1927","city":"DOURADOS","conta":"Oncoclínica Dourados","esp":"Farmacia (BR)"},{"name":"ROSELI NUNES DA SILVEIRA ANTUNES","crm":"SP0073565","pot":"C","phone":"14-98121-8959","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"SAMIRA DE OLIVEIRA LAUAR","crm":"SP0055618","pot":"A","phone":"19-99771-8182","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SONIA REGINA IANTAS","crm":"SP0062938","pot":"A","phone":"11-99654-1639","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SORAIA TEIXEIRA ROMANINI","crm":"MS0005113","pot":"C","phone":"67-98154-0224","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SULEY MARA CHADDAD VANCINE","crm":"SP0109239","pot":"C","phone":"11-99621-3922","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SUZANA DE FRANCA RIBEIRO GONZAGA","crm":"SP0148118","pot":"B","phone":"11-95425-4245","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"SUZANA SILVA PRADO ZINCONE","crm":"MG0029613","pot":"C","phone":"35-99146-8499","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"VALTER ADOLPHO MASSAGLI FILHO","crm":"SP0121800","pot":"A","phone":"15-99779-0506","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"VANESSA MOURA COVEZZI","crm":"SP0080419","pot":"C","phone":"19-99378-7233","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"VINICIUS BORGES GRILO","crm":"SP0130949","pot":"B","phone":"19-98431-1616","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VINICIUS MARTINS NASCIMENTO","crm":"SP0163864","pot":"A","phone":"13-99716-3844","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VITOR VASQUEZ DOS SANTOS","crm":"SP0162252","pot":"C","phone":"17-99769-8366","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"WALTER ASSUNCAO GONCALVES","crm":"MS0008678","pot":"C","phone":"67-98186-7166","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"WILLIAN PAIVA DA LUZ","crm":"MS0003713","pot":"C","phone":"67-98202-3177","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"}];
+
 var CONTAS_DEF=[{conta:"UNIMED Campinas",scoreTam:3,scoreMom:3,scorePot:3,scoreEsp:2,scoreTotal:11,mat:1904,ytd:129,prioridade:"Prioridade Máxima"},{conta:"UNIMED Jundiaí",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:144,ytd:11,prioridade:"Prioridade Alta"},{conta:"Vera Cruz",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:108,ytd:14,prioridade:"Prioridade Alta"},{conta:"UNIMED Bauru",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:142,ytd:16,prioridade:"Prioridade Alta"},{conta:"UNIMED Sorocaba",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:139,ytd:11,prioridade:"Prioridade Alta"},{conta:"UNIMED Americana",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:102,ytd:0,prioridade:"Prioridade Alta"},{conta:"UNIMED Limeira",scoreTam:2,scoreMom:3,scorePot:2,scoreEsp:2,scoreTotal:9,mat:33,ytd:8,prioridade:"Prioridade Alta"},{conta:"Oncominas",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:50,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Varginha",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:49,ytd:3,prioridade:"Prioridade Média"},{conta:"UNIMED Piracicaba",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:52,ytd:5,prioridade:"Prioridade Média"},{conta:"CASSEMS",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:68,ytd:0,prioridade:"Prioridade Média"},{conta:"Prognóstica",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:40,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED São Carlos",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:39,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Rio Claro",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:2,scoreTotal:7,mat:30,ytd:3,prioridade:"Prioridade Média"},{conta:"Centro de Hematologia Sorocaba",scoreTam:1,scoreMom:3,scorePot:1,scoreEsp:2,scoreTotal:7,mat:11,ytd:11,prioridade:"Prioridade Média"},{conta:"UNIMED Dourados",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Marília",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Campo Grande",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:1,scoreTotal:6,mat:40,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Poços de Caldas",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:5,mat:25,ytd:0,prioridade:"Monitoramento"},{conta:"Consultório",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:"Monitoramento"}];
+
 var BARREIRAS=['Acesso convênio','Protocolo institucional','Preferência por esquema SC/SQ','Forte investimento da concorrência','Comitê de padronização lento','Restrição orçamentária','Acesso ao corpo clínico','Engajamento do corpo clínico','Sem barreiras identificadas'];
 
-// ══════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════
+// ══════════ STATE ══════════
 var mats=[],docs=[],sent={},cExtra={};
 var activeMat=-1,potF={A:true,B:true,C:true};
 var editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
 var fbLoaded=false;
 
-// ══════════════════════════════════════════════════════
-// SYNC STATUS
-// ══════════════════════════════════════════════════════
-function setSync(state,txt){document.getElementById('syncDot').className='sync-dot '+state;document.getElementById('syncTxt').textContent=txt;}
+// ══════════ SYNC STATUS ══════════
+function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncTxt').textContent=t;}
 
-// ══════════════════════════════════════════════════════
-// FIREBASE — escuta mudanças em tempo real
-// ══════════════════════════════════════════════════════
+// ══════════ FIREBASE LISTENER ══════════
 dbRef.on('value',function(snap){
   var data=snap.val();
-  if(data){
-    mats=data.mats||MATS_DEF;
-    docs=data.docs||DOCS_DEF;
-    sent=data.sent||{};
-    cExtra=data.cExtra||{};
-  } else {
-    mats=MATS_DEF;docs=DOCS_DEF;sent={};cExtra={};
-    dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra});
-  }
+  if(data){mats=data.mats||MATS_DEF;docs=data.docs||DOCS_DEF;sent=data.sent||{};cExtra=data.cExtra||{};}
+  else{mats=MATS_DEF;docs=DOCS_DEF;sent={};cExtra={};dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra});}
   fbLoaded=true;
   setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
   renderDocs();
@@ -335,43 +361,57 @@ dbRef.on('value',function(snap){
   if(document.getElementById('p4').classList.contains('on'))renderInsights();
 },function(){
   setSync('err','Offline — dados locais');
-  try{var v=localStorage.getItem('s5m');if(v)mats=JSON.parse(v);else mats=MATS_DEF;}catch(e){mats=MATS_DEF;}
-  try{var v=localStorage.getItem('s5d');if(v)docs=JSON.parse(v);else docs=DOCS_DEF;}catch(e){docs=DOCS_DEF;}
+  try{var v=localStorage.getItem('s5m');mats=v?JSON.parse(v):MATS_DEF;}catch(e){mats=MATS_DEF;}
+  try{var v=localStorage.getItem('s5d');docs=v?JSON.parse(v):DOCS_DEF;}catch(e){docs=DOCS_DEF;}
   try{var v=localStorage.getItem('s5s');if(v)sent=JSON.parse(v);}catch(e){}
   try{var v=localStorage.getItem('s5c');if(v)cExtra=JSON.parse(v);}catch(e){}
   fbLoaded=true;renderDocs();
 });
 
-// Salva no Firebase + localStorage (fallback offline)
 function persist(){
   setSync('syncing','Salvando...');
   dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra}).catch(function(){setSync('err','Erro ao salvar');});
   try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5c',JSON.stringify(cExtra));}catch(e){}
 }
 
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
-function calcScore(d){var s=0;if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;var f=d.scoreFlags||{};if(f.hasAccess)s+=3;if(f.testedSarc)s+=2;if(f.daraRelacao)s+=1;if(f.aberturaGuideline)s+=1;if(f.noAccess)s-=2;if(f.prefereSQ)s-=2;if(f.concorrenciaForte)s-=2;return s;}
+// ══════════ SCORE MÉDICO ══════════
+function calcScore(d){
+  var s=0;
+  if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;
+  var f=d.scoreFlags||{};
+  if(f.hasAccess)s+=3;if(f.testedSarc)s+=2;if(f.daraRelacao)s+=1;if(f.aberturaGuideline)s+=1;
+  if(f.noAccess)s-=2;if(f.prefereSQ)s-=2;if(f.concorrenciaForte)s-=1;if(f.daraLover)s-=2;
+  return s;
+}
 function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
+
+// ══════════ SCORE CONTA ══════════
+// Score total = scoreTotal da auditoria (editável) + marcadores contextuais
+function calcContaFlagScore(ext){
+  var s=0;
+  var flags=ext.flags||{};
+  var keys=Object.keys(CONTA_FLAGS);
+  for(var i=0;i<keys.length;i++){if(flags[keys[i]])s+=CONTA_FLAGS[keys[i]].pts;}
+  return s;
+}
+function calcContaTotal(ct,ext){return (ct.scoreTotal||0)+calcContaFlagScore(ext);}
+
+// ══════════ HELPERS ══════════
 function tc(s){if(!s)return'';return s.toLowerCase().replace(/\b(\w)/g,function(c){return c.toUpperCase();});}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function wurl(ph,msg){var n=String(ph||'').replace(/\D/g,'');if(!n)return'#';if(n.length<=11)n='55'+n;return'https://wa.me/'+n+'?text='+encodeURIComponent(msg||'');}
 function sk(n,i){return n+'__'+i;}
 function fmtDate(iso){if(!iso)return'';var d=new Date(iso);return d.getDate()+'/'+(d.getMonth()+1).toString().padStart(2,'0');}
 
-// ══════════════════════════════════════════════════════
-// TABS
-// ══════════════════════════════════════════════════════
+// ══════════ TABS ══════════
 function goTab(n){for(var i=0;i<5;i++){document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('p'+i).classList.toggle('on',i===n);}if(n===1)renderMats();if(n===2)renderContas();if(n===3)renderCities();if(n===4)renderInsights();}
 
-// ══════════════════════════════════════════════════════
-// MÉDICOS
-// ══════════════════════════════════════════════════════
+// ══════════ CHIPS / FILTROS ══════════
 function buildChips(){var h='<button class="chip all'+(activeMat===-1?' on':'')+'" onclick="setMat(-1)">Todos</button>';for(var i=0;i<mats.length;i++)h+='<button class="chip'+(activeMat===i?' on':'')+'" onclick="setMat('+i+')">'+esc(mats[i].name)+'</button>';document.getElementById('chipRow').innerHTML=h;}
 function setMat(i){activeMat=i;buildChips();renderDocs();}
 function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList.toggle('dim',!potF[p]);renderDocs();}
 
+// ══════════ RENDER MÉDICOS ══════════
 function renderDocs(){
   if(!fbLoaded){document.getElementById('dlist').innerHTML='<div class="empty">Conectando...</div>';return;}
   buildChips();
@@ -398,11 +438,12 @@ function renderDocs(){
     if(d.pot==='A')si+='<span class="si si-pos">+3 Pot.A</span>';else if(d.pot==='B')si+='<span class="si si-neu">+1 Pot.B</span>';else si+='<span class="si si-neu">+0 Pot.C</span>';
     if(sf.hasAccess)si+='<span class="si si-pos">+3 Acesso</span>';
     if(sf.testedSarc)si+='<span class="si si-pos">+2 Sarclisa</span>';
-    if(sf.daraRelacao)si+='<span class="si si-pos">+1 Dara</span>';
+    if(sf.daraRelacao)si+='<span class="si si-pos">+1 Dara exp.</span>';
     if(sf.aberturaGuideline)si+='<span class="si si-pos">+1 Guideline</span>';
     if(sf.noAccess)si+='<span class="si si-neg">−2 Sem acesso</span>';
     if(sf.prefereSQ)si+='<span class="si si-neg">−2 SC/SQ</span>';
-    if(sf.concorrenciaForte)si+='<span class="si si-neg">−2 Concorrência</span>';
+    if(sf.concorrenciaForte)si+='<span class="si si-neg">−1 Concorrência</span>';
+    if(sf.daraLover)si+='<span class="si si-neg">−2 Dara Lover</span>';
     si+='</div></div>';
     var rows='';
     for(var r=0;r<ml.length;r++){
@@ -420,13 +461,15 @@ function toggleDc(i){var el=document.getElementById('dc'+i);if(el)el.classList.t
 function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();}
 function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();}
 
+// ══════════ MODAL MÉDICO ══════════
 function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
 function openDocModal(idx){
   editDocIdx=idx;scFlags={};
   document.getElementById('docMT').childNodes[0].nodeValue=idx===-1?'Novo Médico ':'Editar Médico ';
   if(idx>=0){var d=docs[idx];document.getElementById('dName').value=d.name||'';document.getElementById('dCrm').value=d.crm||'';document.getElementById('dPot').value=d.pot||'C';document.getElementById('dPhone').value=d.phone||'';document.getElementById('dCity').value=d.city||'';document.getElementById('dEsp').value=d.esp||'Hematologia (BR)';document.getElementById('dConta').value=d.conta||'';scFlags=d.scoreFlags?JSON.parse(JSON.stringify(d.scoreFlags)):{};}
   else{['dName','dCrm','dPhone','dCity','dConta'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('dPot').value='C';document.getElementById('dEsp').value='Hematologia (BR)';}
-  var bs=document.querySelectorAll('#scoreChips .bchip');for(var i=0;i<bs.length;i++){bs[i].classList.toggle('sel',!!scFlags[bs[i].dataset.v]);}
+  var allBtns=document.querySelectorAll('#scoreChipsPos .bchip, #scoreChipsNeg .bchip');
+  for(var i=0;i<allBtns.length;i++){allBtns[i].classList.toggle('sel',!!scFlags[allBtns[i].dataset.v]);}
   document.getElementById('docOv').classList.add('on');
 }
 function closeDocModal(){document.getElementById('docOv').classList.remove('on');}
@@ -437,50 +480,142 @@ function saveDoc(){
   persist();closeDocModal();
 }
 
-// ══════════════════════════════════════════════════════
-// MATERIAIS
-// ══════════════════════════════════════════════════════
+// ══════════ MATERIAIS ══════════
 function openMatModal(idx){editMatIdx=idx;document.getElementById('matMT').childNodes[0].nodeValue=idx===-1?'Novo Material ':'Editar Material ';document.getElementById('mName').value=idx>=0?mats[idx].name:'';document.getElementById('mMsg').value=idx>=0?mats[idx].msg:'';document.getElementById('matOv').classList.add('on');}
 function closeMatModal(){document.getElementById('matOv').classList.remove('on');}
 function saveMat(){var nm=document.getElementById('mName').value.trim(),msg=document.getElementById('mMsg').value.trim();if(!nm||!msg){alert('Preencha nome e mensagem.');return;}if(editMatIdx===-1)mats.push({name:nm,msg:msg});else mats[editMatIdx]={name:nm,msg:msg};persist();closeMatModal();}
 function renderMats(){var h='';for(var i=0;i<mats.length;i++){var m=mats[i];h+='<div class="mcard"><div class="mcard-t">'+esc(m.name)+'</div><div class="mcard-p">'+esc(m.msg)+'</div><div class="mcard-a"><button class="ibtn" onclick="openMatModal('+i+')">✏️ Editar</button><button class="ibtn d" onclick="askDel(\'mat\','+i+')">🗑️ Excluir</button></div></div>';}document.getElementById('matList').innerHTML=h;}
 
-// ══════════════════════════════════════════════════════
-// DELETE
-// ══════════════════════════════════════════════════════
+// ══════════ DELETE ══════════
 function askDel(type,idx){delType=type;delIdx=idx;var lb=type==='doc'?tc(docs[idx].name):mats[idx].name;document.getElementById('delMsg').textContent='Excluir "'+lb+'"? Não pode ser desfeito.';document.getElementById('delOv').classList.add('on');}
 function closeDelOv(){document.getElementById('delOv').classList.remove('on');}
 function confirmDel(){if(delType==='doc')docs.splice(delIdx,1);else{mats.splice(delIdx,1);if(activeMat>=mats.length)activeMat=-1;}persist();closeDelOv();}
 
-// ══════════════════════════════════════════════════════
-// CONTAS
-// ══════════════════════════════════════════════════════
+// ══════════ CONTAS ══════════
 function renderContas(){
   var cdMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.conta||'Sem conta';if(!cdMap[c])cdMap[c]=[];cdMap[c].push(d);}
   var contas=CONTAS_DEF.slice();
   for(var cn in cdMap){var found=false;for(var j=0;j<contas.length;j++){if(contas[j].conta===cn){found=true;break;}}if(!found)contas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
-  contas.sort(function(a,b){return b.scoreTotal-a.scoreTotal;});
+
+  // Mescla com dados editados (cExtra pode ter scoreTam, scoreMom, etc.)
+  for(var i=0;i<contas.length;i++){
+    var ext=cExtra[contas[i].conta]||{};
+    if(ext.auditData){
+      if(ext.auditData.scoreTam!=null)contas[i].scoreTam=parseInt(ext.auditData.scoreTam)||contas[i].scoreTam;
+      if(ext.auditData.scoreMom!=null)contas[i].scoreMom=parseInt(ext.auditData.scoreMom)||contas[i].scoreMom;
+      if(ext.auditData.scorePot!=null)contas[i].scorePot=parseInt(ext.auditData.scorePot)||contas[i].scorePot;
+      if(ext.auditData.scoreEsp!=null)contas[i].scoreEsp=parseInt(ext.auditData.scoreEsp)||contas[i].scoreEsp;
+      if(ext.auditData.mat!=null)contas[i].mat=parseFloat(ext.auditData.mat)||contas[i].mat;
+      if(ext.auditData.ytd!=null)contas[i].ytd=parseFloat(ext.auditData.ytd)||contas[i].ytd;
+      contas[i].scoreTotal=contas[i].scoreTam+contas[i].scoreMom+contas[i].scorePot+contas[i].scoreEsp;
+    }
+  }
+
+  // Ordena por score total (auditoria + marcadores)
+  contas.sort(function(a,b){
+    var ea=cExtra[a.conta]||{},eb=cExtra[b.conta]||{};
+    return calcContaTotal(b,eb)-calcContaTotal(a,ea);
+  });
+
   var priCol={'Prioridade Máxima':'r1','Prioridade Alta':'r2','Prioridade Média':'r3','Monitoramento':'rn'};
   var html='';
   for(var idx=0;idx<contas.length;idx++){
-    var ct=contas[idx],cdocs=cdMap[ct.conta]||[],ext=cExtra[ct.conta]||{},barreira=ext.barreira||'',barreiraNota=ext.barreiraNota||'';
-    var pA=0,pB=0,pC=0;for(var k=0;k<cdocs.length;k++){if(cdocs[k].pot==='A')pA++;else if(cdocs[k].pot==='B')pB++;else pC++;}
+    var ct=contas[idx];
+    var ext=cExtra[ct.conta]||{};
+    var barreira=ext.barreira||'',barreiraNota=ext.barreiraNota||'';
+    var flags=ext.flags||{};
+    var flagScore=calcContaFlagScore(ext);
+    var totalFinal=calcContaTotal(ct,ext);
+    var pA=0,pB=0,pC=0;
+    var cdocs=cdMap[ct.conta]||[];
+    for(var k=0;k<cdocs.length;k++){if(cdocs[k].pot==='A')pA++;else if(cdocs[k].pot==='B')pB++;else pC++;}
     var rc=priCol[ct.prioridade]||'rn';
     var rk=idx<3?['🥇','🥈','🥉'][idx]:'#'+(idx+1);
+
+    // Barras de score da auditoria
+    var barsHtml='<div class="sbars">'+bar('Tamanho',ct.scoreTam)+bar('Momento',ct.scoreMom)+bar('Pot.estrat.',ct.scorePot)+bar('Espaço',ct.scoreEsp)+'</div>';
+
+    // Marcadores de conta — separados em positivos e negativos
+    var cmkPos='',cmkNeg='';
+    var flagKeys=Object.keys(CONTA_FLAGS);
+    for(var fi=0;fi<flagKeys.length;fi++){
+      var fk=flagKeys[fi],fd=CONTA_FLAGS[fk];
+      var isSel=!!flags[fk];
+      var chipCls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
+      var chip='<button class="'+chipCls+'" onclick="toggleContaFlag(\''+esc(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      if(fd.type==='pos')cmkPos+=chip;else cmkNeg+=chip;
+    }
+    var cmkHtml='<div class="cmk-wrap"><div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-score">'+(flagScore>=0?'+':'')+flagScore+' pts</span></div>'+
+      '<div style="font-size:10px;color:#22c55e;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Positivos</div><div class="cmk-chips">'+cmkPos+'</div>'+
+      '<div style="font-size:10px;color:#ef4444;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:6px 0 4px;">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div></div>';
+
+    // Edição dos dados de auditoria
+    var ad=ext.auditData||{};
+    var auditHtml='<div class="audit-wrap"><div class="audit-title"><span>📊 Dados da auditoria</span><span style="font-size:10px;color:#6d28d9;">edite ao atualizar</span></div>'+
+      '<div class="audit-grid">'+
+      '<div class="audit-field"><label>Score Tamanho (1-3)</label><input type="number" min="1" max="3" id="at_tam_'+idx+'" value="'+ct.scoreTam+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
+      '<div class="audit-field"><label>Score Momento (1-3)</label><input type="number" min="1" max="3" id="at_mom_'+idx+'" value="'+ct.scoreMom+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
+      '<div class="audit-field"><label>Score Pot.Estrat (1-3)</label><input type="number" min="1" max="3" id="at_pot_'+idx+'" value="'+ct.scorePot+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
+      '<div class="audit-field"><label>Score Espaço (1-3)</label><input type="number" min="1" max="3" id="at_esp_'+idx+'" value="'+ct.scoreEsp+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
+      '<div class="audit-field"><label>MAT (unid.)</label><input type="number" id="at_mat_'+idx+'" value="'+ct.mat+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
+      '<div class="audit-field"><label>YTD (unid.)</label><input type="number" id="at_ytd_'+idx+'" value="'+ct.ytd+'" onchange="saveAudit(\''+esc(ct.conta)+'\','+idx+')"></div>'+
+      '</div></div>';
+
+    // Chips de barreira (campo livre)
     var bchips='';for(var bi=0;bi<BARREIRAS.length;bi++){bchips+='<button class="bchip'+(barreira===BARREIRAS[bi]?' sel':'')+'" onclick="setBarreira(\''+esc(ct.conta)+'\',\''+esc(BARREIRAS[bi])+'\')">'+BARREIRAS[bi]+'</button>';}
+    var barrHtml='<div class="barr-wrap"><div class="barr-lbl">Barreira principal</div><div class="barr-chips">'+bchips+'</div><input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" oninput="setBarreiraNota(\''+esc(ct.conta)+'\',this.value)"></div>';
+
+    // Médicos vinculados
     var docRows='';for(var di2=0;di2<cdocs.length;di2++){var dd=cdocs[di2],dsc=calcScore(dd),dsl=scoreLabel(dsc);docRows+='<div class="cdoc-row"><span class="badge b'+dd.pot+'">'+dd.pot+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(dd.name))+'</span><span class="sc-badge '+dsl.cls+'" style="font-size:10px;">'+dsc+'pts</span></div>';}
-    html+='<div class="ccard" id="cc'+idx+'"><div class="ccard-hd" onclick="toggleCc('+idx+')"><div class="crank '+rc+'">'+rk+'</div><div class="ccard-main"><div class="ccard-name">'+esc(ct.conta)+'</div><div class="ccard-sub">'+ct.prioridade+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+(barreira?' · ⚠️ '+esc(barreira):'')+'</div></div><div class="ccard-score">'+ct.scoreTotal+'</div><button class="cchev">▼</button></div>'+'<div class="ccard-body"><div class="ccard-det"><span><b>MAT:</b> '+ct.mat+'</span><span><b>YTD:</b> '+ct.ytd+'</span><span><b>Tam:</b> '+ct.scoreTam+'/3</span><span><b>Mom:</b> '+ct.scoreMom+'/3</span><span><b>Pot:</b> '+ct.scorePot+'/3</span><span><b>Espaço:</b> '+ct.scoreEsp+'/3</span></div>'+'<div class="sbars">'+bar('Tamanho',ct.scoreTam)+bar('Momento',ct.scoreMom)+bar('Pot.estrat.',ct.scorePot)+bar('Espaço',ct.scoreEsp)+'</div>'+'<div class="barr-wrap"><div class="barr-lbl">Barreira principal</div><div class="barr-chips">'+bchips+'</div><input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" oninput="setBarreiraNota(\''+esc(ct.conta)+'\',this.value)"></div>'+'<div class="cdoc-list"><div class="cdoc-title">Médicos ('+cdocs.length+')</div>'+docRows+'</div></div></div>';
+
+    // Score display: auditoria + marcadores = total
+    var scoreDisplay='<div class="ccard-scores">'+
+      '<div style="text-align:center"><div class="cscore-audit">'+ct.scoreTotal+'</div><div class="cscore-label">auditoria</div></div>'+
+      '<div class="cscore-sep">'+(flagScore>=0?'+':'')+flagScore+'</div>'+
+      '<div style="text-align:center"><div class="cscore-total">'+totalFinal+'</div><div class="cscore-label">total</div></div>'+
+    '</div>';
+
+    html+='<div class="ccard" id="cc'+idx+'"><div class="ccard-hd" onclick="toggleCc('+idx+')">'+
+      '<div class="crank '+rc+'">'+rk+'</div>'+
+      '<div class="ccard-main"><div class="ccard-name">'+esc(ct.conta)+'</div>'+
+      '<div class="ccard-sub">'+ct.prioridade+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+(barreira?' · ⚠️ '+esc(barreira):'')+'</div></div>'+
+      scoreDisplay+
+      '<button class="cchev">▼</button></div>'+
+      '<div class="ccard-body">'+
+        '<div class="ccard-det"><span><b>MAT:</b> '+ct.mat+'</span><span><b>YTD:</b> '+ct.ytd+'</span><span><b>Tam:</b> '+ct.scoreTam+'/3</span><span><b>Mom:</b> '+ct.scoreMom+'/3</span><span><b>Pot:</b> '+ct.scorePot+'/3</span><span><b>Espaço:</b> '+ct.scoreEsp+'/3</span></div>'+
+        barsHtml+cmkHtml+auditHtml+barrHtml+
+        '<div class="cdoc-list"><div class="cdoc-title">Médicos ('+cdocs.length+')</div>'+docRows+'</div>'+
+      '</div></div>';
   }
   document.getElementById('contaList').innerHTML=html;
 }
-function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(val/3*100)+'%"></div></div><span class="sbar-v">'+val+'</span></div>';}
+
+function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(Math.max(0,Math.min(3,val||0))/3*100)+'%"></div></div><span class="sbar-v">'+(val||0)+'</span></div>';}
 function toggleCc(i){var el=document.getElementById('cc'+i);if(el)el.classList.toggle('open');}
+
+function toggleContaFlag(conta,key){
+  if(!cExtra[conta])cExtra[conta]={};
+  if(!cExtra[conta].flags)cExtra[conta].flags={};
+  cExtra[conta].flags[key]=!cExtra[conta].flags[key];
+  persist();
+}
 function setBarreira(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreira=cExtra[conta].barreira===val?'':val;persist();}
 function setBarreiraNota(conta,val){if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreiraNota=val;persist();}
 
-// ══════════════════════════════════════════════════════
-// CIDADES
-// ══════════════════════════════════════════════════════
+function saveAudit(conta,idx){
+  if(!cExtra[conta])cExtra[conta]={};
+  cExtra[conta].auditData={
+    scoreTam:document.getElementById('at_tam_'+idx).value,
+    scoreMom:document.getElementById('at_mom_'+idx).value,
+    scorePot:document.getElementById('at_pot_'+idx).value,
+    scoreEsp:document.getElementById('at_esp_'+idx).value,
+    mat:document.getElementById('at_mat_'+idx).value,
+    ytd:document.getElementById('at_ytd_'+idx).value
+  };
+  persist();
+}
+
+// ══════════ CIDADES ══════════
 function renderCities(){
   var cityMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.city||'Sem cidade';if(!cityMap[c])cityMap[c]=[];cityMap[c].push(d);}
   var cities=Object.keys(cityMap).map(function(c){return{city:c,docs:cityMap[c]};});
@@ -500,9 +635,7 @@ function renderCities(){
 }
 function toggleCity(i){var el=document.getElementById('cy'+i);if(el)el.classList.toggle('open');}
 
-// ══════════════════════════════════════════════════════
-// INSIGHTS
-// ══════════════════════════════════════════════════════
+// ══════════ INSIGHTS ══════════
 function renderInsights(){
   var total=docs.length,withPhone=0,totalSent=Object.keys(sent).length;
   for(var i=0;i<docs.length;i++){if(docs[i].phone)withPhone++;}
@@ -519,18 +652,16 @@ function renderInsights(){
     '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
     (topDocs.length?'<div class="icard"><h3>🏆 Mais impactados</h3>'+topDocs.map(function(d){return'<div class="irow"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+'/'+mats.length+'</span></div>';}).join('')+'</div>':'')+
     '<div class="sec-title">💡 Dicas</div>'+
-    '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer alteração feita no celular aparece automaticamente no computador e vice-versa via Firebase. O ponto verde indica conexão ativa.</div>'+
-    '<div class="tip"><b>🎯 Score de prioridade</b>Edite o médico e marque critérios. Potencial A (+3), Acesso (+3), Sarclisa (+2), Dara (+1), Guideline (+1), Sem acesso (−2), SC/SQ (−2), Concorrência (−1).</div>'+
+    '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer edição feita no celular ou no computador aparece automaticamente em todos os devices via Firebase.</div>'+
+    '<div class="tip"><b>🎯 Score médico</b>Potencial A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
+    '<div class="tip"><b>🏦 Score de contas</b>O score total combina os dados da auditoria (Tamanho + Momento + Pot.Estrat. + Espaço) com os marcadores de contexto que você ativa. Ao receber nova auditoria, edite os campos diretamente no card da conta.</div>'+
     '<div class="tip"><b>✓ Desfazer envio</b>Toque no badge verde "✓ Enviado em DD/MM" para remover o registro.</div>'+
-    '<div class="tip"><b>🏦 Barreiras por conta</b>Na aba Contas, registre a barreira de cada instituição para orientar a abordagem certa.</div>'+
-    '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia, funciona offline com dados em cache.</div>';
+    '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>';
 }
 
-// ══════════════════════════════════════════════════════
-// EXPORT / IMPORT
-// ══════════════════════════════════════════════════════
+// ══════════ EXPORT / IMPORT ══════════
 function exportJSON(){var p={version:2,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,cExtra:cExtra};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
-function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
+function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara exp.');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');if(f.daraLover)m.push('Dara Lover');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function importJSON(evt){var file=evt.target.files&&evt.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(String(r.result||'{}'));if(!p||!Array.isArray(p.docs)||!Array.isArray(p.mats))throw new Error();mats=p.mats;docs=p.docs;sent=p.sent||{};cExtra=p.cExtra||{};persist();alert('Importado ✅ — sincronizando em todos os devices...');}catch(e){alert('Arquivo inválido.');}evt.target.value='';};r.readAsText(file);}
 </script>
 </body>
