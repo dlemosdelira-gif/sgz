@@ -7,9 +7,9 @@
 <title>Sarclisa</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:15px;}
+body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:16px;}
 .tabs{display:flex;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:100;}
-.tab-btn{flex:1;padding:11px 2px 9px;font-size:10px;font-weight:700;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;}
+.tab-btn{flex:1;padding:11px 2px 9px;font-size:11px;font-weight:700;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;}
 .tab-btn.on{color:#6d28d9;border-bottom-color:#6d28d9;}
 .page{display:none;}.page.on{display:block;}
 .sync-bar{display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:11px;color:#888;background:#f9f9f9;border-bottom:1px solid #eee;}
@@ -32,17 +32,23 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .pc{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;border:none;cursor:pointer;}
 .pcA{background:#d1fae5;color:#065f46;}.pcB{background:#dbeafe;color:#1e40af;}.pcC{background:#f3f4f6;color:#374151;}
 .pc.dim{opacity:.3;}
-.stline{padding:0 12px 5px;font-size:12px;color:#888;}
-.note{margin:0 12px 8px;background:#ede9fe;border-radius:10px;padding:8px 12px;font-size:12px;color:#4c1d95;line-height:1.5;}
+.stline{padding:4px 12px 8px;font-size:13px;color:#888;}
 .dlist{padding:0 12px 90px;}
+/* ── MATERIAIS NO CARD (recolhido por padrão) ── */
+.mat-section{border-top:1px solid #f2f2f7;}
+.mat-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;cursor:pointer;background:#fafafa;}
+.mat-toggle-row:active{background:#f2f2f7;}
+.mat-toggle-btn{font-size:14px;font-weight:600;color:#6d28d9;}
+.mat-toggle-btn.sent{color:#065f46;}
+.mat-chev{font-size:10px;color:#aaa;transition:transform .2s;}
 .dc{background:#fff;border-radius:14px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .dc-hd{padding:12px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;}
 .dc-info{flex:1;min-width:0;}
-.dc-name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dc-sub{font-size:11px;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-right:4px;}
+.dc-name{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dc-sub{font-size:13px;color:#888;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;margin-right:4px;}
 .bA{background:#d1fae5;color:#065f46;}.bB{background:#dbeafe;color:#1e40af;}.bC{background:#f3f4f6;color:#374151;}
-.sc-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-left:3px;}
+.sc-badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;margin-left:3px;}
 .s-hi{background:#fef3c7;color:#92400e;}.s-md{background:#e0e7ff;color:#3730a3;}.s-lo{background:#f3f4f6;color:#6b7280;}
 .dc-acts{display:flex;gap:5px;flex-shrink:0;}
 .ibtn{background:none;border:1px solid #e5e5ea;border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;}
@@ -50,20 +56,20 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .chev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
 .dc.open .chev{transform:rotate(180deg);}
 .dc-body{display:none;border-top:1px solid #f2f2f7;}.dc.open .dc-body{display:block;}
-.dc-detail{padding:8px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;font-size:11px;color:#555;display:flex;flex-wrap:wrap;gap:8px;}
+.dc-detail{padding:10px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;font-size:13px;color:#555;display:flex;flex-wrap:wrap;gap:10px;}
 .dc-detail span b{color:#1c1c1e;}
-.score-detail{padding:8px 13px;background:#f5f3ff;border-bottom:1px solid #f2f2f7;}
-.sd-title{font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.score-detail{padding:10px 13px;background:#f5f3ff;border-bottom:1px solid #f2f2f7;}
+.sd-title{font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
 .sd-items{display:flex;flex-wrap:wrap;gap:5px;}
-.si{padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600;}
+.si{padding:4px 9px;border-radius:8px;font-size:12px;font-weight:600;}
 .si-pos{background:#d1fae5;color:#065f46;}.si-neg{background:#fee2e2;color:#b91c1c;}.si-neu{background:#f3f4f6;color:#374151;}
-.mrow{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid #f9f9f9;}
+.mrow{display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid #f9f9f9;}
 .mrow:last-child{border-bottom:none;}
-.mlabel{flex:1;font-size:13px;color:#333;min-width:0;line-height:1.3;}
-.stag{display:inline-block;font-size:9px;background:#d1fae5;color:#065f46;border-radius:5px;padding:2px 6px;font-weight:700;margin-left:4px;cursor:pointer;border:none;vertical-align:middle;}
+.mlabel{flex:1;font-size:15px;color:#333;min-width:0;line-height:1.4;}
+.stag{display:inline-block;font-size:11px;background:#d1fae5;color:#065f46;border-radius:6px;padding:3px 8px;font-weight:700;margin-left:6px;cursor:pointer;border:none;vertical-align:middle;}
 .stag:active{background:#a7f3d0;}
-.wbtn{display:inline-flex;align-items:center;gap:4px;background:#25D366;color:#fff;border:none;border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;}
-.nophone{font-size:11px;color:#dc2626;background:#fee2e2;padding:5px 8px;border-radius:7px;flex-shrink:0;}
+.wbtn{display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;}
+.nophone{font-size:12px;color:#dc2626;background:#fee2e2;padding:6px 10px;border-radius:8px;flex-shrink:0;}
 .fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
 .pwrap{padding:12px 12px 90px;}
 .phd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;}
@@ -219,7 +225,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 <!-- MÉDICOS -->
 <div class="page on" id="p0">
   <div class="hdr">
-    <div><h1>Sarclisa · Materiais</h1><p>Ordenados por score · sincronizado em todos os devices</p></div>
+    <div><h1>Sarclisa · Materiais</h1><p>Sincronizado em todos os devices</p></div>
     <button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button>
   </div>
   <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
@@ -235,13 +241,11 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <button class="ctrl-btn" onclick="document.getElementById('importFile').click()">📂 Restaurar</button>
     <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importJSON(event)">
   </div>
-  <div class="chips" id="chipRow"></div>
   <div class="pot-row">
     <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
     <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
     <button class="pc pcC" id="pcC" onclick="togglePot('C')">● C</button>
   </div>
-  <div class="note">💡 Clique <strong>Enviar</strong> → WhatsApp abre com texto. Toque em <strong>✓ Enviado em DD/MM</strong> para desfazer. Dados sincronizados em tempo real 🔄</div>
   <div class="stline" id="stline"></div>
   <div class="dlist" id="dlist"></div>
   <button class="fab" onclick="openDocModal(-1)">+</button>
@@ -485,13 +489,12 @@ function fmtDate(iso){if(!iso)return'';var d=new Date(iso);return d.getDate()+'/
 function goTab(n){for(var i=0;i<5;i++){document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('p'+i).classList.toggle('on',i===n);}if(n===1)renderMats();if(n===2)renderContas();if(n===3)renderCities();if(n===4)renderInsights();}
 
 // ══════════ MÉDICOS ══════════
-function buildChips(){var h='<button class="chip all'+(activeMat===-1?' on':'')+'" onclick="setMat(-1)">Todos</button>';for(var i=0;i<mats.length;i++)h+='<button class="chip'+(activeMat===i?' on':'')+'" onclick="setMat('+i+')">'+esc(mats[i].name)+'</button>';document.getElementById('chipRow').innerHTML=h;}
-function setMat(i){activeMat=i;buildChips();renderDocs();}
 function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList.toggle('dim',!potF[p]);renderDocs();}
+
+var WA_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
 
 function renderDocs(){
   if(!fbLoaded){document.getElementById('dlist').innerHTML='<div class="empty">Conectando...</div>';return;}
-  buildChips();
   var q=document.getElementById('srch').value.toLowerCase().trim();
   var filt=[];
   for(var i=0;i<docs.length;i++){var d=docs[i];if(!potF[d.pot])continue;if(q&&(d.name+' '+(d.city||'')+' '+(d.conta||'')).toLowerCase().indexOf(q)<0)continue;filt.push({d:d,i:i});}
@@ -505,12 +508,13 @@ function renderDocs(){
   });
   document.getElementById('stline').textContent=filt.length+' médico'+(filt.length!==1?'s':'')+' · '+sv;
   if(!filt.length){document.getElementById('dlist').innerHTML='<div class="empty">Nenhum médico encontrado.</div>';return;}
-  var ml=activeMat>=0?[{m:mats[activeMat],mi:activeMat}]:mats.map(function(m,i){return{m:m,mi:i};});
   var html='';
   for(var f=0;f<filt.length;f++){
     var d=filt[f].d,di=filt[f].i,sc=calcScore(d),sl=scoreLabel(sc);
     var sc2=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])sc2++;}
     var sf=d.scoreFlags||{};
+
+    // Score chips
     var si='<div class="score-detail"><div class="sd-title">Score: '+sc+'</div><div class="sd-items">';
     if(d.pot==='A')si+='<span class="si si-pos">+3 Pot.A</span>';else if(d.pot==='B')si+='<span class="si si-neu">+1 Pot.B</span>';else si+='<span class="si si-neu">+0 Pot.C</span>';
     if(sf.hasAccess)si+='<span class="si si-pos">+3 Acesso</span>';
@@ -522,19 +526,68 @@ function renderDocs(){
     if(sf.concorrenciaForte)si+='<span class="si si-neg">−1 Concorrência</span>';
     if(sf.daraLover)si+='<span class="si si-neg">−2 Dara Lover</span>';
     si+='</div></div>';
+
+    // Materiais — recolhidos por padrão, expandem ao clicar no cabeçalho
+    // Cada material tem seu próprio mini-toggle
     var rows='';
-    for(var r=0;r<ml.length;r++){
-      var m=ml[r].m,midx=ml[r].mi,sk2=sk(d.name,midx),ws=sent[sk2];
-      var stag=ws?'<button class="stag" onclick="toggleSent(\''+di+'\',\''+midx+'\')">✓ Enviado em '+fmtDate(ws)+'</button>':'';
-      var btn=d.phone?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enviar</a>':'<span class="nophone">Sem número</span>';
+    for(var r=0;r<mats.length;r++){
+      var m=mats[r],midx=r,sk2=sk(d.name,midx),ws=sent[sk2];
+      var stag=ws?'<button class="stag" onclick="event.stopPropagation();toggleSent(\''+di+'\',\''+midx+'\')">✓ Enviado em '+fmtDate(ws)+'</button>':'';
+      var btn=d.phone
+        ?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener">'+WA_ICON+' Enviar</a>'
+        :'<span class="nophone">Sem WhatsApp</span>';
       rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+'</div>'+btn+'</div>';
     }
-    html+='<div class="dc" id="dc'+di+'"><div class="dc-hd" onclick="toggleDc('+di+')">'+'<div class="dc-info"><div class="dc-name"><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'<span class="sc-badge '+sl.cls+'">'+sl.txt+' ('+sc+'pts)</span></div><div class="dc-sub">'+(d.phone?'📱 '+esc(d.phone):'⚠️ Sem WhatsApp')+' · '+esc(tc(d.city||''))+' · '+esc(d.conta||'')+'</div></div>'+'<div class="dc-acts" onclick="event.stopPropagation()"><button class="ibtn" onclick="openDocModal('+di+')">✏️</button><button class="ibtn d" onclick="askDel(\'doc\','+di+')">🗑️</button></div><button class="chev">▼</button></div>'+'<div class="dc-body"><div class="dc-detail"><span><b>CRM:</b> '+esc(d.crm||'—')+'</span><span><b>Cidade:</b> '+esc(tc(d.city||''))+'</span><span><b>Conta:</b> '+esc(d.conta||'—')+'</span><span><b>Enviados:</b> '+sc2+'/'+mats.length+'</span></div>'+si+rows+'</div></div>';
+
+    // Botão de materiais no header do card (contador de enviados)
+    var matBtnLabel=sc2>0?'📨 '+sc2+'/'+mats.length+' enviados':'📤 Enviar materiais';
+    var matBtnCls=sc2>0?'mat-toggle-btn sent':'mat-toggle-btn';
+
+    html+=
+      '<div class="dc" id="dc'+di+'">'+
+        // ── CABEÇALHO (clica e expande detalhes) ──
+        '<div class="dc-hd" onclick="toggleDc('+di+')">'+
+          '<div class="dc-info">'+
+            '<div class="dc-name"><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'<span class="sc-badge '+sl.cls+'">'+sl.txt+' ('+sc+'pts)</span></div>'+
+            '<div class="dc-sub">'+(d.phone?'📱 '+esc(d.phone):'⚠️ Sem WhatsApp')+' · '+esc(tc(d.city||''))+' · '+esc(d.conta||'')+'</div>'+
+          '</div>'+
+          '<div class="dc-acts" onclick="event.stopPropagation()">'+
+            '<button class="ibtn" onclick="openDocModal('+di+')">✏️</button>'+
+            '<button class="ibtn d" onclick="askDel(\'doc\','+di+')">🗑️</button>'+
+          '</div>'+
+          '<button class="chev">▼</button>'+
+        '</div>'+
+        // ── CORPO (detalhes + botão de materiais recolhido) ──
+        '<div class="dc-body">'+
+          '<div class="dc-detail">'+
+            '<span><b>CRM:</b> '+esc(d.crm||'—')+'</span>'+
+            '<span><b>Cidade:</b> '+esc(tc(d.city||''))+'</span>'+
+            '<span><b>Conta:</b> '+esc(d.conta||'—')+'</span>'+
+          '</div>'+
+          si+
+          // ── MATERIAIS: recolhidos por padrão ──
+          '<div class="mat-section" id="mats'+di+'">'+
+            '<div class="mat-toggle-row" onclick="toggleMats('+di+')">'+
+              '<span class="'+matBtnCls+'">'+matBtnLabel+'</span>'+
+              '<span class="mat-chev" id="mc'+di+'">▼</span>'+
+            '</div>'+
+            '<div class="mat-list" id="ml'+di+'" style="display:none">'+rows+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
   }
   document.getElementById('dlist').innerHTML=html;
 }
 
 function toggleDc(i){var el=document.getElementById('dc'+i);if(el)el.classList.toggle('open');}
+function toggleMats(i){
+  var ml=document.getElementById('ml'+i);
+  var mc=document.getElementById('mc'+i);
+  if(!ml)return;
+  var open=ml.style.display==='none';
+  ml.style.display=open?'block':'none';
+  if(mc)mc.style.transform=open?'rotate(180deg)':'';
+}
 function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();}
 function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();}
 
