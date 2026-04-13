@@ -7,9 +7,9 @@
 <title>Sarclisa</title>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
 
 <style>
-/* Seus estilos originais mantidos */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:16px;}
 .tabs{display:flex;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:100;}
@@ -24,16 +24,31 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .hdr h1{font-size:17px;font-weight:700;}.hdr p{font-size:11px;opacity:.8;margin-top:2px;}
 .hdr-btn{background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:18px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .sbar{padding:9px 12px 0;background:#f2f2f7;}.sbar input{width:100%;padding:9px 14px;border-radius:11px;border:1px solid #ddd;font-size:15px;background:#fff;outline:none;}
+.ctrl-row{padding:7px 12px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.ctrl-row select{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;}
+.ctrl-btn{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.ctrl-btn.primary{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.pot-row{padding:6px 12px 6px;display:flex;gap:6px;}
+.pc{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;border:none;cursor:pointer;}
+.pcA{background:#d1fae5;color:#065f46;}.pcB{background:#dbeafe;color:#1e40af;}.pcC{background:#f3f4f6;color:#374151;}
+.pc.dim{opacity:.3;}
 .dlist{padding:0 12px 90px;}
 .dc{background:#fff;border-radius:14px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.dc-hd{padding:12px 13px;display:flex;align-items:center;gap:8px;}
+.dc-info{flex:1;min-width:0;}
+.dc-name{font-size:16px;font-weight:600;}
+.dc-sub{font-size:13px;color:#888;}
 .ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:500;}
 .ov.on{display:flex;align-items:flex-end;justify-content:center;}
 .modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:20px 18px 40px;max-height:90vh;overflow-y:auto;}
+.field{margin-bottom:13px;}
 .field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:5px;text-transform:uppercase;}
-.field input, .field select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;background:#f9f9f9;font-size:15px;}
-.bud-fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(109,40,217,.4);}
-/* Adições para a fusão Materiais/Insights */
-.mat-section{border-top:2px solid #eee;margin-top:20px;padding-top:15px;}
+.field input, .field select, .field textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;font-size:15px;background:#f9f9f9;}
+.bud-hero{background:linear-gradient(135deg,#6d28d9,#4f46e5);color:#fff;margin:12px;border-radius:16px;padding:18px;}
+.bud-hero-val{font-size:36px;font-weight:700;}
+.bud-item{background:#fff;border-radius:12px;margin:0 12px 8px;padding:13px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.fab, .bud-fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;}
+.mat-merge-section{border-top:2px dashed #ddd;margin-top:25px;padding-top:20px;}
 </style>
 </head>
 <body>
@@ -48,23 +63,30 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 
 <div class="sync-bar">
   <div class="sync-dot syncing" id="syncDot"></div>
-  <span id="syncTxt">Conectando...</span>
+  <span id="syncTxt">Conectando ao Firebase...</span>
 </div>
 
 <div class="page on" id="p0">
   <div class="hdr">
-    <div><h1>Médicos</h1><p>Gestão de CRM</p></div>
+    <div><h1>Sarclisa · Médicos</h1><p>Gestão de CRM</p></div>
     <button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button>
   </div>
+  <div class="sbar"><input id="srch" type="search" placeholder="🔍 Buscar..." oninput="renderDocs()"></div>
+  <div class="pot-row">
+    <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
+    <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
+    <button class="pc pcC" id="pcC" onclick="togglePot('C')">● C</button>
+  </div>
   <div class="dlist" id="dlist"></div>
+  <button class="fab" onclick="openDocModal(-1)">+</button>
 </div>
 
 <div class="page" id="p2">
-  <div style="padding:15px;"><h2>Contas</h2><div id="contaList"></div></div>
+  <div style="padding:15px;"><h2>Ranking de Contas</h2><div id="contaList"></div></div>
 </div>
 
 <div class="page" id="p3">
-  <div style="padding:15px;"><h2>Cidades</h2><div id="cityList"></div></div>
+  <div style="padding:15px;"><h2>Clusters por Cidade</h2><div id="cityList"></div></div>
 </div>
 
 <div class="page" id="p4">
@@ -72,10 +94,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <h2>📊 Insights do Mercado</h2>
     <div id="insDiv"></div>
     
-    <div class="mat-section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div class="mat-merge-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
         <h2>📄 Materiais</h2>
-        <button class="hdr-btn" style="background:#6d28d9" onclick="openMatModal(-1)">+ Novo Material</button>
+        <button class="hdr-btn" style="background:#6d28d9" onclick="openMatModal(-1)">+ Novo</button>
       </div>
       <div id="matList"></div>
     </div>
@@ -83,11 +105,9 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 </div>
 
 <div class="page" id="p5">
-  <div style="padding:15px;">
-    <h2>💰 Budget</h2>
-    <div id="budHero"></div>
-    <div id="budList"></div>
-  </div>
+  <div id="budHero"></div>
+  <div class="bud-sec-title" style="margin:15px 12px 8px; font-weight:700;">Lançamentos</div>
+  <div id="budList" style="padding-bottom:90px;"></div>
   <button class="bud-fab" onclick="openBudModal(-1)">+</button>
 </div>
 
@@ -99,56 +119,102 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     </div>
     <div class="field">
       <label>Descrição</label>
-      <input id="bDesc" type="text">
+      <input id="bDesc" type="text" placeholder="Ex: Jantar Científico">
     </div>
-    <button class="hdr-btn" style="background:#6d28d9; width:100%; padding:15px;" onclick="saveBud()">Salvar Lançamento</button>
-    <button class="hdr-btn" style="background:#eee; color:#333; width:100%; margin-top:10px;" onclick="closeBudModal()">Cancelar</button>
+    <div class="field">
+      <label>Data</label>
+      <input id="bDate" type="date">
+    </div>
+    <button class="hdr-btn" style="background:#6d28d9; width:100%; padding:15px; margin-top:10px;" onclick="saveBud()">Salvar</button>
+    <button class="hdr-btn" style="background:#f2f2f7; color:#333; width:100%; margin-top:10px;" onclick="closeBudModal()">Cancelar</button>
   </div>
 </div>
 
 <script>
-// CONFIGURAÇÃO FIREBASE (Substitua pelos seus dados se necessário)
+// CONFIGURAÇÃO REAL DO SEU FIREBASE
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_PROJETO.firebaseapp.com",
-  databaseURL: "https://SEU_PROJETO.firebaseio.com",
-  projectId: "SEU_PROJETO",
-  storageBucket: "SEU_PROJETO.appspot.com",
-  messagingSenderId: "ID",
-  appId: "APP_ID"
+  apiKey: "AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",
+  authDomain: "ssgz-16baf.firebaseapp.com",
+  databaseURL: "https://ssgz-16baf-default-rtdb.firebaseio.com",
+  projectId: "ssgz-16baf",
+  storageBucket: "ssgz-16baf.firebasestorage.app",
+  messagingSenderId: "838715682754",
+  appId: "1:838715682754:web:b130266eb2e714e478705b",
+  measurementId: "G-HJT68L87G1"
 };
 
-// Inicialização
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+if(firebaseConfig.measurementId) firebase.analytics();
 
-// Lógica de Navegação
+// Navegação
 function goTab(idx){
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
-  document.getElementById('t'+idx).classList.add('on');
-  document.getElementById('p'+idx).classList.add('on');
+  if(document.getElementById('t'+idx)) document.getElementById('t'+idx).classList.add('on');
+  if(document.getElementById('p'+idx)) document.getElementById('p'+idx).classList.add('on');
 }
 
-// Funções de Modal Budget
-function openBudModal(idx){ document.getElementById('budOv').classList.add('on'); }
-function closeBudModal(){ document.getElementById('budOv').classList.remove('on'); }
-
-// Status de Sincronização
+// Status de Sincronia
 db.ref('.info/connected').on('value', snap => {
   const dot = document.getElementById('syncDot');
   const txt = document.getElementById('syncTxt');
   if (snap.val() === true) {
     dot.className = 'sync-dot ok';
-    txt.innerText = 'Online - Sincronizado';
+    txt.innerText = 'Online';
   } else {
     dot.className = 'sync-dot err';
     txt.innerText = 'Offline';
   }
 });
 
-// Nota: Adicione aqui as funções renderDocs(), saveBud(), etc., 
-// do seu código original para processar os dados do Firebase.
+// Funções de Interface do Budget
+function openBudModal(idx){ 
+  document.getElementById('budOv').classList.add('on');
+  document.getElementById('bDate').valueAsDate = new Date();
+}
+function closeBudModal(){ document.getElementById('budOv').classList.remove('on'); }
+
+function saveBud(){
+  const val = document.getElementById('bVal').value;
+  const desc = document.getElementById('bDesc').value;
+  if(!val || !desc) return alert("Preencha os campos!");
+  
+  db.ref('budget/items').push({
+    val: parseFloat(val),
+    desc: desc,
+    date: document.getElementById('bDate').value,
+    ts: Date.now()
+  });
+  closeBudModal();
+}
+
+// Escuta dados do Budget
+db.ref('budget/items').on('value', snap => {
+  const list = document.getElementById('budList');
+  list.innerHTML = '';
+  let total = 0;
+  snap.forEach(child => {
+    const item = child.val();
+    total += item.val;
+    list.innerHTML += `
+      <div class="bud-item">
+        <div>
+          <div style="font-weight:600">${item.desc}</div>
+          <div style="font-size:12px;color:#888">${item.date}</div>
+        </div>
+        <div style="font-weight:700;color:#dc2626">- R$ ${item.val.toFixed(2)}</div>
+      </div>`;
+  });
+  document.getElementById('budHero').innerHTML = `
+    <div class="bud-hero">
+      <div style="font-size:12px;opacity:0.8">Gasto Total</div>
+      <div class="bud-hero-val">R$ ${total.toFixed(2)}</div>
+    </div>`;
+});
+
+// Nota: Para as funções de Médicos e Materiais, certifique-se de colar as lógicas 
+// de renderização (renderDocs, renderMateriais) que você já tinha no arquivo original.
 </script>
 
 </body>
