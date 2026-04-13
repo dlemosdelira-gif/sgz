@@ -34,7 +34,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .pc.dim{opacity:.3;}
 .stline{padding:4px 12px 8px;font-size:13px;color:#888;}
 .dlist{padding:0 12px 90px;}
-/* ── MATERIAIS NO CARD (recolhido por padrão) ── */
+/* ── MATERIAIS NO CARD ── */
 .mat-section{border-top:1px solid #f2f2f7;}
 .mat-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;cursor:pointer;background:#fafafa;}
 .mat-toggle-row:active{background:#f2f2f7;}
@@ -251,11 +251,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 
 <div class="tabs">
   <button class="tab-btn on" id="t0" onclick="goTab(0)">👨‍⚕️ Médicos</button>
-  <button class="tab-btn" id="t1" onclick="goTab(1)">📄 Materiais</button>
-  <button class="tab-btn" id="t2" onclick="goTab(2)">🏆 Contas</button>
-  <button class="tab-btn" id="t3" onclick="goTab(3)">🗺️ Cidades</button>
-  <button class="tab-btn" id="t4" onclick="goTab(4)">📊 Insights</button>
-  <button class="tab-btn" id="t5" onclick="goTab(5)">💰 Budget</button>
+  <button class="tab-btn" id="t1" onclick="goTab(1)">🏆 Contas</button>
+  <button class="tab-btn" id="t2" onclick="goTab(2)">🗺️ Cidades</button>
+  <button class="tab-btn" id="t3" onclick="goTab(3)">📊 Insights</button>
+  <button class="tab-btn" id="t4" onclick="goTab(4)">💰 Budget</button>
 </div>
 
 <div class="sync-bar">
@@ -263,10 +262,9 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <span id="syncTxt">Conectando ao Firebase...</span>
 </div>
 
-<!-- MÉDICOS -->
 <div class="page on" id="p0">
   <div class="hdr">
-    <div><h1>Sarclisa · Materiais</h1><p>Ordenados por score · sincronizado em todos os devices</p></div>
+    <div><h1>Sarclisa · Materiais</h1><p>Sincronizado em todos os devices</p></div>
     <button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button>
   </div>
   <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
@@ -292,16 +290,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <button class="fab" onclick="openDocModal(-1)">+</button>
 </div>
 
-<!-- MATERIAIS -->
 <div class="page" id="p1">
-  <div class="pwrap">
-    <div class="phd"><h2>Materiais</h2><button class="hdr-btn" style="background:#6d28d9;color:#fff" onclick="openMatModal(-1)">+ Novo</button></div>
-    <div id="matList"></div>
-  </div>
-</div>
-
-<!-- CONTAS -->
-<div class="page" id="p2">
   <div class="pwrap">
     <div class="phd">
       <h2>Ranking de Contas</h2>
@@ -313,29 +302,31 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- CIDADES -->
-<div class="page" id="p3">
+<div class="page" id="p2">
   <div class="pwrap"><div class="phd"><h2>Clusters por Cidade</h2></div><div id="cityList"></div></div>
 </div>
 
-<!-- INSIGHTS -->
-<div class="page" id="p4">
-  <div class="pwrap"><h2 style="margin-bottom:12px">📊 Insights</h2><div id="insDiv"></div></div>
+<div class="page" id="p3">
+  <div class="pwrap">
+    <h2 style="margin-bottom:12px">📊 Insights</h2>
+    <div id="insDiv"></div>
+    
+    <div class="phd" style="margin-top:30px;">
+      <h2>📄 Materiais</h2>
+      <button class="hdr-btn" style="background:#6d28d9;color:#fff" onclick="openMatModal(-1)">+ Novo</button>
+    </div>
+    <div id="matList"></div>
+  </div>
 </div>
 
-<!-- ══ BUDGET PAGE ══ -->
-<div class="page" id="p5">
-  <!-- Hero: saldo -->
+<div class="page" id="p4">
   <div id="budHero"></div>
-  <!-- Cards por categoria -->
   <div class="bud-cats" id="budCats"></div>
-  <!-- Lista de lançamentos -->
   <div class="bud-sec-title">Lançamentos</div>
   <div class="bud-list" id="budList" style="padding-bottom:90px;"></div>
   <button class="bud-fab" onclick="openBudModal(-1)">+</button>
 </div>
 
-<!-- ══ MODAL LANÇAMENTO BUDGET ══ -->
 <div class="ov" id="budOv">
   <div class="modal">
     <div class="mhd"><h2 id="budMT">Novo lançamento</h2><button onclick="closeBudModal()">×</button></div>
@@ -362,14 +353,13 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       </div>
       <div class="field">
         <label>Valor (R$)</label>
-        <input id="bVal" type="number" min="0" step="0.01" placeholder="0,00">
+        <input id="bVal" type="text" inputmode="decimal" placeholder="0,00" oninput="this.value=this.value.replace(/[^0-9,.]/g,'')">
       </div>
     </div>
     <div class="brow"><button class="bcanc" onclick="closeBudModal()">Cancelar</button><button class="bsave" onclick="saveBud()">Salvar</button></div>
   </div>
 </div>
 
-<!-- ══ MODAL NOVA CATEGORIA BUDGET ══ -->
 <div class="ov" id="budCatOv">
   <div class="modal">
     <div class="mhd"><h2>Nova categoria</h2><button onclick="closeBudCatModal()">×</button></div>
@@ -392,7 +382,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- ══ MODAL EDITAR VERBA ══ -->
 <div class="ov" id="budVerbaOv">
   <div class="modal">
     <div class="mhd"><h2>Verba total do território</h2><button onclick="closeBudVerbaModal()">×</button></div>
@@ -401,7 +390,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- ══ MODAL MÉDICO ══ -->
 <div class="ov" id="docOv">
   <div class="modal">
     <div class="mhd"><h2 id="docMT">Médico</h2><button onclick="closeDocModal()">×</button></div>
@@ -437,7 +425,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- ══ MODAL MATERIAL ══ -->
 <div class="ov" id="matOv">
   <div class="modal">
     <div class="mhd"><h2 id="matMT">Material</h2><button onclick="closeMatModal()">×</button></div>
@@ -447,7 +434,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- ══ MODAL AUDITORIA (edição de uma conta) ══ -->
 <div class="ov" id="auditOv">
   <div class="modal">
     <div class="mhd"><h2 id="auditTitle">Editar auditoria</h2><button onclick="closeAuditModal()">×</button></div>
@@ -464,7 +450,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- ══ MODAL IMPORTAR AUDITORIA CSV ══ -->
 <div class="ov" id="csvAuditOv">
   <div class="modal">
     <div class="mhd"><h2>📊 Importar auditoria</h2><button onclick="closeCsvAuditModal()">×</button></div>
@@ -491,7 +476,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- ══ MODAL DELETE ══ -->
 <div class="ov" id="delOv">
   <div class="modal">
     <div class="mhd"><h2>Confirmar</h2><button onclick="closeDelOv()">×</button></div>
@@ -576,10 +560,10 @@ dbRef.on('value',function(snap){
   var openDc=saveOpenIds('dc');
   var openCc=saveOpenIds('cc');
   renderDocs();
-  if(document.getElementById('p1').classList.contains('on'))renderMats();
-  if(document.getElementById('p2').classList.contains('on'))renderContas();
-  if(document.getElementById('p3').classList.contains('on'))renderCities();
-  if(document.getElementById('p4').classList.contains('on'))renderInsights();
+  if(document.getElementById('p1').classList.contains('on'))renderContas();
+  if(document.getElementById('p2').classList.contains('on'))renderCities();
+  if(document.getElementById('p3').classList.contains('on')){ renderInsights(); renderMats(); }
+  if(document.getElementById('p4').classList.contains('on'))renderBudget();
   restoreOpenIds(openDc);
   restoreOpenIds(openCc);
 },function(){
@@ -664,7 +648,17 @@ function sk(n,i){return n+'__'+i;}
 function fmtDate(iso){if(!iso)return'';var d=new Date(iso);return d.getDate()+'/'+(d.getMonth()+1).toString().padStart(2,'0');}
 
 // ══════════ TABS ══════════
-function goTab(n){for(var i=0;i<6;i++){var tb=document.getElementById('t'+i),pg=document.getElementById('p'+i);if(tb)tb.classList.toggle('on',i===n);if(pg)pg.classList.toggle('on',i===n);}if(n===1)renderMats();if(n===2)renderContas();if(n===3)renderCities();if(n===4)renderInsights();if(n===5)renderBudget();}
+function goTab(n){
+  for(var i=0;i<5;i++){
+    var tb=document.getElementById('t'+i),pg=document.getElementById('p'+i);
+    if(tb)tb.classList.toggle('on',i===n);
+    if(pg)pg.classList.toggle('on',i===n);
+  }
+  if(n===1)renderContas();
+  if(n===2)renderCities();
+  if(n===3){ renderInsights(); renderMats(); }
+  if(n===4)renderBudget();
+}
 
 // ══════════ MÉDICOS ══════════
 function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList.toggle('dim',!potF[p]);renderDocs();}
@@ -706,7 +700,6 @@ function renderDocs(){
     si+='</div></div>';
 
     // Materiais — recolhidos por padrão, expandem ao clicar no cabeçalho
-    // Cada material tem seu próprio mini-toggle
     var rows='';
     for(var r=0;r<mats.length;r++){
       var m=mats[r],midx=r,sk2=sk(d.name,midx),ws=sent[sk2];
@@ -723,7 +716,6 @@ function renderDocs(){
 
     html+=
       '<div class="dc" id="dc'+di+'">'+
-        // ── CABEÇALHO (clica e expande detalhes) ──
         '<div class="dc-hd" onclick="toggleDc('+di+')">'+
           '<div class="dc-info">'+
             '<div class="dc-name"><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'<span class="sc-badge '+sl.cls+'">'+sl.txt+' ('+sc+'pts)</span></div>'+
@@ -735,7 +727,6 @@ function renderDocs(){
           '</div>'+
           '<button class="chev">▼</button>'+
         '</div>'+
-        // ── CORPO (detalhes + botão de materiais recolhido) ──
         '<div class="dc-body">'+
           '<div class="dc-detail">'+
             '<span><b>CRM:</b> '+esc(d.crm||'—')+'</span>'+
@@ -743,7 +734,6 @@ function renderDocs(){
             '<span><b>Conta:</b> '+esc(d.conta||'—')+'</span>'+
           '</div>'+
           si+
-          // ── MATERIAIS: recolhidos por padrão ──
           '<div class="mat-section" id="mats'+di+'">'+
             '<div class="mat-toggle-row" onclick="toggleMats('+di+')">'+
               '<span class="'+matBtnCls+'">'+matBtnLabel+'</span>'+
@@ -790,13 +780,13 @@ function saveDoc(){
 // ══════════ MATERIAIS ══════════
 function openMatModal(idx){editMatIdx=idx;document.getElementById('matMT').childNodes[0].nodeValue=idx===-1?'Novo Material ':'Editar Material ';document.getElementById('mName').value=idx>=0?mats[idx].name:'';document.getElementById('mMsg').value=idx>=0?mats[idx].msg:'';document.getElementById('matOv').classList.add('on');}
 function closeMatModal(){document.getElementById('matOv').classList.remove('on');}
-function saveMat(){var nm=document.getElementById('mName').value.trim(),msg=document.getElementById('mMsg').value.trim();if(!nm||!msg){alert('Preencha nome e mensagem.');return;}if(editMatIdx===-1)mats.push({name:nm,msg:msg});else mats[editMatIdx]={name:nm,msg:msg};persist();closeMatModal();}
+function saveMat(){var nm=document.getElementById('mName').value.trim(),msg=document.getElementById('mMsg').value.trim();if(!nm||!msg){alert('Preencha nome e mensagem.');return;}if(editMatIdx===-1)mats.push({name:nm,msg:msg});else mats[editMatIdx]={name:nm,msg:msg};persist();closeMatModal();renderMats();renderInsights();}
 function renderMats(){var h='';for(var i=0;i<mats.length;i++){var m=mats[i];h+='<div class="mcard"><div class="mcard-t">'+esc(m.name)+'</div><div class="mcard-p">'+esc(m.msg)+'</div><div class="mcard-a"><button class="ibtn" onclick="openMatModal('+i+')">✏️ Editar</button><button class="ibtn d" onclick="askDel(\'mat\','+i+')">🗑️ Excluir</button></div></div>';}document.getElementById('matList').innerHTML=h;}
 
 // ══════════ DELETE ══════════
 function askDel(type,idx){delType=type;delIdx=idx;var lb=type==='doc'?tc(docs[idx].name):mats[idx].name;document.getElementById('delMsg').textContent='Excluir "'+lb+'"? Não pode ser desfeito.';document.getElementById('delOv').classList.add('on');}
 function closeDelOv(){document.getElementById('delOv').classList.remove('on');}
-function confirmDel(){if(delType==='doc')docs.splice(delIdx,1);else{mats.splice(delIdx,1);if(activeMat>=mats.length)activeMat=-1;}persist();closeDelOv();}
+function confirmDel(){if(delType==='doc')docs.splice(delIdx,1);else{mats.splice(delIdx,1);if(activeMat>=mats.length)activeMat=-1;renderMats();renderInsights();}persist();closeDelOv();}
 
 // ══════════ CONTAS ══════════
 function renderContas(){
@@ -860,7 +850,7 @@ function renderContas(){
     // Barreiras (fixas + personalizadas)
     var customBarreiras=ext.customBarreiras||[];
     var todasBarreiras=BARREIRAS.concat(customBarreiras);
-    var barrSel=ext.barreiraSel||[];  // array de selecionadas (múltipla seleção)
+    var barrSel=ext.barreiraSel||[];  
     var bchips='';
     for(var bi=0;bi<todasBarreiras.length;bi++){
       var bv=todasBarreiras[bi],bSel=barrSel.indexOf(bv)>=0;
@@ -975,20 +965,16 @@ function deleteCustomBarreira(conta,val){
 }
 function setBarreiraNota(conta,val){
   if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreiraNota=val;
-  persistLocal(); // nota: não re-renderiza para não perder o foco no input
+  persistLocal(); 
 }
 
-// Re-renderiza APENAS o interior do card desta conta sem recriar o card inteiro
-// Isso mantém o card aberto e o foco nos inputs
 function renderContaInPlace(contaNome){
-  // encontra o card pelo nome da conta (varrendo todos os cc*)
   var cards=document.querySelectorAll('[id^="cc"]');
   for(var ci=0;ci<cards.length;ci++){
     var nameEl=cards[ci].querySelector('.ccard-name');
     if(!nameEl||nameEl.textContent.trim()!==contaNome)continue;
     var bodyEl=cards[ci].querySelector('.ccard-body');
     if(!bodyEl)continue;
-    // reconstrói apenas o interior: marcadores + barreiras
     var ext=cExtra[contaNome]||{};
     var flags=ext.flags||{};
     var flagKeys=Object.keys(CONTA_FLAGS);
@@ -1022,7 +1008,6 @@ function renderContaInPlace(contaNome){
           '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+escJ(contaNome)+'\','+cardIdx+')">+ Add</button>'+
         '</div>';
     }
-    // Atualiza barreiras
     var customBarreiras=ext.customBarreiras||[];
     var todasBarreiras=BARREIRAS.concat(customBarreiras);
     var barrSel=ext.barreiraSel||[];
@@ -1034,7 +1019,6 @@ function renderContaInPlace(contaNome){
     }
     var barrChipsEl=bodyEl.querySelector('.barr-chips');
     if(barrChipsEl)barrChipsEl.innerHTML=bchips;
-    // Atualiza score no header
     var cd=getContaData({conta:contaNome,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0});
     var scoreAuditEl=cards[ci].querySelector('.cscore-audit');
     var scoreTotalEl=cards[ci].querySelector('.cscore-total');
@@ -1048,7 +1032,6 @@ function renderContaInPlace(contaNome){
 function openAuditModal(contaNome,idx){
   auditContaNome=contaNome;
   document.getElementById('auditTitle').textContent='Editar auditoria';
-  // encontra a conta base
   var ct=null;
   for(var i=0;i<CONTAS_DEF.length;i++){if(CONTAS_DEF[i].conta===contaNome){ct=CONTAS_DEF[i];break;}}
   if(!ct)ct={scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,mat:0,ytd:0};
@@ -1107,7 +1090,6 @@ function loadCsvFile(evt){
 }
 
 function parseCsvLine(line){
-  // suporta ; e tab como separadores
   var sep=line.indexOf(';')>=0?';':'\t';
   return line.split(sep).map(function(c){return c.trim().replace(/^"|"$/g,'').trim();});
 }
@@ -1118,7 +1100,6 @@ function processCsvAudit(){
   var lines=raw.split(/\r?\n/).filter(function(l){return l.trim();});
   if(lines.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
 
-  // detecta cabeçalho
   var header=parseCsvLine(lines[0]).map(function(h){return h.toLowerCase().replace(/[^a-záàãâéêíóõôúç.\s]/gi,'').trim();});
   var iConta=header.findIndex(function(h){return h.indexOf('conta')>=0;});
   var iMat=header.findIndex(function(h){return h.indexOf('mat')>=0&&h.indexOf('evol')<0&&h.indexOf('atu')>=0||h==='mat'||h==='mat atu'||h==='mat (atu)'||h==='mat atu.';});
@@ -1128,7 +1109,6 @@ function processCsvAudit(){
   var iPot=header.findIndex(function(h){return h.indexOf('pot')>=0&&h.indexOf('estrat')>=0||h==='pot'||h==='pot.estrat'||h==='pot.estrat.';});
   var iEsp=header.findIndex(function(h){return h.indexOf('espa')>=0||h.indexOf('esp')>=0||h.indexOf('captura')>=0;});
 
-  // fallback de índice — assumir posição se não achar pelo nome
   if(iConta<0)iConta=0;
   if(iMat<0)iMat=1;
   if(iYtd<0)iYtd=2;
@@ -1143,7 +1123,6 @@ function processCsvAudit(){
     var mat=parseFloat(String(cols[iMat]||'').replace(',','.'));
     var ytd=parseFloat(String(cols[iYtd]||'').replace(',','.'));
 
-    // tenta match exato ou parcial
     var matchNome='';
     var allContaNomes=CONTAS_DEF.map(function(c){return c.conta;});
     for(var ci=0;ci<allContaNomes.length;ci++){
@@ -1253,7 +1232,6 @@ function renderBudget(){
   var resta=verba-gasto;
   var pct=verba?Math.min(100,Math.round(gasto/verba*100)):0;
   var alertaCor=pct>=90?'#fef2f2':pct>=70?'#fffbeb':'rgba(255,255,255,.18)';
-  // Hero
   document.getElementById('budHero').innerHTML=
     '<div class="bud-hero">'+
       '<div class="bud-hero-top">'+
@@ -1274,7 +1252,6 @@ function renderBudget(){
       '<div class="bud-bar-pct">'+pct+'% utilizado</div>'+
     '</div>';
 
-  // Categorias
   var cats=budget.cats||BUD_CATS_DEF;
   var catsHtml='';
   for(var i=0;i<cats.length;i++){
@@ -1291,11 +1268,9 @@ function renderBudget(){
       '<div class="bud-cat-sub">'+(verba?Math.round(total/verba*100):0)+'% da verba</div>'+
     '</div>';
   }
-  // botão nova categoria
   catsHtml+='<div class="bud-add-cat" onclick="openBudCatModal()"><span style="font-size:20px">+</span> Nova categoria</div>';
   document.getElementById('budCats').innerHTML=catsHtml;
 
-  // Lista de lançamentos — ordenada por data desc
   var items=(budget.items||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
   if(!items.length){document.getElementById('budList').innerHTML='<div class="bud-empty">Nenhum lançamento ainda.<br>Toque + para adicionar.</div>';return;}
   var html='';
@@ -1331,23 +1306,22 @@ function openBudModal(idx){
   editBudIdx=idx;
   document.getElementById('budMT').textContent=idx===-1?'Novo lançamento':'Editar lançamento';
   var cats=budget.cats||BUD_CATS_DEF;
-  // Popula select de categorias
   var catOpts='';
   for(var i=0;i<cats.length;i++){catOpts+='<option value="'+esc(cats[i].id)+'">'+cats[i].icon+' '+esc(cats[i].name)+'</option>';}
   catOpts+='<option value="__nova__">+ Nova categoria...</option>';
   document.getElementById('bCat').innerHTML=catOpts;
-  // Popula select de médicos
   var docOpts='<option value="">— nenhum —</option>';
   var sortedDocs=docs.slice().sort(function(a,b){return a.name.localeCompare(b.name);});
   for(var i=0;i<sortedDocs.length;i++){docOpts+='<option value="'+esc(sortedDocs[i].name)+'">'+esc(tc(sortedDocs[i].name))+'</option>';}
   document.getElementById('bDoc').innerHTML=docOpts;
+  
   if(idx>=0){
     var it=budget.items[idx];
     document.getElementById('bCat').value=it.catId||'';
     document.getElementById('bDoc').value=it.docName||'';
     document.getElementById('bDesc').value=it.desc||'';
     document.getElementById('bDate').value=it.date||'';
-    document.getElementById('bVal').value=it.val||'';
+    document.getElementById('bVal').value=it.val ? it.val.toString().replace('.', ',') : '';
   } else {
     document.getElementById('bCat').value=cats.length?cats[0].id:'';
     document.getElementById('bDoc').value='';
@@ -1362,7 +1336,6 @@ function closeBudModal(){document.getElementById('budOv').classList.remove('on')
 function onBudCatChange(){
   var v=document.getElementById('bCat').value;
   document.getElementById('bNewCatWrap').style.display=v==='__nova__'?'block':'none';
-  // Mostrar médico apenas na categoria refeição ou similares
   var cats=budget.cats||BUD_CATS_DEF;
   var cat=null;for(var i=0;i<cats.length;i++){if(cats[i].id===v){cat=cats[i];break;}}
   var isRef=v==='refeicao'||(cat&&cat.name&&cat.name.toLowerCase().indexOf('refei')>=0);
@@ -1378,8 +1351,16 @@ function saveBud(){
     budget.cats.push({id:newId,name:nn,icon:pickedIcon||'💰'});
     catId=newId;
   }
-  var val=parseFloat(document.getElementById('bVal').value)||0;
+  
+  var valStr = document.getElementById('bVal').value;
+  if (valStr.indexOf('.') >= 0 && valStr.indexOf(',') >= 0) {
+    valStr = valStr.replace(/\./g, '');
+  }
+  valStr = valStr.replace(',', '.');
+  var val = parseFloat(valStr) || 0;
+  
   if(!val){alert('Informe o valor.');return;}
+  
   var it={
     id:editBudIdx>=0?(budget.items[editBudIdx].id):('b'+Date.now()),
     catId:catId,
@@ -1408,7 +1389,6 @@ function saveBudCat(){
   if(!budget.cats)budget.cats=BUD_CATS_DEF.slice();
   budget.cats.push({id:'cat_'+Date.now(),name:nm,icon:pickedIcon||'💰'});
   persist();closeBudCatModal();
-  // re-abre modal de lançamento se estava aberto
   if(document.getElementById('budOv').classList.contains('on'))openBudModal(editBudIdx);
   else renderBudget();
 }
