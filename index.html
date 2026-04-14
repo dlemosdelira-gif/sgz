@@ -1287,7 +1287,7 @@ function renderInsights(){
   
   var total = fDocs.length, withPhone = 0;
   
-  // 2. Conta envios (Total, WA e Veeva) APENAS para a base filtrada
+  // 2. Conta envios (Total, WA e E-mail) APENAS para a base filtrada
   var totalWa = 0, totalEmail = 0;
   fDocs.forEach(function(d){
     for(var i=0; i<mats.length; i++){
@@ -1359,7 +1359,7 @@ function renderInsights(){
     filterHtml + // Insere os filtros no topo
     '<div class="mgrid">' +
       '<div class="metric m1"><span class="ml">Médicos (Filtro)</span><span class="mv">'+total+'</span></div>' +
-      '<div class="metric m2"><span class="ml">Envios (Totais)</span><span class="mv">'+totalSent+'</span><span style="font-size:10px;opacity:0.8;display:block;margin-top:2px;">WA: '+totalWa+' | Veeva: '+totalEmail+'</span></div>' +
+      '<div class="metric m2"><span class="ml">Envios (Totais)</span><span class="mv">'+totalSent+'</span><span style="font-size:10px;opacity:0.8;display:block;margin-top:2px;">WA: '+totalWa+' | E-mail: '+totalEmail+'</span></div>' +
       '<div class="metric m3"><span class="ml">Cobertura (Docs)</span><span class="mv">'+cov+'%</span></div>' +
       '<div class="metric m4"><span class="ml">⚡ Alta pri.</span><span class="mv">'+hiPri+'</span></div>' +
     '</div>'+
@@ -1379,7 +1379,7 @@ function renderInsights(){
 
       '<div style="margin-bottom:14px;">' +
         '<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#6d28d9;">' +
-          '<span>Veeva ('+totalEmail+' envios)</span>' +
+          '<span>E-mail ('+totalEmail+' envios)</span>' +
           '<span>'+pctEmEnvios+'%</span>' +
         '</div>' +
         '<div style="height:8px; border-radius:4px; background:#f5f3ff; overflow:hidden;">' +
@@ -1389,7 +1389,7 @@ function renderInsights(){
 
       '<div style="display:flex; gap:10px; font-size:12px; color:#555;">' +
         '<div style="flex:1; background:#fafafa; padding:8px; border-radius:8px; text-align:center;"><b>'+uniqueWa+'</b> méd. cobertos WA<br><span style="font-size:10px">('+covWa+'% da base)</span></div>' +
-        '<div style="flex:1; background:#fafafa; padding:8px; border-radius:8px; text-align:center;"><b>'+uniqueEm+'</b> méd. cobertos Veeva<br><span style="font-size:10px">('+covEm+'% da base)</span></div>' +
+        '<div style="flex:1; background:#fafafa; padding:8px; border-radius:8px; text-align:center;"><b>'+uniqueEm+'</b> méd. cobertos E-mail<br><span style="font-size:10px">('+covEm+'% da base)</span></div>' +
       '</div>' +
     '</div>' +
 
@@ -1402,14 +1402,14 @@ function renderInsights(){
                  '<span class="pill '+cls+'">'+m.c+' méd. ('+m.pct+'%)</span>' +
                '</div>' +
                '<div style="width:100%;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#888;">' +
-                 '<span>WA: <b>'+m.cWa+'</b> envios · Veeva: <b>'+m.cEm+'</b> envios</span>' +
+                 '<span>WA: <b>'+m.cWa+'</b> envios · E-mail: <b>'+m.cEm+'</b> envios</span>' +
                  '<div class="prog" style="width:80px;"><div class="pf" style="width:'+m.pct+'%"></div></div>' +
                '</div>' +
              '</div>';
     }).join('')+'</div>'+
     '<div class="icard"><h3>🗺️ Top cidades</h3>'+topCities.map(function(c){return'<div class="irow"><span>'+esc(tc(c[0]))+'</span><span class="pill pb">'+c[1]+'</span></div>';}).join('')+'</div>'+
     '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
-    (topDocs.length?'<div class="icard"><h3>🏆 Médicos com mais envios</h3>'+topDocs.map(function(d){return'<div class="irow" style="flex-direction:column; align-items:flex-start; gap:4px;"><div style="width:100%; display:flex; justify-content:space-between;"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+' envios</span></div><div style="font-size:10px; color:#888;">WA: '+d.cW+' · Veeva: '+d.cE+'</div></div>';}).join('')+'</div>':'')+
+    (topDocs.length?'<div class="icard"><h3>🏆 Médicos com mais envios</h3>'+topDocs.map(function(d){return'<div class="irow" style="flex-direction:column; align-items:flex-start; gap:4px;"><div style="width:100%; display:flex; justify-content:space-between;"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+' envios</span></div><div style="font-size:10px; color:#888;">WA: '+d.cW+' · E-mail: '+d.cE+'</div></div>';}).join('')+'</div>':'')+
     '<div class="sec-title">💡 Dicas</div>'+
     '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer edição feita no celular ou computador aparece automaticamente em todos os devices via Firebase.</div>'+
     '<div class="tip"><b>📊 Atualizar auditoria</b>Na aba Contas, clique em "📊 Importar auditoria" para colar o CSV do Excel e atualizar MAT, YTD e scores de todas as contas de uma vez. Ou expanda um card e clique em "✏️ Editar auditoria" para editar individualmente.</div>'+
