@@ -675,9 +675,20 @@ function goTab(n){
 }
 
 // ══════════ MÉDICOS ══════════
-function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList.toggle('dim',!potF[p]);renderDocs();}
-var _docSearchTimer=null;
-function debounceRenderDocs(){clearTimeout(_docSearchTimer);_docSearchTimer=setTimeout(renderDocs,220);}
+function togglePot(p){
+  potF[p]=!potF[p];
+  // Atualiza os botões na aba de Médicos
+  var btn1 = document.getElementById('pc'+p); 
+  if(btn1) btn1.classList.toggle('dim',!potF[p]);
+  
+  // Atualiza os botões na aba de Insights (se existirem)
+  var btn2 = document.getElementById('ipc'+p); 
+  if(btn2) btn2.classList.toggle('dim',!potF[p]);
+  
+  // Recarrega as duas telas
+  renderDocs();
+  if(document.getElementById('p3').classList.contains('on')) renderInsights();
+}
 
 var EMAIL_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>';
 var WA_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
@@ -739,7 +750,7 @@ function renderDocs(){
         :'<span class="nophone">Sem WhatsApp</span>';
         
       var doneCls=we?' done':'';
-      var ebtn='<button class="ebtn'+doneCls+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')" title="Marcar envio via Veeva/Email">'+EMAIL_ICON+(we?' Veeva':' Veeva')+'</button>';
+      var ebtn='<button class="ebtn'+doneCls+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')" title="Marcar envio via E-mail/Email">'+EMAIL_ICON+(we?' E-mail':' E-mail')+'</button>';
       
       rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+etag+'</div>'+btn+ebtn+'</div>';
     }
@@ -1270,32 +1281,51 @@ function renderCities(){
 function toggleCity(i){var el=document.getElementById('cy'+i);if(el)el.classList.toggle('open');}
 
 // ══════════ INSIGHTS ══════════
-// ══════════ INSIGHTS ══════════
 function renderInsights(){
-  var total=docs.length,withPhone=0;
+  // 1. Filtra a lista de médicos com base nos botões de Potencial selecionados (A, B, C)
+  var fDocs = docs.filter(function(d){ return potF[d.pot]; });
   
-  // Conta envios separados e totais
-  var totalWa=Object.keys(sent).length;
-  var totalEmail=Object.keys(sentEmail).length;
-  var totalSent = totalWa + totalEmail;
-
-  for(var i=0;i<docs.length;i++){if(docs[i].phone)withPhone++;}
-
-  // Calcula cobertura única: se enviou pelo menos por UM dos canais, já conta como coberto.
-  var uniqueSent=0;
-  docs.forEach(function(d){
-    for(var i=0;i<mats.length;i++){
-      if(sent[sk(d.name,i)] || sentEmail[sk(d.name,i)+'__e']) uniqueSent++;
+  var total = fDocs.length, withPhone = 0;
+  
+  // 2. Conta envios (Total, WA e Veeva) APENAS para a base filtrada
+  var totalWa = 0, totalEmail = 0;
+  fDocs.forEach(function(d){
+    for(var i=0; i<mats.length; i++){
+      if(sent[sk(d.name,i)]) totalWa++;
+      if(sentEmail[sk(d.name,i)+'__e']) totalEmail++;
     }
   });
-  
-  var cov=total*mats.length?Math.round(uniqueSent/(total*mats.length)*100):0;
-  var hiPri=0;for(var i=0;i<docs.length;i++){if(calcScore(docs[i])>=5)hiPri++;}
+  var totalSent = totalWa + totalEmail;
 
-  // Quebra por material (Soma WhatsApp e Veeva)
+  for(var i=0; i<fDocs.length; i++){ if(fDocs[i].phone) withPhone++; }
+
+  // 3. Calcula cobertura única e por canal na base filtrada
+  var uniqueSent=0, uniqueWa=0, uniqueEm=0;
+  fDocs.forEach(function(d){
+    var hitWa=false, hitEm=false;
+    for(var i=0; i<mats.length; i++){
+      if(sent[sk(d.name,i)]) hitWa=true;
+      if(sentEmail[sk(d.name,i)+'__e']) hitEm=true;
+    }
+    if(hitWa) uniqueWa++;
+    if(hitEm) uniqueEm++;
+    if(hitWa || hitEm) uniqueSent++;
+  });
+  
+  var cov = total ? Math.round(uniqueSent/total*100) : 0;
+  var covWa = total ? Math.round(uniqueWa/total*100) : 0;
+  var covEm = total ? Math.round(uniqueEm/total*100) : 0;
+  
+  // Proporção de envios
+  var pctWaEnvios = totalSent ? Math.round((totalWa/totalSent)*100) : 0;
+  var pctEmEnvios = totalSent ? Math.round((totalEmail/totalSent)*100) : 0;
+
+  var hiPri=0; for(var i=0; i<fDocs.length; i++){ if(calcScore(fDocs[i])>=5) hiPri++; }
+
+  // 4. Quebra por material na base filtrada
   var byMat=mats.map(function(m,i){
     var cWa=0, cEm=0, cUniq=0;
-    docs.forEach(function(d){
+    fDocs.forEach(function(d){
       var hWa=!!sent[sk(d.name,i)];
       var hEm=!!sentEmail[sk(d.name,i)+'__e'];
       if(hWa) cWa++;
@@ -1305,45 +1335,88 @@ function renderInsights(){
     return {name:m.name, cWa:cWa, cEm:cEm, c:cUniq, pct:total?Math.round(cUniq/total*100):0};
   }).sort(function(a,b){return b.c-a.c;});
 
-  var byCity={};docs.forEach(function(d){if(d.city)byCity[d.city]=(byCity[d.city]||0)+1;});
+  var byCity={}; fDocs.forEach(function(d){if(d.city)byCity[d.city]=(byCity[d.city]||0)+1;});
   var topCities=Object.keys(byCity).map(function(c){return[c,byCity[c]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
 
-  // Top Médicos (Contabiliza envios dos dois canais)
-  var topDocs=docs.map(function(d){
-    var c=0;
-    for(var i=0;i<mats.length;i++){
-      if(sent[sk(d.name,i)] || sentEmail[sk(d.name,i)+'__e']) c++;
+  // 5. Top Médicos na base filtrada
+  var topDocs=fDocs.map(function(d){
+    var c=0, cW=0, cE=0;
+    for(var i=0; i<mats.length; i++){
+      if(sent[sk(d.name,i)]) cW++;
+      if(sentEmail[sk(d.name,i)+'__e']) cE++;
     }
-    return{name:d.name,pot:d.pot,c:c};
+    c = cW + cE;
+    return{name:d.name,pot:d.pot,c:c, cW:cW, cE:cE};
   }).filter(function(d){return d.c>0;}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
 
+  // HTML dos botões de filtro
+  var btnA = '<button class="pc pcA '+(potF['A']?'':'dim')+'" id="ipcA" onclick="togglePot(\'A\')">● A</button>';
+  var btnB = '<button class="pc pcB '+(potF['B']?'':'dim')+'" id="ipcB" onclick="togglePot(\'B\')">● B</button>';
+  var btnC = '<button class="pc pcC '+(potF['C']?'':'dim')+'" id="ipcC" onclick="togglePot(\'C\')">● C</button>';
+  var filterHtml = '<div class="pot-row" style="padding:0 0 12px 0;">' + btnA + btnB + btnC + '<span style="font-size:11px; color:#888; margin-left:auto; align-self:center;">Filtrar análise</span></div>';
+
   document.getElementById('insDiv').innerHTML=
-    '<div class="mgrid"><div class="metric m1"><span class="ml">Médicos</span><span class="mv">'+total+'</span></div><div class="metric m2"><span class="ml">Envios (Totais)</span><span class="mv">'+totalSent+'</span></div><div class="metric m3"><span class="ml">Cobertura</span><span class="mv">'+cov+'%</span></div><div class="metric m4"><span class="ml">⚡ Alta pri.</span><span class="mv">'+hiPri+'</span></div></div>'+
+    filterHtml + // Insere os filtros no topo
+    '<div class="mgrid">' +
+      '<div class="metric m1"><span class="ml">Médicos (Filtro)</span><span class="mv">'+total+'</span></div>' +
+      '<div class="metric m2"><span class="ml">Envios (Totais)</span><span class="mv">'+totalSent+'</span><span style="font-size:10px;opacity:0.8;display:block;margin-top:2px;">WA: '+totalWa+' | Veeva: '+totalEmail+'</span></div>' +
+      '<div class="metric m3"><span class="ml">Cobertura (Docs)</span><span class="mv">'+cov+'%</span></div>' +
+      '<div class="metric m4"><span class="ml">⚡ Alta pri.</span><span class="mv">'+hiPri+'</span></div>' +
+    '</div>'+
+    
+    '<div class="icard" style="border-left: 4px solid #6d28d9;">' +
+      '<h3 style="margin-bottom:12px;">⚖️ Distribuição de Canais</h3>' +
+      
+      '<div style="margin-bottom:10px;">' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#16a34a;">' +
+          '<span>WhatsApp ('+totalWa+' envios)</span>' +
+          '<span>'+pctWaEnvios+'%</span>' +
+        '</div>' +
+        '<div style="height:8px; border-radius:4px; background:#f0fdf4; overflow:hidden;">' +
+          '<div style="width:'+pctWaEnvios+'%; background:#22c55e; height:100%;"></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="margin-bottom:14px;">' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#6d28d9;">' +
+          '<span>Veeva ('+totalEmail+' envios)</span>' +
+          '<span>'+pctEmEnvios+'%</span>' +
+        '</div>' +
+        '<div style="height:8px; border-radius:4px; background:#f5f3ff; overflow:hidden;">' +
+          '<div style="width:'+pctEmEnvios+'%; background:#6d28d9; height:100%;"></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="display:flex; gap:10px; font-size:12px; color:#555;">' +
+        '<div style="flex:1; background:#fafafa; padding:8px; border-radius:8px; text-align:center;"><b>'+uniqueWa+'</b> méd. cobertos WA<br><span style="font-size:10px">('+covWa+'% da base)</span></div>' +
+        '<div style="flex:1; background:#fafafa; padding:8px; border-radius:8px; text-align:center;"><b>'+uniqueEm+'</b> méd. cobertos Veeva<br><span style="font-size:10px">('+covEm+'% da base)</span></div>' +
+      '</div>' +
+    '</div>' +
+
     '<div class="icard"><h3>📊 Cobertura por material</h3>'+
     byMat.map(function(m){
       var cls=m.pct>=50?'pg':m.pct>=20?'po':'pr';
       return '<div class="irow" style="align-items:flex-start;flex-direction:column;gap:4px;">' +
                '<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">' +
                  '<span style="font-weight:600">'+esc(m.name)+'</span>' +
-                 '<span class="pill '+cls+'">'+m.c+' unid. ('+m.pct+'%)</span>' +
+                 '<span class="pill '+cls+'">'+m.c+' méd. ('+m.pct+'%)</span>' +
                '</div>' +
                '<div style="width:100%;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#888;">' +
-                 '<span>WhatsApp: <b>'+m.cWa+'</b> · Veeva: <b>'+m.cEm+'</b></span>' +
+                 '<span>WA: <b>'+m.cWa+'</b> envios · Veeva: <b>'+m.cEm+'</b> envios</span>' +
                  '<div class="prog" style="width:80px;"><div class="pf" style="width:'+m.pct+'%"></div></div>' +
                '</div>' +
              '</div>';
     }).join('')+'</div>'+
     '<div class="icard"><h3>🗺️ Top cidades</h3>'+topCities.map(function(c){return'<div class="irow"><span>'+esc(tc(c[0]))+'</span><span class="pill pb">'+c[1]+'</span></div>';}).join('')+'</div>'+
     '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
-    (topDocs.length?'<div class="icard"><h3>🏆 Mais impactados</h3>'+topDocs.map(function(d){return'<div class="irow"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+'/'+mats.length+'</span></div>';}).join('')+'</div>':'')+
+    (topDocs.length?'<div class="icard"><h3>🏆 Médicos com mais envios</h3>'+topDocs.map(function(d){return'<div class="irow" style="flex-direction:column; align-items:flex-start; gap:4px;"><div style="width:100%; display:flex; justify-content:space-between;"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+' envios</span></div><div style="font-size:10px; color:#888;">WA: '+d.cW+' · Veeva: '+d.cE+'</div></div>';}).join('')+'</div>':'')+
     '<div class="sec-title">💡 Dicas</div>'+
     '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer edição feita no celular ou computador aparece automaticamente em todos os devices via Firebase.</div>'+
     '<div class="tip"><b>📊 Atualizar auditoria</b>Na aba Contas, clique em "📊 Importar auditoria" para colar o CSV do Excel e atualizar MAT, YTD e scores de todas as contas de uma vez. Ou expanda um card e clique em "✏️ Editar auditoria" para editar individualmente.</div>'+
     '<div class="tip"><b>🏦 Score de contas</b>O número cinza é o score da auditoria. O roxo maior é o total somando os marcadores de contexto. O badge verde/vermelho mostra o delta dos marcadores.</div>'+
     '<div class="tip"><b>🎯 Score médico</b>A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
     '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>';
-}
-// ══════════ EXPORT / IMPORT ══════════
+}// ══════════ EXPORT / IMPORT ══════════
 function exportJSON(){var p={version:2,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,cExtra:cExtra};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara exp.');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');if(f.daraLover)m.push('Dara Lover');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function importJSON(evt){var file=evt.target.files&&evt.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(String(r.result||'{}'));if(!p||!Array.isArray(p.docs)||!Array.isArray(p.mats))throw new Error();mats=p.mats;docs=p.docs;sent=p.sent||{};cExtra=p.cExtra||{};persist();alert('Importado ✅ — sincronizando em todos os devices...');}catch(e){alert('Arquivo inválido.');}evt.target.value='';};r.readAsText(file);}
@@ -1610,5 +1683,5 @@ function saveBudVerba(){var v=parseFloat(document.getElementById('bVerba').value
 
 
 </script>
-</body>
+</body>’
 </html>
