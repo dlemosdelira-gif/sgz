@@ -684,6 +684,15 @@ var WA_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path 
 
 function renderDocs(){
   if(!fbLoaded){document.getElementById('dlist').innerHTML='<div class="empty">Conectando...</div>';return;}
+
+  // 1. MEMÓRIA: Salva quais cards de médicos e listas de materiais estão abertos agora
+  var openDc = [];
+  var openMats = [];
+  var dcs = document.querySelectorAll('.dc.open');
+  for(var i=0; i<dcs.length; i++) openDc.push(dcs[i].id);
+  var mls = document.querySelectorAll('.mat-list');
+  for(var i=0; i<mls.length; i++){ if(mls[i].style.display==='block') openMats.push(mls[i].id); }
+
   var q=document.getElementById('srch').value.toLowerCase().trim();
   var filt=[];
   for(var i=0;i<docs.length;i++){var d=docs[i];if(!potF[d.pot])continue;if(q&&(d.name+' '+(d.city||'')+' '+(d.conta||'')).toLowerCase().indexOf(q)<0)continue;filt.push({d:d,i:i});}
@@ -716,8 +725,7 @@ function renderDocs(){
     if(sf.daraLover)si+='<span class="si si-neg">−2 Dara Lover</span>';
     si+='</div></div>';
 
-    // Materiais — recolhidos por padrão, expandem ao clicar no cabeçalho
-   // Materiais — recolhidos por padrão, expandem ao clicar no cabeçalho
+    // Materiais
     var rows='';
     for(var r=0;r<mats.length;r++){
       var m=mats[r],midx=r,sk2=sk(d.name,midx),ws=sent[sk2];
@@ -725,24 +733,17 @@ function renderDocs(){
       var ekey=sk(d.name,midx)+'__e';
       var we=sentEmail[ekey];
       
-      // O etag (selo da data) agora chama a função de editar data ao invés de desmarcar
       var etag=we?'<button class="etag" onclick="event.stopPropagation();editEmailDate(\''+di+'\',\''+midx+'\')" title="Clique para editar a data">✓ Email '+fmtDate(we)+'</button>':'';
-      
-      // Adicionado event.stopPropagation() no WhatsApp por segurança
       var btn=d.phone
         ?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="event.stopPropagation();markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener">'+WA_ICON+' Enviar</a>'
         :'<span class="nophone">Sem WhatsApp</span>';
         
       var doneCls=we?' done':'';
-      
-      // O botão Veeva continua marcando/desmarcando, garantindo que não feche o card
       var ebtn='<button class="ebtn'+doneCls+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')" title="Marcar envio via Veeva/Email">'+EMAIL_ICON+(we?' Veeva':' Veeva')+'</button>';
       
       rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+etag+'</div>'+btn+ebtn+'</div>';
     }
 
-    // Botão de materiais no header do card (contador de enviados)
-    // Botão de materiais no header do card (contador de enviados)
     var waLbl=sc2>0?'WA:'+sc2:'';var eLbl=sc2e>0?'Email:'+sc2e:'';var sentSummary=[waLbl,eLbl].filter(Boolean).join(' · ');var matBtnLabel=sentSummary?'📨 '+sentSummary+' / '+mats.length:'📤 Enviar materiais';
     var matBtnCls=sc2>0?'mat-toggle-btn sent':'mat-toggle-btn';
 
@@ -779,8 +780,21 @@ function renderDocs(){
       '</div>';
   }
   document.getElementById('dlist').innerHTML=html;
-}
 
+  // 2. RESTAURAR: Reabre os cards e listas de materiais que estavam abertos
+  for(var i=0; i<openDc.length; i++) {
+    var el = document.getElementById(openDc[i]);
+    if(el) el.classList.add('open');
+  }
+  for(var i=0; i<openMats.length; i++) {
+    var ml = document.getElementById(openMats[i]);
+    if(ml) {
+      ml.style.display = 'block';
+      var mc = document.getElementById(openMats[i].replace('ml', 'mc'));
+      if(mc) mc.style.transform = 'rotate(180deg)'; // Gira a setinha para cima
+    }
+  }
+}
 function toggleDc(i){var el=document.getElementById('dc'+i);if(el)el.classList.toggle('open');}
 function toggleMats(i){
   var ml=document.getElementById('ml'+i);
@@ -1256,18 +1270,69 @@ function renderCities(){
 function toggleCity(i){var el=document.getElementById('cy'+i);if(el)el.classList.toggle('open');}
 
 // ══════════ INSIGHTS ══════════
+// ══════════ INSIGHTS ══════════
 function renderInsights(){
-  var total=docs.length,withPhone=0,totalSent=Object.keys(sent).length;
+  var total=docs.length,withPhone=0;
+  
+  // Conta envios separados e totais
+  var totalWa=Object.keys(sent).length;
+  var totalEmail=Object.keys(sentEmail).length;
+  var totalSent = totalWa + totalEmail;
+
   for(var i=0;i<docs.length;i++){if(docs[i].phone)withPhone++;}
-  var cov=total*mats.length?Math.round(totalSent/(total*mats.length)*100):0;
+
+  // Calcula cobertura única: se enviou pelo menos por UM dos canais, já conta como coberto.
+  var uniqueSent=0;
+  docs.forEach(function(d){
+    for(var i=0;i<mats.length;i++){
+      if(sent[sk(d.name,i)] || sentEmail[sk(d.name,i)+'__e']) uniqueSent++;
+    }
+  });
+  
+  var cov=total*mats.length?Math.round(uniqueSent/(total*mats.length)*100):0;
   var hiPri=0;for(var i=0;i<docs.length;i++){if(calcScore(docs[i])>=5)hiPri++;}
-  var byMat=mats.map(function(m,i){var c=0;docs.forEach(function(d){if(sent[sk(d.name,i)])c++;});return{name:m.name,c:c,pct:total?Math.round(c/total*100):0};}).sort(function(a,b){return b.c-a.c;});
+
+  // Quebra por material (Soma WhatsApp e Veeva)
+  var byMat=mats.map(function(m,i){
+    var cWa=0, cEm=0, cUniq=0;
+    docs.forEach(function(d){
+      var hWa=!!sent[sk(d.name,i)];
+      var hEm=!!sentEmail[sk(d.name,i)+'__e'];
+      if(hWa) cWa++;
+      if(hEm) cEm++;
+      if(hWa || hEm) cUniq++;
+    });
+    return {name:m.name, cWa:cWa, cEm:cEm, c:cUniq, pct:total?Math.round(cUniq/total*100):0};
+  }).sort(function(a,b){return b.c-a.c;});
+
   var byCity={};docs.forEach(function(d){if(d.city)byCity[d.city]=(byCity[d.city]||0)+1;});
   var topCities=Object.keys(byCity).map(function(c){return[c,byCity[c]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
-  var topDocs=docs.map(function(d){var c=0;for(var i=0;i<mats.length;i++){if(sent[sk(d.name,i)])c++;}return{name:d.name,pot:d.pot,c:c};}).filter(function(d){return d.c>0;}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
+
+  // Top Médicos (Contabiliza envios dos dois canais)
+  var topDocs=docs.map(function(d){
+    var c=0;
+    for(var i=0;i<mats.length;i++){
+      if(sent[sk(d.name,i)] || sentEmail[sk(d.name,i)+'__e']) c++;
+    }
+    return{name:d.name,pot:d.pot,c:c};
+  }).filter(function(d){return d.c>0;}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
+
   document.getElementById('insDiv').innerHTML=
-    '<div class="mgrid"><div class="metric m1"><span class="ml">Médicos</span><span class="mv">'+total+'</span></div><div class="metric m2"><span class="ml">Enviados</span><span class="mv">'+totalSent+'</span></div><div class="metric m3"><span class="ml">Cobertura</span><span class="mv">'+cov+'%</span></div><div class="metric m4"><span class="ml">⚡ Alta pri.</span><span class="mv">'+hiPri+'</span></div></div>'+
-    '<div class="icard"><h3>📊 Cobertura por material</h3>'+byMat.map(function(m){var cls=m.pct>=50?'pg':m.pct>=20?'po':'pr';return'<div class="irow"><span>'+esc(m.name)+'</span><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><div class="prog"><div class="pf" style="width:'+m.pct+'%"></div></div><span class="pill '+cls+'">'+m.c+' ('+m.pct+'%)</span></div></div>';}).join('')+'</div>'+
+    '<div class="mgrid"><div class="metric m1"><span class="ml">Médicos</span><span class="mv">'+total+'</span></div><div class="metric m2"><span class="ml">Envios (Totais)</span><span class="mv">'+totalSent+'</span></div><div class="metric m3"><span class="ml">Cobertura</span><span class="mv">'+cov+'%</span></div><div class="metric m4"><span class="ml">⚡ Alta pri.</span><span class="mv">'+hiPri+'</span></div></div>'+
+    '<div class="icard"><h3>📊 Cobertura por material</h3>'+
+    byMat.map(function(m){
+      var cls=m.pct>=50?'pg':m.pct>=20?'po':'pr';
+      return '<div class="irow" style="align-items:flex-start;flex-direction:column;gap:4px;">' +
+               '<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">' +
+                 '<span style="font-weight:600">'+esc(m.name)+'</span>' +
+                 '<span class="pill '+cls+'">'+m.c+' unid. ('+m.pct+'%)</span>' +
+               '</div>' +
+               '<div style="width:100%;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#888;">' +
+                 '<span>WhatsApp: <b>'+m.cWa+'</b> · Veeva: <b>'+m.cEm+'</b></span>' +
+                 '<div class="prog" style="width:80px;"><div class="pf" style="width:'+m.pct+'%"></div></div>' +
+               '</div>' +
+             '</div>';
+    }).join('')+'</div>'+
     '<div class="icard"><h3>🗺️ Top cidades</h3>'+topCities.map(function(c){return'<div class="irow"><span>'+esc(tc(c[0]))+'</span><span class="pill pb">'+c[1]+'</span></div>';}).join('')+'</div>'+
     '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
     (topDocs.length?'<div class="icard"><h3>🏆 Mais impactados</h3>'+topDocs.map(function(d){return'<div class="irow"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+'/'+mats.length+'</span></div>';}).join('')+'</div>':'')+
@@ -1278,7 +1343,6 @@ function renderInsights(){
     '<div class="tip"><b>🎯 Score médico</b>A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
     '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>';
 }
-
 // ══════════ EXPORT / IMPORT ══════════
 function exportJSON(){var p={version:2,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,cExtra:cExtra};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara exp.');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');if(f.daraLover)m.push('Dara Lover');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
