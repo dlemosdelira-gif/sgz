@@ -63,12 +63,16 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .sd-items{display:flex;flex-wrap:wrap;gap:5px;}
 .si{padding:4px 9px;border-radius:8px;font-size:12px;font-weight:600;}
 .si-pos{background:#d1fae5;color:#065f46;}.si-neg{background:#fee2e2;color:#b91c1c;}.si-neu{background:#f3f4f6;color:#374151;}
-.mrow{display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid #f9f9f9;}
 .mrow:last-child{border-bottom:none;}
 .mlabel{flex:1;font-size:15px;color:#333;min-width:0;line-height:1.4;}
 .stag{display:inline-block;font-size:11px;background:#d1fae5;color:#065f46;border-radius:6px;padding:3px 8px;font-weight:700;margin-left:6px;cursor:pointer;border:none;vertical-align:middle;}
 .stag:active{background:#a7f3d0;}
+.etag{display:inline-block;font-size:11px;background:#dbeafe;color:#1e40af;border-radius:6px;padding:3px 8px;font-weight:700;margin-left:4px;cursor:pointer;border:none;vertical-align:middle;}
+.etag:active{background:#bfdbfe;}
 .wbtn{display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;}
+.ebtn{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#6d28d9;border:1.5px solid #6d28d9;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.ebtn.done{background:#ede9fe;border-color:#4c1d95;color:#4c1d95;}
+.mrow{display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid #f9f9f9;flex-wrap:wrap;}
 .nophone{font-size:12px;color:#dc2626;background:#fee2e2;padding:6px 10px;border-radius:8px;flex-shrink:0;}
 .fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
 .pwrap{padding:12px 12px 90px;}
@@ -534,7 +538,7 @@ var DOCS_DEF=[{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","po
 var CONTAS_DEF=[{conta:"UNIMED Campinas",scoreTam:3,scoreMom:3,scorePot:3,scoreEsp:2,scoreTotal:11,mat:1904,ytd:129,prioridade:"Prioridade Máxima"},{conta:"UNIMED Jundiaí",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:144,ytd:11,prioridade:"Prioridade Alta"},{conta:"Vera Cruz",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:108,ytd:14,prioridade:"Prioridade Alta"},{conta:"UNIMED Bauru",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:142,ytd:16,prioridade:"Prioridade Alta"},{conta:"UNIMED Sorocaba",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:139,ytd:11,prioridade:"Prioridade Alta"},{conta:"UNIMED Americana",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:102,ytd:0,prioridade:"Prioridade Alta"},{conta:"UNIMED Limeira",scoreTam:2,scoreMom:3,scorePot:2,scoreEsp:2,scoreTotal:9,mat:33,ytd:8,prioridade:"Prioridade Alta"},{conta:"Oncominas",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:50,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Varginha",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:49,ytd:3,prioridade:"Prioridade Média"},{conta:"UNIMED Piracicaba",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:52,ytd:5,prioridade:"Prioridade Média"},{conta:"CASSEMS",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:68,ytd:0,prioridade:"Prioridade Média"},{conta:"Prognóstica",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:40,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED São Carlos",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:39,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Rio Claro",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:2,scoreTotal:7,mat:30,ytd:3,prioridade:"Prioridade Média"},{conta:"Centro de Hematologia Sorocaba",scoreTam:1,scoreMom:3,scorePot:1,scoreEsp:2,scoreTotal:7,mat:11,ytd:11,prioridade:"Prioridade Média"},{conta:"UNIMED Dourados",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Marília",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Campo Grande",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:1,scoreTotal:6,mat:40,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Poços de Caldas",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:5,mat:25,ytd:0,prioridade:"Monitoramento"},{conta:"Consultório",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:"Monitoramento"}];
 
 // ══════════ STATE ══════════
-var mats=[],docs=[],sent={},cExtra={};
+var mats=[],docs=[],sent={},sentEmail={},cExtra={};
 // Budget state
 var VERBA_DEF=75000;
 var BUD_CATS_DEF=[
@@ -559,10 +563,10 @@ dbRef.on('value',function(snap){
   // Se foi a nossa própria escrita, só atualiza status e pula re-render
   if(_skipNextRender){_skipNextRender=false;return;}
   var data=snap.val();
-  if(data){mats=data.mats||MATS_DEF;docs=data.docs||DOCS_DEF;sent=data.sent||{};cExtra=data.cExtra||{};
+  if(data){mats=data.mats||MATS_DEF;docs=data.docs||DOCS_DEF;sent=data.sent||{};sentEmail=data.sentEmail||{};cExtra=data.cExtra||{};
     if(data.budget)budget=data.budget;
   }
-  else{mats=MATS_DEF;docs=DOCS_DEF;sent={};cExtra={};dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra});}
+  else{mats=MATS_DEF;docs=DOCS_DEF;sent={};sentEmail={};cExtra={};dbRef.set({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra});}
   fbLoaded=true;
   setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
   // Preserva cards abertos antes de re-renderizar
@@ -580,14 +584,15 @@ dbRef.on('value',function(snap){
   try{var v=localStorage.getItem('s5m');mats=v?JSON.parse(v):MATS_DEF;}catch(e){mats=MATS_DEF;}
   try{var v=localStorage.getItem('s5d');docs=v?JSON.parse(v):DOCS_DEF;}catch(e){docs=DOCS_DEF;}
   try{var v=localStorage.getItem('s5s');if(v)sent=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5se');if(v)sentEmail=JSON.parse(v);}catch(e){}
   try{var v=localStorage.getItem('s5c');if(v)cExtra=JSON.parse(v);}catch(e){}
   fbLoaded=true;renderDocs();
 });
 
 function persist(){
   setSync('syncing','Salvando...');
-  dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra,budget:budget}).catch(function(){setSync('err','Erro ao salvar');});
-  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
+  dbRef.set({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget}).catch(function(){setSync('err','Erro ao salvar');});
+  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
 }
 
 // ══════════ SCORES ══════════
@@ -618,9 +623,9 @@ function restoreOpenIds(ids){
 var _skipNextRender=false;
 function persistLocal(){
   _skipNextRender=true;
-  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
+  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
   setSync('syncing','Salvando...');
-  dbRef.set({mats:mats,docs:docs,sent:sent,cExtra:cExtra,budget:budget})
+  dbRef.set({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget})
     .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
     .catch(function(){setSync('err','Erro ao salvar');_skipNextRender=false;});
 }
@@ -674,6 +679,7 @@ function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList
 var _docSearchTimer=null;
 function debounceRenderDocs(){clearTimeout(_docSearchTimer);_docSearchTimer=setTimeout(renderDocs,220);}
 
+var EMAIL_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>';
 var WA_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
 
 function renderDocs(){
@@ -694,7 +700,7 @@ function renderDocs(){
   var html='';
   for(var f=0;f<filt.length;f++){
     var d=filt[f].d,di=filt[f].i,sc=calcScore(d),sl=scoreLabel(sc);
-    var sc2=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])sc2++;}
+    var sc2=0,sc2e=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])sc2++;if(sentEmail[sk(d.name,mi)+'__e'])sc2e++;}
     var sf=d.scoreFlags||{};
 
     // Score chips
@@ -714,15 +720,20 @@ function renderDocs(){
     var rows='';
     for(var r=0;r<mats.length;r++){
       var m=mats[r],midx=r,sk2=sk(d.name,midx),ws=sent[sk2];
-      var stag=ws?'<button class="stag" onclick="event.stopPropagation();toggleSent(\''+di+'\',\''+midx+'\')">✓ Enviado em '+fmtDate(ws)+'</button>':'';
+      var stag=ws?'<button class="stag" onclick="event.stopPropagation();toggleSent(\''+di+'\',\''+midx+'\')">✓ WA '+fmtDate(ws)+'</button>':'';
+      var ekey=sk(d.name,midx)+'__e';
+      var we=sentEmail[ekey];
+      var etag=we?'<button class="etag" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')">✓ Email '+fmtDate(we)+'</button>':'';
       var btn=d.phone
         ?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener">'+WA_ICON+' Enviar</a>'
         :'<span class="nophone">Sem WhatsApp</span>';
-      rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+'</div>'+btn+'</div>';
+      var doneCls=we?' done':'';
+      var ebtn='<button class="ebtn'+doneCls+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')" title="Marcar envio via Veeva/Email">'+EMAIL_ICON+(we?' Veeva':' Veeva')+'</button>';
+      rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+etag+'</div>'+btn+ebtn+'</div>';
     }
 
     // Botão de materiais no header do card (contador de enviados)
-    var matBtnLabel=sc2>0?'📨 '+sc2+'/'+mats.length+' enviados':'📤 Enviar materiais';
+    var waLbl=sc2>0?'WA:'+sc2:'';var eLbl=sc2e>0?'Email:'+sc2e:'';var sentSummary=[waLbl,eLbl].filter(Boolean).join(' · ');var matBtnLabel=sentSummary?'📨 '+sentSummary+' / '+mats.length:'📤 Enviar materiais';
     var matBtnCls=sc2>0?'mat-toggle-btn sent':'mat-toggle-btn';
 
     html+=
@@ -743,6 +754,8 @@ function renderDocs(){
             '<span><b>CRM:</b> '+esc(d.crm||'—')+'</span>'+
             '<span><b>Cidade:</b> '+esc(tc(d.city||''))+'</span>'+
             '<span><b>Conta:</b> '+esc(d.conta||'—')+'</span>'+
+            '<span><b>WA:</b> '+sc2+'/'+mats.length+'</span>'+
+            '<span><b>Email:</b> '+sc2e+'/'+mats.length+'</span>'+
           '</div>'+
           si+
           '<div class="mat-section" id="mats'+di+'">'+
@@ -769,6 +782,13 @@ function toggleMats(i){
 }
 function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();}
 function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();}
+function toggleEmailSent(di,mi){
+  var nm=docs[parseInt(di)].name;
+  var k=sk(nm,parseInt(mi))+'__e';
+  if(sentEmail[k])delete sentEmail[k];
+  else sentEmail[k]=new Date().toISOString();
+  persist();
+}
 
 function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
 function openDocModal(idx){
