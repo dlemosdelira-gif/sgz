@@ -44,7 +44,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .dc{background:#fff;border-radius:14px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .dc-hd{padding:12px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;}
 .dc-info{flex:1;min-width:0;}
-.dc-name{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dc-name{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;flex-wrap:wrap;align-items:center;gap:3px;}
 .dc-sub{font-size:13px;color:#888;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;margin-right:4px;}
 .bA{background:#d1fae5;color:#065f46;}.bB{background:#dbeafe;color:#1e40af;}.bC{background:#f3f4f6;color:#374151;}
@@ -253,7 +253,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <button class="tab-btn on" id="t0" onclick="goTab(0)">👨‍⚕️ Médicos</button>
   <button class="tab-btn" id="t1" onclick="goTab(1)">🏆 Contas</button>
   <button class="tab-btn" id="t2" onclick="goTab(2)">🗺️ Cidades</button>
-  <button class="tab-btn" id="t3" onclick="goTab(3)">📊 Insights</button>
+  <button class="tab-btn" id="t3" onclick="goTab(3)">📊 Mais</button>
   <button class="tab-btn" id="t4" onclick="goTab(4)">💰 Budget</button>
 </div>
 
@@ -267,7 +267,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <div><h1>Sarclisa · Materiais</h1><p>Sincronizado em todos os devices</p></div>
     <button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button>
   </div>
-  <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="renderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+  <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="debounceRenderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
   <div class="ctrl-row">
     <select id="docSort" onchange="renderDocs()">
       <option value="score">Ordenar: Score</option>
@@ -322,7 +322,22 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 <div class="page" id="p4">
   <div id="budHero"></div>
   <div class="bud-cats" id="budCats"></div>
-  <div class="bud-sec-title">Lançamentos</div>
+  <div style="padding:8px 12px 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span class="bud-sec-title" style="margin:0;flex:1;">Lançamentos</span>
+    <button class="ctrl-btn primary" onclick="exportBudCSV()" style="font-size:11px;">📥 Exportar</button>
+  </div>
+  <div style="padding:0 12px 6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+    <select id="budSortSel" onchange="setBudSort(this.value)" style="border:1px solid #e5e7eb;background:#fff;color:#374151;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;">
+      <option value="date_desc">Data ↓</option>
+      <option value="date_asc">Data ↑</option>
+      <option value="val_desc">Valor ↓</option>
+      <option value="val_asc">Valor ↑</option>
+      <option value="cat">Categoria</option>
+      <option value="doc">Médico</option>
+    </select>
+    <select id="budCatFil" onchange="setBudCatFilter(this.value)" style="border:1px solid #e5e7eb;background:#fff;color:#374151;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;" ></select>
+  </div>
+  <div style="padding:0 12px 6px;"><input id="budSrch" type="search" placeholder="🔍 Médico ou descrição..." oninput="setBudQ(this.value)" style="width:100%;padding:8px 12px;border-radius:11px;border:1px solid #ddd;font-size:14px;background:#fff;outline:none;"></div>
   <div class="bud-list" id="budList" style="padding-bottom:90px;"></div>
   <button class="bud-fab" onclick="openBudModal(-1)">+</button>
 </div>
@@ -489,6 +504,8 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 <script>
 // ══════════ FIREBASE ══════════
 var firebaseConfig={apiKey:"AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",authDomain:"ssgz-16baf.firebaseapp.com",databaseURL:"https://ssgz-16baf-default-rtdb.firebaseio.com",projectId:"ssgz-16baf",storageBucket:"ssgz-16baf.firebasestorage.app",messagingSenderId:"838715682754",appId:"1:838715682754:web:b130266eb2e714e478705b"};
+// polyfill findIndex para Safari antigo
+if(!Array.prototype.findIndex){Array.prototype.findIndex=function(fn){for(var i=0;i<this.length;i++){if(fn(this[i],i,this))return i;}return -1;};}
 firebase.initializeApp(firebaseConfig);
 var db=firebase.database();
 var dbRef=db.ref('sarclisa');
@@ -513,6 +530,7 @@ var MATS_DEF=[{name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm pont
 
 var DOCS_DEF=[{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","pot":"C","phone":"19-99219-9293","city":"ARARAS","conta":"UNIMED Araras","esp":"Hematologia (BR)"},{"name":"ALINE SHIRATA","crm":"SP0066559","pot":"C","phone":"11-99190-9023","city":"SOROCABA","conta":"Centro de Hematologia Sorocaba","esp":"Farmacia (BR)"},{"name":"AMAURI GUIMARAES BARREIRO","crm":"MG0016661","pot":"C","phone":"35-98805-3242","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"ANA CLAUDIA CHIARI","crm":"SP0091141","pot":"C","phone":"11-97497-9698","city":"SALTO","conta":"UNIMED Salto Itu","esp":"Hematologia (BR)"},{"name":"ANA GABRIELA POVEDA BISMARA","crm":"SP0155612","pot":"C","phone":"15-97401-0226","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ANA PAULA VAZ DE CARVALHO","crm":"SP0124222","pot":"C","phone":"15-99837-9898","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"ANDREZA LAMONICA","crm":"SP0170196","pot":"B","phone":"14-99757-2922","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"ANTONIO PAULO SERVANTES","crm":"SP0120597","pot":"B","phone":"11-99658-9732","city":"BRAGANÇA PAULISTA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"ARIELLA CASSIA DE MOURA","crm":"SP0144898","pot":"B","phone":"15-98117-1088","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ARLETE DELFINA MARQUES MAIA","crm":"MS0001781","pot":"C","phone":"67-99983-2782","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BARBARA DE CAMPOS","crm":"SP0050377","pot":"C","phone":"19-99896-2012","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"BEATRIZ ESPERANCA DE LEO TEDDE","crm":"MS0011076","pot":"B","phone":"67-98185-1289","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"BIANCA RUIZ LIMA","crm":"MS0014139","pot":"B","phone":"17-99627-2767","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"BIANCA ZOCCA MOREIRA CALVILHO","crm":"SP0122878","pot":"C","phone":"11-98647-0067","city":"SOROCABA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BRUNA ADOLFO MESTIERI","crm":"SP0131046","pot":"B","phone":"11-96343-0217","city":"SALTO","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"CAMILA ALMEIDA DO AMARAL KRUZICH","crm":"SP0170850","pot":"A","phone":"19-98127-1677","city":"PIRACICABA","conta":"UNIMED Piracicaba","esp":"Hematologia (BR)"},{"name":"CAMILA GALATI ARAUJO","crm":"SP0139517","pot":"A","phone":"19-99203-0783","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILA HELENA GONZAGA DA SILVA","crm":"SP0185490","pot":"C","phone":"11-97054-4955","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"CAMILLA DELFINO DOS SANTOS","crm":"SP0120589","pot":"A","phone":"19-99210-5299","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILLA MARIA DE ALENCAR SARAIVA","crm":"SP0186160","pot":"A","phone":"19-93861-5507","city":"JUNDIAÍ","conta":"UNIMED Jundiaí","esp":"Hematologia (BR)"},{"name":"CARLOS EDUARDO ENGEL VELANO","crm":"MG0038289","pot":"C","phone":"35-98855-9623","city":"POÇOS DE CALDAS","conta":"CIOP","esp":"Hematologia (BR)"},{"name":"CARLOS WILSON DE ALENCAR CANO","crm":"MS0010775","pot":"B","phone":"67-99298-6769","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"CELSO RICARDO MARCONDES DOS SANTOS","crm":"SP0133318","pot":"C","phone":"19-99779-2759","city":"MOGI MIRIM","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"CHRISTIANE HATSUE NATORI","crm":"MS0005859","pot":"B","phone":"67-99931-4884","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"CLAUDIA HELENA RUBI IVAN CARNIELLI","crm":"SP0086931","pot":"C","phone":"19-99765-0337","city":"AMERICANA","conta":"UNIMED Americana","esp":"Hematologia (BR)"},{"name":"CLAUDIA MARIANA SOARES ASSATO","crm":"SP0080136","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIA TERESA DE OLIVEIRA","crm":"SP0079679","pot":"C","phone":"14-98111-3156","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIO RENATO CUNHA FREIRE","crm":"SP0165149","pot":"C","phone":"19-98428-4249","city":"PIRACICABA","conta":"HFC","esp":"Hematologia (BR)"},{"name":"DANIEL SALAS STEINBAUM","crm":"MS0006995","pot":"B","phone":"67-98186-6162","city":"DOURADOS","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"DEISE FERREIRA NANTES","crm":"MS0007182","pot":"B","phone":"67-99626-8780","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"DENISE BITTENCOURT SIQUEIRA","crm":"MG0064853","pot":"C","phone":"14-98100-0879","city":"TRÊS CORAÇÕES","conta":"UNIMED Três Corações","esp":"Hematologia (BR)"},{"name":"DIRCEU EURILIO SILVA","crm":"MG0023077","pot":"C","phone":"35-99989-6568","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"EDER SANTANA NAVARRO","crm":"SP0163202","pot":"B","phone":"15-99148-4884","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"EDERSON ROBERTO DE MATTOS","crm":"SP0102054","pot":"B","phone":"14-99133-7515","city":"JAU","conta":"UNIMED Jaú","esp":"Hematologia (BR)"},{"name":"ELAINE RODRIGUEIRO BELINI","crm":"MS0005330","pot":"C","phone":"67-99918-0823","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Farmacia (BR)"},{"name":"ELCIO FARIA","crm":"SP0072992","pot":"A","phone":"19-99269-5304","city":"LIMEIRA","conta":"UNIMED Limeira","esp":"Hematologia (BR)"},{"name":"EVENY CRISTINE LUNA DE OLIVEIRA","crm":"MS0003339","pot":"C","phone":"67-99886-2908","city":"CAMPO GRANDE","conta":"ITC","esp":"Hematologia (BR)"},{"name":"FABIO DE OLIVEIRA MARTIN","crm":"SP0105791","pot":"C","phone":"19-98210-1000","city":"INDAIATUBA","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"FABIO JOSE DELLA PIAZZA","crm":"SP0035390","pot":"C","phone":"19-99167-3832","city":"LIMEIRA","conta":"PHS","esp":"Hematologia (BR)"},{"name":"FAUSI PADILHA GONÇALVES","crm":"MS0003941","pot":"C","phone":"67-99629-0985","city":"DOURADOS","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"FERNANDO VIEIRA PERICOLE DE SOUZA","crm":"SP0115806","pot":"A","phone":"19-99167-0235","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GISLAINE BORBA OLIVEIRA","crm":"SP0077416","pot":"A","phone":"19-99111-3664","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GIULIA MARIA HAKIM GOMES","crm":"SP0092755","pot":"C","phone":"15-99736-5649","city":"SOROCABA","conta":"Clínica Devita","esp":"Farmacia (BR)"},{"name":"GRAZZIELLA CURADO SIUFI","crm":"MS0003940","pot":"C","phone":"67-98136-4547","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"GUILHERME FELIPE DONNANGELO MARTINS","crm":"SP0141014","pot":"C","phone":"19-99720-1637","city":"MOGI GUAÇU","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"GUSTAVO FERNANDO VERALDI ISMAEL","crm":"SP0111953","pot":"C","phone":"19-98328-3595","city":"RIO CLARO","conta":"UNIMED Rio Claro","esp":"Hematologia (BR)"},{"name":"ISOLMAR TADEU SCHETTERT","crm":"SP0077418","pot":"A","phone":"11-99204-0828","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"IVNA BALTAZAR FILGUEIRAS STUCCHI","crm":"SP0195674","pot":"C","phone":"19-98443-4272","city":"CAMPINAS","conta":"Oncocamp","esp":"Hematologia (BR)"},{"name":"JAIR ALVES BONFIM FILHO","crm":"MS0007667","pot":"B","phone":"67-98219-1787","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"JAMILLE ELITA DE CASTRO CUNHA HERCULANI","crm":"SP0165407","pot":"C","phone":"11-98711-2081","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"JIVIANE BEATRIZ CUNHA BARRETO DA SILVA","crm":"SP0130850","pot":"C","phone":"19-98207-2627","city":"CAMPINAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO GUILHERME MARTINS LUSVARGHI","crm":"MG0063578","pot":"C","phone":"35-99147-1807","city":"POÇOS DE CALDAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO PAULO MARQUES BIGHETTI","crm":"SP0081779","pot":"C","phone":"19-98105-3992","city":"LIMEIRA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO VICTOR VEZALI COSTARDI","crm":"SP0182816","pot":"C","phone":"67-99985-5233","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE","crm":"MG0059217","pot":"B","phone":"35-99896-6688","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"JULIANA LINO DE MATOS ROSA","crm":"SP0125303","pot":"C","phone":"11-98183-3301","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"JULIANE FONTES SEVERINO","crm":"MS0004494","pot":"C","phone":"67-98209-6367","city":"CAMPO GRANDE","conta":"CEON","esp":"Farmacia (BR)"},{"name":"JULIO ROBERTO CORREA","crm":"SP0030752","pot":"C","phone":"14-99798-9420","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JUNIA RODRIGUES BRANDAO FRANCO","crm":"","pot":"C","phone":"13-98160-8661","city":"SÃO JOÃO DA BOA VISTA","conta":"Clinion","esp":"Hematologia (BR)"},{"name":"KAREN DARIANE BARBOSA DE VASCONCELOS","crm":"MG0060816","pot":"C","phone":"35-9857-3052","city":"ITAJUBÁ","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"KLEBER KOBAYASHI","crm":"MS0006294","pot":"C","phone":"67-99940-4149","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"LARISSA TADEI DE MARQUI","crm":"SP0120705","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"LILIAN ZORTEA","crm":"MS0002863","pot":"C","phone":"67-99285-1305","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Farmacia (BR)"},{"name":"LISA AQUARONI RICCI","crm":"SP0109006","pot":"B","phone":"15-99787-2900","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"LORENA BEDOTTI RIBEIRO","crm":"SP0158055","pot":"C","phone":"19-99373-9827","city":"CAMPINAS","conta":"SOnHe","esp":"Hematologia (BR)"},{"name":"LUCAS OLIVEIRA CANTADORI","crm":"SP0134571","pot":"B","phone":"14-98124-2886","city":"BOTUCATU","conta":"UNIMED Botucatu","esp":"Hematologia (BR)"},{"name":"LUCIANO CARVALHO CAMPOS","crm":"MG0030620","pot":"C","phone":"35-99931-8459","city":"LAVRAS","conta":"UNIMED Lavras","esp":"Hematologia (BR)"},{"name":"LUCIANO FUZZATO SILVA","crm":"SP0105298","pot":"B","phone":"19-99939-9355","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"LUÍS HENRIQUE MASCARENHAS MOREIRA","crm":"MS0002209","pot":"A","phone":"67-99981-7430","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"LUIZ GUSTAVO RODRIGUES BARBOSA","crm":"SP0168761","pot":"C","phone":"14-98141-9491","city":"JAU","conta":"Hospital Amaral Carvalho","esp":"Hematologia (BR)"},{"name":"MARCELO AUGUSTO ARAUJO ASSUNCAO","crm":"MG0061475","pot":"C","phone":"31-99762-9558","city":"LAVRAS","conta":"Onco Lavras","esp":"Hematologia (BR)"},{"name":"MARCELO BERNARDINI ANTUNES","crm":"SP0104562","pot":"B","phone":"14-99792-3873","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"MARCELO DOS SANTOS SOUZA","crm":"MS0003287","pot":"C","phone":"67-99219-6811","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"MARCO TULIO CESTARI RODRIGUES","crm":"MS0010456","pot":"C","phone":"67-99913-0498","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"MARCOS PAULO COLELLA","crm":"SP0115844","pot":"C","phone":"19-99672-9777","city":"CAMPINAS","conta":"Américas","esp":"Hematologia (BR)"},{"name":"MARCUS VINICIUS FRANZIN BIZZARO","crm":"SP0104373","pot":"C","phone":"16-99606-8878","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"MARIA APARECIDA SANTOS PIRES","crm":"MS0001826","pot":"C","phone":"67-99971-5464","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Hematologia (BR)"},{"name":"MARIA PAULA NALESSO CAMARGO","crm":"SP0130139","pot":"C","phone":"15-99828-2282","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"MARIAMA NAKAMOTO FERNANDES DOS SANTOS","crm":"SP0175995","pot":"B","phone":"17-99709-5757","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"MARIANA CRISTTINA LIMA DE FALCO","crm":"SP0199193","pot":"C","phone":"19-99318-3106","city":"MOGI MIRIM","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARILIA SOARES E SILVA ARCADIPANE","crm":"SP0130636","pot":"C","phone":"11-99659-2105","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARINA MOSCA PEDROSO","crm":"SP0066536","pot":"C","phone":"19-99715-9343","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"MARTA APARECIDA SOARES ROSSINI","crm":"SP0051528","pot":"C","phone":"19-99791-6553","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"MARTA MARIA FALSETTI","crm":"SP0064717","pot":"C","phone":"19-99782-0795","city":"MOGI GUAÇU","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MELINA SALVI DIAS ATHAYDE","crm":"MG0046660","pot":"C","phone":"31-8636-6412","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"MICHELE KAMILA GALGANI AMARU","crm":"SP0152391","pot":"C","phone":"19-98159-4768","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"MONICA DE MACEDO SILVA","crm":"MG0025086","pot":"C","phone":"","city":"ITAJUBÁ","conta":"UNIMED Itajubá","esp":"Hematologia (BR)"},{"name":"PAMELA RISARDI FRANCELIN","crm":"SP0162649","pot":"C","phone":"16-99706-4239","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"PATRICIA GAMA","crm":"SP0080550","pot":"B","phone":"19-98314-7273","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"PAULA NATASHA RIBEIRO JONAS DE FARIA","crm":"MG0066565","pot":"B","phone":"35-99764-5849","city":"VARGINHA","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"PAULO EDUARDO DE SOUZA","crm":"SP0043194","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"PAULO RIBEIRO CALIL","crm":"SP0085651","pot":"C","phone":"19-99608-5236","city":"RIO CLARO","conta":"UNIMED SBO/Americana","esp":"Hematologia (BR)"},{"name":"RENATA BALDISSERA CARDOSO","crm":"SP0073499","pot":"C","phone":"14-99854-3939","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"RICARDO DAVID FROTA","crm":"MG0031433","pot":"B","phone":"35-9969-7573","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"ROBENILSON ALMEIDA SOUZA","crm":"SP0097171","pot":"B","phone":"","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ROGERIO CAMARA VALSANI","crm":"SP0044912","pot":"C","phone":"19-99604-6750","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"ROSANA FERREIRA GOMES SALMAZO","crm":"MS0002830","pot":"C","phone":"67-99618-1927","city":"DOURADOS","conta":"Oncoclínica Dourados","esp":"Farmacia (BR)"},{"name":"ROSELI NUNES DA SILVEIRA ANTUNES","crm":"SP0073565","pot":"C","phone":"14-98121-8959","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"SAMIRA DE OLIVEIRA LAUAR","crm":"SP0055618","pot":"A","phone":"19-99771-8182","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SONIA REGINA IANTAS","crm":"SP0062938","pot":"A","phone":"11-99654-1639","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SORAIA TEIXEIRA ROMANINI","crm":"MS0005113","pot":"C","phone":"67-98154-0224","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SULEY MARA CHADDAD VANCINE","crm":"SP0109239","pot":"C","phone":"11-99621-3922","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SUZANA DE FRANCA RIBEIRO GONZAGA","crm":"SP0148118","pot":"B","phone":"11-95425-4245","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"SUZANA SILVA PRADO ZINCONE","crm":"MG0029613","pot":"C","phone":"35-99146-8499","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"VALTER ADOLPHO MASSAGLI FILHO","crm":"SP0121800","pot":"A","phone":"15-99779-0506","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"VANESSA MOURA COVEZZI","crm":"SP0080419","pot":"C","phone":"19-99378-7233","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"VINICIUS BORGES GRILO","crm":"SP0130949","pot":"B","phone":"19-98431-1616","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VINICIUS MARTINS NASCIMENTO","crm":"SP0163864","pot":"A","phone":"13-99716-3844","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VITOR VASQUEZ DOS SANTOS","crm":"SP0162252","pot":"C","phone":"17-99769-8366","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"WALTER ASSUNCAO GONCALVES","crm":"MS0008678","pot":"C","phone":"67-98186-7166","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"WILLIAN PAIVA DA LUZ","crm":"MS0003713","pot":"C","phone":"67-98202-3177","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"}];
 
+// CONTAS_DEF: valores base. O CSV de auditoria (cExtra.auditData) sempre sobrescreve.
 var CONTAS_DEF=[{conta:"UNIMED Campinas",scoreTam:3,scoreMom:3,scorePot:3,scoreEsp:2,scoreTotal:11,mat:1904,ytd:129,prioridade:"Prioridade Máxima"},{conta:"UNIMED Jundiaí",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:144,ytd:11,prioridade:"Prioridade Alta"},{conta:"Vera Cruz",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:108,ytd:14,prioridade:"Prioridade Alta"},{conta:"UNIMED Bauru",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:142,ytd:16,prioridade:"Prioridade Alta"},{conta:"UNIMED Sorocaba",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:139,ytd:11,prioridade:"Prioridade Alta"},{conta:"UNIMED Americana",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:102,ytd:0,prioridade:"Prioridade Alta"},{conta:"UNIMED Limeira",scoreTam:2,scoreMom:3,scorePot:2,scoreEsp:2,scoreTotal:9,mat:33,ytd:8,prioridade:"Prioridade Alta"},{conta:"Oncominas",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:50,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Varginha",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:49,ytd:3,prioridade:"Prioridade Média"},{conta:"UNIMED Piracicaba",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:52,ytd:5,prioridade:"Prioridade Média"},{conta:"CASSEMS",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:68,ytd:0,prioridade:"Prioridade Média"},{conta:"Prognóstica",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:40,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED São Carlos",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:39,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Rio Claro",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:2,scoreTotal:7,mat:30,ytd:3,prioridade:"Prioridade Média"},{conta:"Centro de Hematologia Sorocaba",scoreTam:1,scoreMom:3,scorePot:1,scoreEsp:2,scoreTotal:7,mat:11,ytd:11,prioridade:"Prioridade Média"},{conta:"UNIMED Dourados",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Marília",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Campo Grande",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:1,scoreTotal:6,mat:40,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Poços de Caldas",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:5,mat:25,ytd:0,prioridade:"Monitoramento"},{conta:"Consultório",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:"Monitoramento"}];
 
 // ══════════ STATE ══════════
@@ -525,18 +543,9 @@ var BUD_CATS_DEF=[
   {id:'speaker',name:'Speaker Meeting',icon:'📣'},
   {id:'congresso',name:'Apoio Congresso',icon:'🏆'}
 ];
-var budget={verba:VERBA_DEF,cats:BUD_CATS_DEF,items:[
-  {id:'b1',catId:'refeicao',desc:'Jantar com médico',docName:'JIVIANE BEATRIZ CUNHA BARRETO DA SILVA',date:'2026-03-13',val:331.10},
-  {id:'b2',catId:'refeicao',desc:'Jantar com médico',docName:'VINICIUS MARTINS NASCIMENTO',date:'2026-03-18',val:545.56},
-  {id:'b3',catId:'refeicao',desc:'Jantar com médico',docName:'MARTA APARECIDA SOARES ROSSINI',date:'2026-03-23',val:481.26},
-  {id:'b4',catId:'refeicao',desc:'Jantar com médico',docName:'CAMILLA DELFINO DOS SANTOS',date:'2026-04-02',val:393.46},
-  {id:'b5',catId:'refeicao',desc:'Jantar com médico',docName:'JAMILLE ELITA DE CASTRO CUNHA HERCULANI',date:'2026-04-07',val:361.74},
-  {id:'b6',catId:'simposio',desc:'Apoio NAIC',docName:'',date:'2026-01-01',val:15000},
-  {id:'b7',catId:'simposio',desc:'Simpósio Vera Cruz',docName:'',date:'2026-01-01',val:20000},
-  {id:'b8',catId:'simposio',desc:'SIMUONCO',docName:'',date:'2026-01-01',val:10000},
-  {id:'b9',catId:'speaker',desc:'Speaker Meeting Campinas',docName:'',date:'2026-01-01',val:10000}
-]};
-var editBudIdx=-1,pickedIcon='🍽️';
+// Budget: itens carregados do Firebase. Default vazio — Firebase é a fonte da verdade.
+var budget={verba:VERBA_DEF,cats:BUD_CATS_DEF,items:[]};
+var editBudIdx=-1,pickedIcon='🍽️',budFilter={cat:'',sort:'date_desc',q:''};
 var activeMat=-1,potF={A:true,B:true,C:true};
 var editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
 var auditContaNome='';
@@ -662,6 +671,8 @@ function goTab(n){
 
 // ══════════ MÉDICOS ══════════
 function togglePot(p){potF[p]=!potF[p];document.getElementById('pc'+p).classList.toggle('dim',!potF[p]);renderDocs();}
+var _docSearchTimer=null;
+function debounceRenderDocs(){clearTimeout(_docSearchTimer);_docSearchTimer=setTimeout(renderDocs,220);}
 
 var WA_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
 
@@ -1019,7 +1030,9 @@ function renderContaInPlace(contaNome){
     }
     var barrChipsEl=bodyEl.querySelector('.barr-chips');
     if(barrChipsEl)barrChipsEl.innerHTML=bchips;
-    var cd=getContaData({conta:contaNome,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0});
+    var cdBase=null;for(var _ci=0;_ci<CONTAS_DEF.length;_ci++){if(CONTAS_DEF[_ci].conta===contaNome){cdBase=CONTAS_DEF[_ci];break;}}
+    if(!cdBase)cdBase={conta:contaNome,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0};
+    var cd=getContaData(cdBase);
     var scoreAuditEl=cards[ci].querySelector('.cscore-audit');
     var scoreTotalEl=cards[ci].querySelector('.cscore-total');
     if(scoreAuditEl)scoreAuditEl.textContent=cd.scoreAudit;
@@ -1226,7 +1239,25 @@ function fmtDateBR(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'
 function budTotalGasto(){return(budget.items||[]).reduce(function(s,it){return s+(it.val||0);},0);}
 function budTotalCat(catId){return(budget.items||[]).filter(function(it){return it.catId===catId;}).reduce(function(s,it){return s+(it.val||0);},0);}
 
+function setBudSort(v){budFilter.sort=v;renderBudgetList();}
+function setBudCatFilter(v){budFilter.cat=v;renderBudgetList();}
+function setBudQ(v){budFilter.q=v.toLowerCase();renderBudgetList();}
+
 function renderBudget(){
+  var cats=budget.cats||BUD_CATS_DEF;
+  // Rebuild cat filter dropdown
+  var catFil=document.getElementById('budCatFil');
+  if(catFil){
+    var opts='<option value="">Todas as categorias</option>';
+    for(var i=0;i<cats.length;i++){opts+='<option value="'+cats[i].id+'">'+cats[i].icon+' '+cats[i].name+'</option>';}
+    catFil.innerHTML=opts;
+    if(budFilter.cat)catFil.value=budFilter.cat;
+  }
+  var sortSel=document.getElementById('budSortSel');
+  if(sortSel)sortSel.value=budFilter.sort;
+  var srchEl=document.getElementById('budSrch');
+  if(srchEl&&document.activeElement!==srchEl)srchEl.value=budFilter.q?budFilter.q:'';
+
   var verba=budget.verba||VERBA_DEF;
   var gasto=budTotalGasto();
   var resta=verba-gasto;
@@ -1271,12 +1302,34 @@ function renderBudget(){
   catsHtml+='<div class="bud-add-cat" onclick="openBudCatModal()"><span style="font-size:20px">+</span> Nova categoria</div>';
   document.getElementById('budCats').innerHTML=catsHtml;
 
-  var items=(budget.items||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
-  if(!items.length){document.getElementById('budList').innerHTML='<div class="bud-empty">Nenhum lançamento ainda.<br>Toque + para adicionar.</div>';return;}
+  renderBudgetList();
+}
+
+function renderBudgetList(){
+  var cats=budget.cats||BUD_CATS_DEF;
+  var items=(budget.items||[]).slice();
+  // Filter by category
+  if(budFilter.cat)items=items.filter(function(it){return it.catId===budFilter.cat;});
+  // Filter by search query
+  if(budFilter.q){items=items.filter(function(it){
+    var q=budFilter.q;
+    return (it.docName||'').toLowerCase().indexOf(q)>=0||(it.desc||'').toLowerCase().indexOf(q)>=0;
+  });}
+  // Sort
+  var s=budFilter.sort||'date_desc';
+  items.sort(function(a,b){
+    if(s==='date_desc')return (b.date||'').localeCompare(a.date||'');
+    if(s==='date_asc')return (a.date||'').localeCompare(b.date||'');
+    if(s==='val_desc')return (b.val||0)-(a.val||0);
+    if(s==='val_asc')return (a.val||0)-(b.val||0);
+    if(s==='cat'){var ca=a.catId||'',cb=b.catId||'';return ca.localeCompare(cb)||((b.val||0)-(a.val||0));}
+    if(s==='doc'){var da=(a.docName||'').toLowerCase(),db=(b.docName||'').toLowerCase();return da.localeCompare(db);}
+    return 0;
+  });
+  if(!items.length){document.getElementById('budList').innerHTML='<div class="bud-empty">Nenhum lançamento'+(budFilter.cat||budFilter.q?' com esses filtros':' ainda')+'.<br>'+(budFilter.cat||budFilter.q?'Limpe os filtros ou ':'')+'Toque + para adicionar.</div>';return;}
   var html='';
   for(var j=0;j<items.length;j++){
     var it=items[j];
-    var origIdx=(budget.items||[]).findIndex(function(x){return x.id===it.id;});
     var cat=null;for(var k=0;k<cats.length;k++){if(cats[k].id===it.catId){cat=cats[k];break;}}
     var catName=cat?cat.name:it.catId;
     var catIcon=cat?cat.icon:'💰';
@@ -1292,8 +1345,8 @@ function renderBudget(){
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+
         '<div class="bud-item-val">'+fmtBRL(it.val)+'</div>'+
         '<div class="bud-item-acts">'+
-          '<button class="ibtn" onclick="openBudModal('+origIdx+')">✏️</button>'+
-          '<button class="ibtn d" onclick="deleteBud('+origIdx+')">🗑️</button>'+
+          '<button class="ibtn" onclick="openBudModal(\''+it.id+'\')">✏️</button>'+
+          '<button class="ibtn d" onclick="deleteBud(\''+it.id+'\')">🗑️</button>'+
         '</div>'+
       '</div>'+
     '</div>';
@@ -1315,6 +1368,8 @@ function openBudModal(idx){
   for(var i=0;i<sortedDocs.length;i++){docOpts+='<option value="'+esc(sortedDocs[i].name)+'">'+esc(tc(sortedDocs[i].name))+'</option>';}
   document.getElementById('bDoc').innerHTML=docOpts;
   
+  // Support both index and id-based lookup
+  if(typeof idx === 'string'){idx=(budget.items||[]).findIndex(function(x){return x.id===idx;});}
   if(idx>=0){
     var it=budget.items[idx];
     document.getElementById('bCat').value=it.catId||'';
@@ -1338,7 +1393,8 @@ function onBudCatChange(){
   document.getElementById('bNewCatWrap').style.display=v==='__nova__'?'block':'none';
   var cats=budget.cats||BUD_CATS_DEF;
   var cat=null;for(var i=0;i<cats.length;i++){if(cats[i].id===v){cat=cats[i];break;}}
-  var isRef=v==='refeicao'||(cat&&cat.name&&cat.name.toLowerCase().indexOf('refei')>=0);
+  // Mostrar médico para refeição e qualquer categoria com padrão de HCP
+  var isRef=v==='refeicao'||(cat&&cat.name&&(cat.name.toLowerCase().indexOf('refei')>=0||cat.name.toLowerCase().indexOf('jantar')>=0||cat.name.toLowerCase().indexOf('almo')>=0||cat.name.toLowerCase().indexOf('hcp')>=0));
   document.getElementById('bDocWrap').style.display=isRef?'block':'none';
 }
 function saveBud(){
@@ -1350,8 +1406,9 @@ function saveBud(){
     if(!budget.cats)budget.cats=BUD_CATS_DEF.slice();
     budget.cats.push({id:newId,name:nn,icon:pickedIcon||'💰'});
     catId=newId;
+    document.getElementById('bCat').value=catId;
   }
-  
+  if(!catId||catId==='__nova__'){alert('Selecione uma categoria válida.');return;}
   var valStr = document.getElementById('bVal').value;
   if (valStr.indexOf('.') >= 0 && valStr.indexOf(',') >= 0) {
     valStr = valStr.replace(/\./g, '');
@@ -1372,9 +1429,15 @@ function saveBud(){
   if(!budget.items)budget.items=[];
   if(editBudIdx>=0)budget.items[editBudIdx]=it;else budget.items.push(it);
   persist();closeBudModal();renderBudget();
+  // Feedback visual
+  var dot=document.getElementById('syncDot');
+  if(dot){dot.className='sync-dot ok';document.getElementById('syncTxt').textContent='Lançamento salvo ✓';}
+  setTimeout(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));},2000);
 }
-function deleteBud(idx){
+function deleteBud(itemId){
   if(!confirm('Excluir este lançamento?'))return;
+  var idx=(budget.items||[]).findIndex(function(x){return x.id===itemId;});
+  if(idx<0)return;
   budget.items.splice(idx,1);
   persist();renderBudget();
 }
@@ -1393,13 +1456,42 @@ function saveBudCat(){
   else renderBudget();
 }
 
+// ── Export Budget CSV ──
+function exportBudCSV(){
+  var cats=budget.cats||BUD_CATS_DEF;
+  var hd=['Data','Categoria','Descrição','Médico','Valor (R$)'];
+  var rows=[hd.join(';')];
+  var items=(budget.items||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+  items.forEach(function(it){
+    var cat=null;for(var k=0;k<cats.length;k++){if(cats[k].id===it.catId){cat=cats[k];break;}}
+    var catName=cat?cat.name:it.catId;
+    rows.push([
+      fmtDateBR(it.date||''),
+      catName,
+      it.desc||'',
+      it.docName?tc(it.docName):'',
+      String(it.val||0).replace('.',',')
+    ].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));
+  });
+  // Totalizador
+  rows.push('');
+  rows.push(['"Total gasto"','','','','"'+String(budTotalGasto().toFixed(2)).replace('.',',')+'"'].join(';'));
+  rows.push(['"Verba total"','','','','"'+String((budget.verba||VERBA_DEF).toFixed(2)).replace('.',',')+'"'].join(';'));
+  rows.push(['"Saldo restante"','','','','"'+String(((budget.verba||VERBA_DEF)-budTotalGasto()).toFixed(2)).replace('.',',')+'"'].join(';'));
+  var csv='\uFEFF'+rows.join('\n');
+  var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='budget-sarclisa-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
+}
+
 // Modal editar verba
 function openBudVerbaModal(){document.getElementById('bVerba').value=budget.verba||VERBA_DEF;document.getElementById('budVerbaOv').classList.add('on');}
 function closeBudVerbaModal(){document.getElementById('budVerbaOv').classList.remove('on');}
 function saveBudVerba(){var v=parseFloat(document.getElementById('bVerba').value)||VERBA_DEF;budget.verba=v;persist();closeBudVerbaModal();renderBudget();}
 
-// polyfill findIndex para Safari antigo
-if(!Array.prototype.findIndex){Array.prototype.findIndex=function(fn){for(var i=0;i<this.length;i++){if(fn(this[i],i,this))return i;}return -1;};}
+
 </script>
 </body>
 </html>
