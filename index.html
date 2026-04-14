@@ -71,7 +71,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .etag:active{background:#bfdbfe;}
 .wbtn{display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;}
 .ebtn{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#6d28d9;border:1.5px solid #6d28d9;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-.ebtn.done{background:#ede9fe;border-color:#4c1d95;color:#4c1d95;}
+.ebtn.done{background:#22c55e;border-color:#22c55e;color:#fff;}
 .mrow{display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid #f9f9f9;flex-wrap:wrap;}
 .nophone{font-size:12px;color:#dc2626;background:#fee2e2;padding:6px 10px;border-radius:8px;flex-shrink:0;}
 .fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
@@ -717,21 +717,31 @@ function renderDocs(){
     si+='</div></div>';
 
     // Materiais — recolhidos por padrão, expandem ao clicar no cabeçalho
+   // Materiais — recolhidos por padrão, expandem ao clicar no cabeçalho
     var rows='';
     for(var r=0;r<mats.length;r++){
       var m=mats[r],midx=r,sk2=sk(d.name,midx),ws=sent[sk2];
       var stag=ws?'<button class="stag" onclick="event.stopPropagation();toggleSent(\''+di+'\',\''+midx+'\')">✓ WA '+fmtDate(ws)+'</button>':'';
       var ekey=sk(d.name,midx)+'__e';
       var we=sentEmail[ekey];
-      var etag=we?'<button class="etag" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')">✓ Email '+fmtDate(we)+'</button>':'';
+      
+      // O etag (selo da data) agora chama a função de editar data ao invés de desmarcar
+      var etag=we?'<button class="etag" onclick="event.stopPropagation();editEmailDate(\''+di+'\',\''+midx+'\')" title="Clique para editar a data">✓ Email '+fmtDate(we)+'</button>':'';
+      
+      // Adicionado event.stopPropagation() no WhatsApp por segurança
       var btn=d.phone
-        ?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener">'+WA_ICON+' Enviar</a>'
+        ?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="event.stopPropagation();markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener">'+WA_ICON+' Enviar</a>'
         :'<span class="nophone">Sem WhatsApp</span>';
+        
       var doneCls=we?' done':'';
+      
+      // O botão Veeva continua marcando/desmarcando, garantindo que não feche o card
       var ebtn='<button class="ebtn'+doneCls+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')" title="Marcar envio via Veeva/Email">'+EMAIL_ICON+(we?' Veeva':' Veeva')+'</button>';
+      
       rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+etag+'</div>'+btn+ebtn+'</div>';
     }
 
+    // Botão de materiais no header do card (contador de enviados)
     // Botão de materiais no header do card (contador de enviados)
     var waLbl=sc2>0?'WA:'+sc2:'';var eLbl=sc2e>0?'Email:'+sc2e:'';var sentSummary=[waLbl,eLbl].filter(Boolean).join(' · ');var matBtnLabel=sentSummary?'📨 '+sentSummary+' / '+mats.length:'📤 Enviar materiais';
     var matBtnCls=sc2>0?'mat-toggle-btn sent':'mat-toggle-btn';
@@ -781,7 +791,8 @@ function toggleMats(i){
   if(mc)mc.style.transform=open?'rotate(180deg)':'';
 }
 function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();}
-function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();}
+function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();
+}
 function toggleEmailSent(di,mi){
   var nm=docs[parseInt(di)].name;
   var k=sk(nm,parseInt(mi))+'__e';
@@ -789,7 +800,29 @@ function toggleEmailSent(di,mi){
   else sentEmail[k]=new Date().toISOString();
   persist();
 }
-
+function editEmailDate(di, mi) {
+  var nm = docs[parseInt(di)].name;
+  var k = sk(nm, parseInt(mi)) + '__e';
+  if (!sentEmail[k]) return;
+  
+  // Pega a data atual salva e formata para YYYY-MM-DD
+  var currentDate = new Date(sentEmail[k]);
+  var formattedDate = currentDate.toISOString().split('T')[0];
+  
+  // Pergunta a nova data ao usuário
+  var newDate = prompt("Editar data de envio do e-mail (Formato: AAAA-MM-DD):", formattedDate);
+  
+  if (newDate) {
+    // Adiciona T12:00:00Z para evitar problemas de fuso horário deslocando o dia
+    var parsed = new Date(newDate + 'T12:00:00Z'); 
+    if (!isNaN(parsed)) {
+      sentEmail[k] = parsed.toISOString();
+      persist();
+    } else {
+      alert("Data inválida. Use o formato AAAA-MM-DD.");
+    }
+  }
+}
 function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
 function openDocModal(idx){
   editDocIdx=idx;scFlags={};
