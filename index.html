@@ -216,6 +216,12 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .csv-result{margin-top:10px;font-size:12px;color:#555;background:#f9f9f9;border-radius:8px;padding:8px 12px;max-height:120px;overflow-y:auto;}
 .csv-result .ok{color:#065f46;}.csv-result .warn{color:#92400e;}
 
+/* Deep-link: nome clicável nas listas de Contas e Cidades */
+.doc-link{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6d28d9;font-weight:600;cursor:pointer;background:none;border:none;padding:0;font-size:inherit;font-family:inherit;text-align:left;}
+.doc-link:active{opacity:.7;}
+/* Select de ordenação dentro dos cards */
+.cdoc-sort{border:1px solid #e5e7eb;background:#f9f9f9;color:#6d28d9;border-radius:10px;padding:3px 8px;font-size:10px;font-weight:700;outline:none;-webkit-appearance:none;cursor:pointer;margin-left:auto;}
+
 /* ── BUDGET ── */
 .bud-hero{background:linear-gradient(135deg,#6d28d9,#4f46e5);color:#fff;margin:12px 12px 0;border-radius:16px;padding:18px 18px 16px;}
 .bud-hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
@@ -692,6 +698,32 @@ function togglePot(p){
   if(document.getElementById('p3').classList.contains('on')) renderInsights();
 }
 
+// ── Debounce para busca de médicos ──
+var _docSearchTimer=null;
+function debounceRenderDocs(){
+  clearTimeout(_docSearchTimer);
+  _docSearchTimer=setTimeout(renderDocs,220);
+}
+
+// ── Deep link: navega para o card do médico na aba Médicos ──
+function navigateToDoc(docIdx){
+  var d=docs[docIdx];
+  if(d&&!potF[d.pot]){
+    potF[d.pot]=true;
+    var btn=document.getElementById('pc'+d.pot);
+    if(btn)btn.classList.remove('dim');
+  }
+  var srch=document.getElementById('srch');
+  if(srch)srch.value='';
+  goTab(0);
+  setTimeout(function(){
+    var el=document.getElementById('dc'+docIdx);
+    if(!el)return;
+    if(!el.classList.contains('open'))el.classList.add('open');
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+  },80);
+}
+
 var EMAIL_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>';
 var WA_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
 
@@ -959,8 +991,9 @@ function renderContas(){
       '<input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;margin-top:8px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" onclick="event.stopPropagation()" oninput="setBarreiraNota(\''+escJ(ct.conta)+'\',this.value)">'+
     '</div>';
 
-    // Médicos
-    var docRows='';for(var di2=0;di2<cdocs.length;di2++){var dd=cdocs[di2],dsc=calcScore(dd),dsl=scoreLabel(dsc);docRows+='<div class="cdoc-row"><span class="badge b'+dd.pot+'">'+dd.pot+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(dd.name))+'</span><span class="sc-badge '+dsl.cls+'" style="font-size:10px;">'+dsc+'pts</span></div>';}
+    // Médicos — ordenação dinâmica + deep-link
+    var sortedCdocs=cdocs.slice().sort(function(a,b){return calcScore(b)-calcScore(a);});
+    var docRows=buildContaDocRows(sortedCdocs,idx);
 
     html+='<div class="ccard" id="cc'+idx+'">'+
       '<div class="ccard-hd" onclick="toggleCc('+idx+')">'+
@@ -988,11 +1021,52 @@ function renderContas(){
           '<button class="ibtn" style="margin-left:auto" onclick="event.stopPropagation();openAuditModal(\''+escJ(ct.conta)+'\','+idx+')">✏️ Editar auditoria</button>'+
         '</div>'+
         barsHtml+cmkHtml+barrHtml+
-        '<div class="cdoc-list"><div class="cdoc-title">Médicos ('+cdocs.length+')</div>'+docRows+'</div>'+
+        '<div class="cdoc-list">'+
+          '<div style="display:flex;align-items:center;margin-bottom:6px;">'+
+            '<div class="cdoc-title" style="margin-bottom:0;">Médicos ('+cdocs.length+')</div>'+
+            '<select class="cdoc-sort" onclick="event.stopPropagation()" onchange="sortContaDocs(this,'+idx+')">'+
+              '<option value="score">↓ Score</option>'+
+              '<option value="pot">Potencial</option>'+
+              '<option value="nome">A–Z</option>'+
+            '</select>'+
+          '</div>'+
+          '<div id="cdoc-rows-'+idx+'">'+docRows+'</div>'+
+        '</div>'+
       '</div>'+
     '</div>';
   }
   document.getElementById('contaList').innerHTML=html;
+}
+
+// Monta linhas de médicos de uma conta com deep-link
+function buildContaDocRows(docsArr,contaIdx){
+  var html='';
+  for(var i=0;i<docsArr.length;i++){
+    var dd=docsArr[i],dsc=calcScore(dd),dsl=scoreLabel(dsc);
+    var realIdx=docs.indexOf(dd);
+    html+=
+      '<div class="cdoc-row">'+
+        '<span class="badge b'+dd.pot+'">'+dd.pot+'</span>'+
+        '<button class="doc-link" onclick="event.stopPropagation();navigateToDoc('+realIdx+')">'+esc(tc(dd.name))+'</button>'+
+        '<span class="sc-badge '+dsl.cls+'" style="font-size:10px;flex-shrink:0">'+dsc+'pts</span>'+
+      '</div>';
+  }
+  return html;
+}
+
+// Reordena médicos de um card de conta sem re-render global
+function sortContaDocs(sel,contaIdx){
+  var key=sel.value,PO={A:0,B:1,C:2};
+  var container=document.getElementById('cdoc-rows-'+contaIdx);
+  if(!container)return;
+  var conta=container.closest('.ccard').querySelector('.ccard-name').textContent.trim();
+  var cdocs=docs.filter(function(d){return(d.conta||'Sem conta')===conta;});
+  cdocs.sort(function(a,b){
+    if(key==='pot'){var p=(PO[a.pot]||0)-(PO[b.pot]||0);return p!==0?p:calcScore(b)-calcScore(a);}
+    if(key==='nome')return a.name.localeCompare(b.name);
+    return calcScore(b)-calcScore(a);
+  });
+  container.innerHTML=buildContaDocRows(cdocs,contaIdx);
 }
 
 function toggleContaFlag(conta,key){
@@ -1264,7 +1338,8 @@ function applyCsvAudit(){
 
 // ══════════ CIDADES ══════════
 function renderCities(){
-  var cityMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.city||'Sem cidade';if(!cityMap[c])cityMap[c]=[];cityMap[c].push(d);}
+  var cityMap={};
+  for(var i=0;i<docs.length;i++){var d=docs[i],c=d.city||'Sem cidade';if(!cityMap[c])cityMap[c]=[];cityMap[c].push(d);}
   var cities=Object.keys(cityMap).map(function(c){return{city:c,docs:cityMap[c]};});
   cities.sort(function(a,b){return b.docs.length-a.docs.length;});
   var icons={'CAMPINAS':'🏙️','CAMPO GRANDE':'🌿','SOROCABA':'⚙️','BAURU':'🌾','VARGINHA':'☕','DOURADOS':'🌻','PIRACICABA':'🏭','BRAGANÇA PAULISTA':'🏔️','JUNDIAÍ':'🍇','LIMEIRA':'🍊','POÇOS DE CALDAS':'♨️','MARILIA':'🌾','SALTO':'💧','JAU':'🎨','SÃO JOÃO DA BOA VISTA':'🌄','LAVRAS':'🌿','MOGI MIRIM':'🏘️','MOGI GUAÇU':'🌳','RIO CLARO':'💧','SAO CARLOS':'🎓','ITAJUBÁ':'⛰️','BOTUCATU':'🏥','AMERICANA':'🏭','INDAIATUBA':'🏘️','ARARAS':'🌾','TRÊS CORAÇÕES':'❤️'};
@@ -1275,11 +1350,68 @@ function renderCities(){
     var avgSc=cdocs.length?(totalSc/cdocs.length).toFixed(1):0;
     var icon=icons[ct.city]||'📍';
     var sd=cdocs.slice().sort(function(a,b){return calcScore(b)-calcScore(a);});
-    var dr='';for(var di=0;di<sd.length;di++){var d=sd[di],sc=calcScore(d),sl=scoreLabel(sc);dr+='<div class="city-doc-item"><span class="badge b'+d.pot+'">'+d.pot+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(d.name))+'</span>'+(d.phone?'<span style="font-size:10px;color:#888;">'+esc(d.phone)+'</span>':'<span style="font-size:10px;color:#dc2626;">sem nº</span>')+'<span class="sc-badge '+sl.cls+'" style="font-size:10px;flex-shrink:0;">'+sc+'</span></div>';}
-    html+='<div class="citycard" id="cy'+ci+'"><div class="citycard-hd" onclick="toggleCity('+ci+')"><div class="city-ico">'+icon+'</div><div class="city-main"><div class="city-nm">'+esc(tc(ct.city))+'</div><div class="city-sb">Score médio: '+avgSc+' · A:'+pA+' B:'+pB+' C:'+pC+'</div></div><div class="city-cnt">'+cdocs.length+'</div><button class="city-chev">▼</button></div><div class="citycard-body"><div class="city-pot"><span class="cpot pcA">A: '+pA+'</span><span class="cpot pcB">B: '+pB+'</span><span class="cpot pcC">C: '+pC+'</span><span style="margin-left:auto;font-size:11px;color:#888;">Sc.médio: '+avgSc+'</span></div><div class="city-docs">'+dr+'</div></div></div>';
+    var dr=buildCityDocRows(sd);
+    html+=
+      '<div class="citycard" id="cy'+ci+'">'+
+        '<div class="citycard-hd" onclick="toggleCity('+ci+')">'+
+          '<div class="city-ico">'+icon+'</div>'+
+          '<div class="city-main">'+
+            '<div class="city-nm">'+esc(tc(ct.city))+'</div>'+
+            '<div class="city-sb">Score médio: '+avgSc+' · A:'+pA+' B:'+pB+' C:'+pC+'</div>'+
+          '</div>'+
+          '<div class="city-cnt">'+cdocs.length+'</div>'+
+          '<button class="city-chev">▼</button>'+
+        '</div>'+
+        '<div class="citycard-body">'+
+          '<div class="city-pot">'+
+            '<span class="cpot pcA">A: '+pA+'</span>'+
+            '<span class="cpot pcB">B: '+pB+'</span>'+
+            '<span class="cpot pcC">C: '+pC+'</span>'+
+            '<select class="cdoc-sort" style="margin-left:auto" onclick="event.stopPropagation()" onchange="sortCityDocs(this,'+ci+')">'+
+              '<option value="score">↓ Score</option>'+
+              '<option value="pot">Potencial</option>'+
+              '<option value="nome">A–Z</option>'+
+            '</select>'+
+          '</div>'+
+          '<div class="city-docs" id="city-rows-'+ci+'">'+dr+'</div>'+
+        '</div>'+
+      '</div>';
   }
   document.getElementById('cityList').innerHTML=html;
 }
+
+// Monta linhas de médicos de uma cidade com deep-link
+function buildCityDocRows(docsArr){
+  var html='';
+  for(var i=0;i<docsArr.length;i++){
+    var d=docsArr[i],sc=calcScore(d),sl=scoreLabel(sc);
+    var realIdx=docs.indexOf(d);
+    html+=
+      '<div class="city-doc-item">'+
+        '<span class="badge b'+d.pot+'">'+d.pot+'</span>'+
+        '<button class="doc-link" onclick="navigateToDoc('+realIdx+')">'+esc(tc(d.name))+'</button>'+
+        (d.phone?'<span style="font-size:10px;color:#888;flex-shrink:0">'+esc(d.phone)+'</span>':'<span style="font-size:10px;color:#dc2626;flex-shrink:0">sem nº</span>')+
+        '<span class="sc-badge '+sl.cls+'" style="font-size:10px;flex-shrink:0">'+sc+'</span>'+
+      '</div>';
+  }
+  return html;
+}
+
+// Reordena médicos de um card de cidade sem re-render global
+function sortCityDocs(sel,cityIdx){
+  var key=sel.value,PO={A:0,B:1,C:2};
+  var container=document.getElementById('city-rows-'+cityIdx);
+  if(!container)return;
+  var cityName=container.closest('.citycard').querySelector('.city-nm').textContent.trim().toUpperCase();
+  var cdocs=docs.filter(function(d){return(d.city||'Sem cidade').toUpperCase()===cityName;});
+  cdocs.sort(function(a,b){
+    if(key==='pot'){var p=(PO[a.pot]||0)-(PO[b.pot]||0);return p!==0?p:calcScore(b)-calcScore(a);}
+    if(key==='nome')return a.name.localeCompare(b.name);
+    return calcScore(b)-calcScore(a);
+  });
+  container.innerHTML=buildCityDocRows(cdocs);
+}
+
 function toggleCity(i){var el=document.getElementById('cy'+i);if(el)el.classList.toggle('open');}
 
 // ══════════ INSIGHTS ══════════
