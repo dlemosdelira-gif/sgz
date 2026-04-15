@@ -505,12 +505,14 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 // ══════════ FIREBASE ══════════
 var firebaseConfig={apiKey:"AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",authDomain:"ssgz-16baf.firebaseapp.com",databaseURL:"https://ssgz-16baf-default-rtdb.firebaseio.com",projectId:"ssgz-16baf",storageBucket:"ssgz-16baf.firebasestorage.app",messagingSenderId:"838715682754",appId:"1:838715682754:web:b130266eb2e714e478705b"};
 // polyfill findIndex para Safari antigo
 if(!Array.prototype.findIndex){Array.prototype.findIndex=function(fn){for(var i=0;i<this.length;i++){if(fn(this[i],i,this))return i;}return -1;};}
 firebase.initializeApp(firebaseConfig);
+firebase.auth().signInAnonymously().catch(err => console.warn('Auth error:', err));
 var db=firebase.database();
 var dbRef=db.ref('sarclisa');
 
