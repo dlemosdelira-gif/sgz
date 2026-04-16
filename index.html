@@ -194,6 +194,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .field{margin-bottom:13px;}
 .field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
 .field input,.field textarea,.field select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;font-size:15px;font-family:-apple-system,sans-serif;background:#f9f9f9;color:#1c1c1e;outline:none;-webkit-appearance:none;}
+.field .cmk-add-row input{width:auto;padding:7px 10px;font-size:13px;border-radius:9px;}
 .field textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .brow{display:flex;gap:9px;margin-top:8px;}
@@ -446,6 +447,15 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
         <button type="button" class="bchip" data-v="daraLover" onclick="toggleSc(this)">✗ Dara Lover (−2)</button>
       </div>
     </div>
+    <div class="field">
+      <label style="margin-bottom:8px;display:block;">✨ Personalizados</label>
+      <div id="customScoreChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;align-items:center;"></div>
+      <div class="cmk-add-row">
+        <input id="csLabel" class="cmk-add-input" placeholder="Nome do marcador" autocomplete="off" spellcheck="false">
+        <input id="csPts" class="cmk-add-pts" type="number" placeholder="pts">
+        <button type="button" class="cmk-add-btn" onclick="addCustomScoreFlag()">+ Add</button>
+      </div>
+    </div>
     <div class="brow"><button class="bcanc" onclick="closeDocModal()">Cancelar</button><button class="bsave" onclick="saveDoc()">Salvar</button></div>
   </div>
 </div>
@@ -609,6 +619,9 @@ function calcScore(d){
   var f=d.scoreFlags||{};
   if(f.hasAccess)s+=3;if(f.testedSarc)s+=2;if(f.daraRelacao)s+=1;if(f.aberturaGuideline)s+=1;
   if(f.noAccess)s-=2;if(f.prefereSQ)s-=2;if(f.concorrenciaForte)s-=1;if(f.daraLover)s-=2;
+  // Marcadores personalizados do médico
+  var cf=d.customScoreFlags||[];
+  for(var i=0;i<cf.length;i++){if(cf[i].active!==false)s+=cf[i].pts;}
   return s;
 }
 function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
@@ -768,6 +781,13 @@ function renderDocs(){
     if(sf.prefereSQ)si+='<span class="si si-neg">−2 SC/SQ</span>';
     if(sf.concorrenciaForte)si+='<span class="si si-neg">−1 Concorrência</span>';
     if(sf.daraLover)si+='<span class="si si-neg">−2 Dara Lover</span>';
+    // Marcadores personalizados do médico
+    var cf=d.customScoreFlags||[];
+    for(var cfi=0;cfi<cf.length;cfi++){
+      if(cf[cfi].active===false)continue;
+      var cfCls=cf[cfi].pts>=0?'si si-pos':'si si-neg';
+      si+='<span class="'+cfCls+'">'+(cf[cfi].pts>0?'+':'')+cf[cfi].pts+' '+esc(cf[cfi].label)+'</span>';
+    }
     si+='</div></div>';
 
     // Materiais
@@ -883,19 +903,80 @@ function editEmailDate(di, mi) {
   }
 }
 function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
+
+// ── Marcadores personalizados de score do médico ──
+var customScoreFlags=[];
+
+function renderCustomScoreChips(){
+  var container=document.getElementById('customScoreChips');
+  if(!container)return;
+  var h='';
+  for(var i=0;i<customScoreFlags.length;i++){
+    var cf=customScoreFlags[i];
+    var active=cf.active!==false;
+    var cls=cf.pts>=0?'cmk-chip pos':'cmk-chip neg';
+    if(active)cls+=' sel';
+    h+='<button type="button" class="'+cls+'" onclick="toggleCustomScoreFlag('+i+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+       '<button type="button" class="cmk-del" onclick="deleteCustomScoreFlag('+i+')" title="Remover">×</button>';
+  }
+  container.innerHTML=h;
+}
+function toggleCustomScoreFlag(i){
+  if(!customScoreFlags[i])return;
+  customScoreFlags[i].active=!( customScoreFlags[i].active!==false );
+  renderCustomScoreChips();
+}
+function deleteCustomScoreFlag(i){
+  customScoreFlags.splice(i,1);
+  renderCustomScoreChips();
+}
+function addCustomScoreFlag(){
+  var label=document.getElementById('csLabel').value.trim();
+  var pts=parseInt(document.getElementById('csPts').value)||0;
+  if(!label){alert('Informe o nome do marcador.');return;}
+  customScoreFlags.push({label:label,pts:pts,active:true});
+  document.getElementById('csLabel').value='';
+  document.getElementById('csPts').value='';
+  renderCustomScoreChips();
+}
+
 function openDocModal(idx){
-  editDocIdx=idx;scFlags={};
+  editDocIdx=idx;scFlags={};customScoreFlags=[];
   document.getElementById('docMT').childNodes[0].nodeValue=idx===-1?'Novo Médico ':'Editar Médico ';
-  if(idx>=0){var d=docs[idx];document.getElementById('dName').value=d.name||'';document.getElementById('dCrm').value=d.crm||'';document.getElementById('dPot').value=d.pot||'C';document.getElementById('dPhone').value=d.phone||'';document.getElementById('dCity').value=d.city||'';document.getElementById('dEsp').value=d.esp||'Hematologia (BR)';document.getElementById('dConta').value=d.conta||'';scFlags=d.scoreFlags?JSON.parse(JSON.stringify(d.scoreFlags)):{};}
-  else{['dName','dCrm','dPhone','dCity','dConta'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('dPot').value='C';document.getElementById('dEsp').value='Hematologia (BR)';}
+  if(idx>=0){
+    var d=docs[idx];
+    document.getElementById('dName').value=d.name||'';
+    document.getElementById('dCrm').value=d.crm||'';
+    document.getElementById('dPot').value=d.pot||'C';
+    document.getElementById('dPhone').value=d.phone||'';
+    document.getElementById('dCity').value=d.city||'';
+    document.getElementById('dEsp').value=d.esp||'Hematologia (BR)';
+    document.getElementById('dConta').value=d.conta||'';
+    scFlags=d.scoreFlags?JSON.parse(JSON.stringify(d.scoreFlags)):{};
+    customScoreFlags=d.customScoreFlags?JSON.parse(JSON.stringify(d.customScoreFlags)):[];
+  } else {
+    ['dName','dCrm','dPhone','dCity','dConta'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('dPot').value='C';
+    document.getElementById('dEsp').value='Hematologia (BR)';
+  }
   var allBtns=document.querySelectorAll('#scoreChipsPos .bchip,#scoreChipsNeg .bchip');
   for(var i=0;i<allBtns.length;i++){allBtns[i].classList.toggle('sel',!!scFlags[allBtns[i].dataset.v]);}
+  renderCustomScoreChips();
   document.getElementById('docOv').classList.add('on');
 }
 function closeDocModal(){document.getElementById('docOv').classList.remove('on');}
 function saveDoc(){
   var nm=document.getElementById('dName').value.trim().toUpperCase();if(!nm){alert('Informe o nome.');return;}
-  var d={name:nm,crm:document.getElementById('dCrm').value.trim(),pot:document.getElementById('dPot').value,phone:document.getElementById('dPhone').value.trim(),city:document.getElementById('dCity').value.trim().toUpperCase(),esp:document.getElementById('dEsp').value,conta:document.getElementById('dConta').value.trim(),scoreFlags:JSON.parse(JSON.stringify(scFlags))};
+  var d={
+    name:nm,crm:document.getElementById('dCrm').value.trim(),
+    pot:document.getElementById('dPot').value,
+    phone:document.getElementById('dPhone').value.trim(),
+    city:document.getElementById('dCity').value.trim().toUpperCase(),
+    esp:document.getElementById('dEsp').value,
+    conta:document.getElementById('dConta').value.trim(),
+    scoreFlags:JSON.parse(JSON.stringify(scFlags)),
+    customScoreFlags:JSON.parse(JSON.stringify(customScoreFlags))
+  };
   if(editDocIdx===-1)docs.push(d);else docs[editDocIdx]=d;
   persist();closeDocModal();
 }
