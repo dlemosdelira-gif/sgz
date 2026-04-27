@@ -256,6 +256,27 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .bud-fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
 .bud-empty{text-align:center;padding:30px 20px;color:#888;font-size:14px;}
 .cat-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;flex-shrink:0;}
+
+/* ── AGENDA DE ATENDIMENTO ── */
+.agenda-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.agenda-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.agenda-days{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+.aday{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;}
+.aday-lbl{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;}
+.aday-btn{width:44px;height:34px;border-radius:9px;border:1.5px solid #e5e7eb;background:#fff;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1.2;text-align:center;}
+.aday-btn:active{transform:scale(.95);}
+.aday-btn.ag{border-color:#f59e0b;background:#fffbeb;color:#92400e;}
+.aday-btn.manha{border-color:#6d28d9;background:#ede9fe;color:#4c1d95;}
+.aday-btn.tarde{border-color:#2563eb;background:#dbeafe;color:#1e40af;}
+.aday-btn.dia-todo{border-color:#059669;background:#d1fae5;color:#065f46;}
+.aday-btn.off{border-color:#f3f4f6;background:#f9f9f9;color:#d1d5db;}
+.agenda-obs{font-size:12px;color:#555;background:#fafafa;border-radius:8px;padding:6px 10px;margin-top:4px;line-height:1.5;border-left:3px solid #e5e7eb;}
+.agenda-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.ag-leg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;}
+.ag-leg.manha{background:#ede9fe;color:#4c1d95;}
+.ag-leg.tarde{background:#dbeafe;color:#1e40af;}
+.ag-leg.dia-todo{background:#d1fae5;color:#065f46;}
+.ag-leg.ag{background:#fffbeb;color:#92400e;}
 </style>
 </head>
 <body>
@@ -528,7 +549,7 @@ var firebaseConfig={apiKey:"AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",authDomain:
 // polyfill findIndex para Safari antigo
 if(!Array.prototype.findIndex){Array.prototype.findIndex=function(fn){for(var i=0;i<this.length;i++){if(fn(this[i],i,this))return i;}return -1;};}
 firebase.initializeApp(firebaseConfig);
-firebase.auth().signInAnonymously().catch(err => console.warn('Auth error:', err));
+firebase.auth().signInAnonymously().catch(function(err){console.warn('Auth error:',err);setSync('err','Erro de autenticação');});
 var db=firebase.database();
 var dbRef=db.ref('sarclisa');
 
@@ -552,11 +573,12 @@ var MATS_DEF=[{name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm pont
 
 var DOCS_DEF=[{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","pot":"C","phone":"19-99219-9293","city":"ARARAS","conta":"UNIMED Araras","esp":"Hematologia (BR)"},{"name":"ALINE SHIRATA","crm":"SP0066559","pot":"C","phone":"11-99190-9023","city":"SOROCABA","conta":"Centro de Hematologia Sorocaba","esp":"Farmacia (BR)"},{"name":"AMAURI GUIMARAES BARREIRO","crm":"MG0016661","pot":"C","phone":"35-98805-3242","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"ANA CLAUDIA CHIARI","crm":"SP0091141","pot":"C","phone":"11-97497-9698","city":"SALTO","conta":"UNIMED Salto Itu","esp":"Hematologia (BR)"},{"name":"ANA GABRIELA POVEDA BISMARA","crm":"SP0155612","pot":"C","phone":"15-97401-0226","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ANA PAULA VAZ DE CARVALHO","crm":"SP0124222","pot":"C","phone":"15-99837-9898","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"ANDREZA LAMONICA","crm":"SP0170196","pot":"B","phone":"14-99757-2922","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"ANTONIO PAULO SERVANTES","crm":"SP0120597","pot":"B","phone":"11-99658-9732","city":"BRAGANÇA PAULISTA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"ARIELLA CASSIA DE MOURA","crm":"SP0144898","pot":"B","phone":"15-98117-1088","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ARLETE DELFINA MARQUES MAIA","crm":"MS0001781","pot":"C","phone":"67-99983-2782","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BARBARA DE CAMPOS","crm":"SP0050377","pot":"C","phone":"19-99896-2012","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"BEATRIZ ESPERANCA DE LEO TEDDE","crm":"MS0011076","pot":"B","phone":"67-98185-1289","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"BIANCA RUIZ LIMA","crm":"MS0014139","pot":"B","phone":"17-99627-2767","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"BIANCA ZOCCA MOREIRA CALVILHO","crm":"SP0122878","pot":"C","phone":"11-98647-0067","city":"SOROCABA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BRUNA ADOLFO MESTIERI","crm":"SP0131046","pot":"B","phone":"11-96343-0217","city":"SALTO","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"CAMILA ALMEIDA DO AMARAL KRUZICH","crm":"SP0170850","pot":"A","phone":"19-98127-1677","city":"PIRACICABA","conta":"UNIMED Piracicaba","esp":"Hematologia (BR)"},{"name":"CAMILA GALATI ARAUJO","crm":"SP0139517","pot":"A","phone":"19-99203-0783","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILA HELENA GONZAGA DA SILVA","crm":"SP0185490","pot":"C","phone":"11-97054-4955","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"CAMILLA DELFINO DOS SANTOS","crm":"SP0120589","pot":"A","phone":"19-99210-5299","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILLA MARIA DE ALENCAR SARAIVA","crm":"SP0186160","pot":"A","phone":"19-93861-5507","city":"JUNDIAÍ","conta":"UNIMED Jundiaí","esp":"Hematologia (BR)"},{"name":"CARLOS EDUARDO ENGEL VELANO","crm":"MG0038289","pot":"C","phone":"35-98855-9623","city":"POÇOS DE CALDAS","conta":"CIOP","esp":"Hematologia (BR)"},{"name":"CARLOS WILSON DE ALENCAR CANO","crm":"MS0010775","pot":"B","phone":"67-99298-6769","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"CELSO RICARDO MARCONDES DOS SANTOS","crm":"SP0133318","pot":"C","phone":"19-99779-2759","city":"MOGI MIRIM","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"CHRISTIANE HATSUE NATORI","crm":"MS0005859","pot":"B","phone":"67-99931-4884","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"CLAUDIA HELENA RUBI IVAN CARNIELLI","crm":"SP0086931","pot":"C","phone":"19-99765-0337","city":"AMERICANA","conta":"UNIMED Americana","esp":"Hematologia (BR)"},{"name":"CLAUDIA MARIANA SOARES ASSATO","crm":"SP0080136","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIA TERESA DE OLIVEIRA","crm":"SP0079679","pot":"C","phone":"14-98111-3156","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIO RENATO CUNHA FREIRE","crm":"SP0165149","pot":"C","phone":"19-98428-4249","city":"PIRACICABA","conta":"HFC","esp":"Hematologia (BR)"},{"name":"DANIEL SALAS STEINBAUM","crm":"MS0006995","pot":"B","phone":"67-98186-6162","city":"DOURADOS","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"DEISE FERREIRA NANTES","crm":"MS0007182","pot":"B","phone":"67-99626-8780","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"DENISE BITTENCOURT SIQUEIRA","crm":"MG0064853","pot":"C","phone":"14-98100-0879","city":"TRÊS CORAÇÕES","conta":"UNIMED Três Corações","esp":"Hematologia (BR)"},{"name":"DIRCEU EURILIO SILVA","crm":"MG0023077","pot":"C","phone":"35-99989-6568","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"EDER SANTANA NAVARRO","crm":"SP0163202","pot":"B","phone":"15-99148-4884","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"EDERSON ROBERTO DE MATTOS","crm":"SP0102054","pot":"B","phone":"14-99133-7515","city":"JAU","conta":"UNIMED Jaú","esp":"Hematologia (BR)"},{"name":"ELAINE RODRIGUEIRO BELINI","crm":"MS0005330","pot":"C","phone":"67-99918-0823","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Farmacia (BR)"},{"name":"ELCIO FARIA","crm":"SP0072992","pot":"A","phone":"19-99269-5304","city":"LIMEIRA","conta":"UNIMED Limeira","esp":"Hematologia (BR)"},{"name":"EVENY CRISTINE LUNA DE OLIVEIRA","crm":"MS0003339","pot":"C","phone":"67-99886-2908","city":"CAMPO GRANDE","conta":"ITC","esp":"Hematologia (BR)"},{"name":"FABIO DE OLIVEIRA MARTIN","crm":"SP0105791","pot":"C","phone":"19-98210-1000","city":"INDAIATUBA","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"FABIO JOSE DELLA PIAZZA","crm":"SP0035390","pot":"C","phone":"19-99167-3832","city":"LIMEIRA","conta":"PHS","esp":"Hematologia (BR)"},{"name":"FAUSI PADILHA GONÇALVES","crm":"MS0003941","pot":"C","phone":"67-99629-0985","city":"DOURADOS","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"FERNANDO VIEIRA PERICOLE DE SOUZA","crm":"SP0115806","pot":"A","phone":"19-99167-0235","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GISLAINE BORBA OLIVEIRA","crm":"SP0077416","pot":"A","phone":"19-99111-3664","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GIULIA MARIA HAKIM GOMES","crm":"SP0092755","pot":"C","phone":"15-99736-5649","city":"SOROCABA","conta":"Clínica Devita","esp":"Farmacia (BR)"},{"name":"GRAZZIELLA CURADO SIUFI","crm":"MS0003940","pot":"C","phone":"67-98136-4547","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"GUILHERME FELIPE DONNANGELO MARTINS","crm":"SP0141014","pot":"C","phone":"19-99720-1637","city":"MOGI GUAÇU","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"GUSTAVO FERNANDO VERALDI ISMAEL","crm":"SP0111953","pot":"C","phone":"19-98328-3595","city":"RIO CLARO","conta":"UNIMED Rio Claro","esp":"Hematologia (BR)"},{"name":"ISOLMAR TADEU SCHETTERT","crm":"SP0077418","pot":"A","phone":"11-99204-0828","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"IVNA BALTAZAR FILGUEIRAS STUCCHI","crm":"SP0195674","pot":"C","phone":"19-98443-4272","city":"CAMPINAS","conta":"Oncocamp","esp":"Hematologia (BR)"},{"name":"JAIR ALVES BONFIM FILHO","crm":"MS0007667","pot":"B","phone":"67-98219-1787","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"JAMILLE ELITA DE CASTRO CUNHA HERCULANI","crm":"SP0165407","pot":"C","phone":"11-98711-2081","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"JIVIANE BEATRIZ CUNHA BARRETO DA SILVA","crm":"SP0130850","pot":"C","phone":"19-98207-2627","city":"CAMPINAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO GUILHERME MARTINS LUSVARGHI","crm":"MG0063578","pot":"C","phone":"35-99147-1807","city":"POÇOS DE CALDAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO PAULO MARQUES BIGHETTI","crm":"SP0081779","pot":"C","phone":"19-98105-3992","city":"LIMEIRA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO VICTOR VEZALI COSTARDI","crm":"SP0182816","pot":"C","phone":"67-99985-5233","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE","crm":"MG0059217","pot":"B","phone":"35-99896-6688","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"JULIANA LINO DE MATOS ROSA","crm":"SP0125303","pot":"C","phone":"11-98183-3301","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"JULIANE FONTES SEVERINO","crm":"MS0004494","pot":"C","phone":"67-98209-6367","city":"CAMPO GRANDE","conta":"CEON","esp":"Farmacia (BR)"},{"name":"JULIO ROBERTO CORREA","crm":"SP0030752","pot":"C","phone":"14-99798-9420","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JUNIA RODRIGUES BRANDAO FRANCO","crm":"","pot":"C","phone":"13-98160-8661","city":"SÃO JOÃO DA BOA VISTA","conta":"Clinion","esp":"Hematologia (BR)"},{"name":"KAREN DARIANE BARBOSA DE VASCONCELOS","crm":"MG0060816","pot":"C","phone":"35-9857-3052","city":"ITAJUBÁ","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"KLEBER KOBAYASHI","crm":"MS0006294","pot":"C","phone":"67-99940-4149","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"LARISSA TADEI DE MARQUI","crm":"SP0120705","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"LILIAN ZORTEA","crm":"MS0002863","pot":"C","phone":"67-99285-1305","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Farmacia (BR)"},{"name":"LISA AQUARONI RICCI","crm":"SP0109006","pot":"B","phone":"15-99787-2900","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"LORENA BEDOTTI RIBEIRO","crm":"SP0158055","pot":"C","phone":"19-99373-9827","city":"CAMPINAS","conta":"SOnHe","esp":"Hematologia (BR)"},{"name":"LUCAS OLIVEIRA CANTADORI","crm":"SP0134571","pot":"B","phone":"14-98124-2886","city":"BOTUCATU","conta":"UNIMED Botucatu","esp":"Hematologia (BR)"},{"name":"LUCIANO CARVALHO CAMPOS","crm":"MG0030620","pot":"C","phone":"35-99931-8459","city":"LAVRAS","conta":"UNIMED Lavras","esp":"Hematologia (BR)"},{"name":"LUCIANO FUZZATO SILVA","crm":"SP0105298","pot":"B","phone":"19-99939-9355","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"LUÍS HENRIQUE MASCARENHAS MOREIRA","crm":"MS0002209","pot":"A","phone":"67-99981-7430","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"LUIZ GUSTAVO RODRIGUES BARBOSA","crm":"SP0168761","pot":"C","phone":"14-98141-9491","city":"JAU","conta":"Hospital Amaral Carvalho","esp":"Hematologia (BR)"},{"name":"MARCELO AUGUSTO ARAUJO ASSUNCAO","crm":"MG0061475","pot":"C","phone":"31-99762-9558","city":"LAVRAS","conta":"Onco Lavras","esp":"Hematologia (BR)"},{"name":"MARCELO BERNARDINI ANTUNES","crm":"SP0104562","pot":"B","phone":"14-99792-3873","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"MARCELO DOS SANTOS SOUZA","crm":"MS0003287","pot":"C","phone":"67-99219-6811","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"MARCO TULIO CESTARI RODRIGUES","crm":"MS0010456","pot":"C","phone":"67-99913-0498","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"MARCOS PAULO COLELLA","crm":"SP0115844","pot":"C","phone":"19-99672-9777","city":"CAMPINAS","conta":"Américas","esp":"Hematologia (BR)"},{"name":"MARCUS VINICIUS FRANZIN BIZZARO","crm":"SP0104373","pot":"C","phone":"16-99606-8878","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"MARIA APARECIDA SANTOS PIRES","crm":"MS0001826","pot":"C","phone":"67-99971-5464","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Hematologia (BR)"},{"name":"MARIA PAULA NALESSO CAMARGO","crm":"SP0130139","pot":"C","phone":"15-99828-2282","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"MARIAMA NAKAMOTO FERNANDES DOS SANTOS","crm":"SP0175995","pot":"B","phone":"17-99709-5757","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"MARIANA CRISTTINA LIMA DE FALCO","crm":"SP0199193","pot":"C","phone":"19-99318-3106","city":"MOGI MIRIM","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARILIA SOARES E SILVA ARCADIPANE","crm":"SP0130636","pot":"C","phone":"11-99659-2105","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARINA MOSCA PEDROSO","crm":"SP0066536","pot":"C","phone":"19-99715-9343","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"MARTA APARECIDA SOARES ROSSINI","crm":"SP0051528","pot":"C","phone":"19-99791-6553","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"MARTA MARIA FALSETTI","crm":"SP0064717","pot":"C","phone":"19-99782-0795","city":"MOGI GUAÇU","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MELINA SALVI DIAS ATHAYDE","crm":"MG0046660","pot":"C","phone":"31-8636-6412","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"MICHELE KAMILA GALGANI AMARU","crm":"SP0152391","pot":"C","phone":"19-98159-4768","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"MONICA DE MACEDO SILVA","crm":"MG0025086","pot":"C","phone":"","city":"ITAJUBÁ","conta":"UNIMED Itajubá","esp":"Hematologia (BR)"},{"name":"PAMELA RISARDI FRANCELIN","crm":"SP0162649","pot":"C","phone":"16-99706-4239","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"PATRICIA GAMA","crm":"SP0080550","pot":"B","phone":"19-98314-7273","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"PAULA NATASHA RIBEIRO JONAS DE FARIA","crm":"MG0066565","pot":"B","phone":"35-99764-5849","city":"VARGINHA","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"PAULO EDUARDO DE SOUZA","crm":"SP0043194","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"PAULO RIBEIRO CALIL","crm":"SP0085651","pot":"C","phone":"19-99608-5236","city":"RIO CLARO","conta":"UNIMED SBO/Americana","esp":"Hematologia (BR)"},{"name":"RENATA BALDISSERA CARDOSO","crm":"SP0073499","pot":"C","phone":"14-99854-3939","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"RICARDO DAVID FROTA","crm":"MG0031433","pot":"B","phone":"35-9969-7573","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"ROBENILSON ALMEIDA SOUZA","crm":"SP0097171","pot":"B","phone":"","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ROGERIO CAMARA VALSANI","crm":"SP0044912","pot":"C","phone":"19-99604-6750","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"ROSANA FERREIRA GOMES SALMAZO","crm":"MS0002830","pot":"C","phone":"67-99618-1927","city":"DOURADOS","conta":"Oncoclínica Dourados","esp":"Farmacia (BR)"},{"name":"ROSELI NUNES DA SILVEIRA ANTUNES","crm":"SP0073565","pot":"C","phone":"14-98121-8959","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"SAMIRA DE OLIVEIRA LAUAR","crm":"SP0055618","pot":"A","phone":"19-99771-8182","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SONIA REGINA IANTAS","crm":"SP0062938","pot":"A","phone":"11-99654-1639","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SORAIA TEIXEIRA ROMANINI","crm":"MS0005113","pot":"C","phone":"67-98154-0224","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SULEY MARA CHADDAD VANCINE","crm":"SP0109239","pot":"C","phone":"11-99621-3922","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SUZANA DE FRANCA RIBEIRO GONZAGA","crm":"SP0148118","pot":"B","phone":"11-95425-4245","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"SUZANA SILVA PRADO ZINCONE","crm":"MG0029613","pot":"C","phone":"35-99146-8499","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"VALTER ADOLPHO MASSAGLI FILHO","crm":"SP0121800","pot":"A","phone":"15-99779-0506","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"VANESSA MOURA COVEZZI","crm":"SP0080419","pot":"C","phone":"19-99378-7233","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"VINICIUS BORGES GRILO","crm":"SP0130949","pot":"B","phone":"19-98431-1616","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VINICIUS MARTINS NASCIMENTO","crm":"SP0163864","pot":"A","phone":"13-99716-3844","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VITOR VASQUEZ DOS SANTOS","crm":"SP0162252","pot":"C","phone":"17-99769-8366","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"WALTER ASSUNCAO GONCALVES","crm":"MS0008678","pot":"C","phone":"67-98186-7166","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"WILLIAN PAIVA DA LUZ","crm":"MS0003713","pot":"C","phone":"67-98202-3177","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"}];
 
+var SCHEDULE_DEF={"ALESSANDRA DA COSTA KILER CHIQUITO": {"days": {"MON": "T", "TUE": "T", "WED": "", "THU": "T", "FRI": ""}, "obs": "Agendamento no WhatsApp (19) 99601-6636"}, "ALINE SHIRATA": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "T", "FRI": ""}, "obs": "Atende no Centro de Hematologia Sorocaba"}, "AMAURI GUIMARAES BARREIRO": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Nas terças após 14h no CAU (Centro de Atendimento UNIMED) R. Nico Duarte - Jardim do Ginasio, Poços de Caldas - MG, 37701-507"}, "ANA CLAUDIA CHIARI": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Neo Onco, prefere agendamento na UNIMED (11) 97662-0472"}, "ANA GABRIELA POVEDA BISMARA": {"days": {"MON": "", "TUE": "M", "WED": "T", "THU": "M", "FRI": ""}, "obs": "Atende na clínica Alevato (15) 99116-8362"}, "ANA PAULA VAZ DE CARVALHO": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "M", "FRI": ""}, "obs": "Atende na Devita"}, "ANDREZA LAMONICA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "OK Atende no Vera Cruz e Beneficência"}, "ANTONIO PAULO SERVANTES": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK atende junto com Dr. Newton Polimeno"}, "ARIELLA CASSIA DE MOURA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": "M"}, "obs": "Atende em São Roque e na clínica Alevato (15) 99116-8362"}, "ARLETE DELFINA MARQUES MAIA": {"days": {"MON": "", "TUE": "", "WED": "T", "THU": "T", "FRI": "T"}, "obs": "OK"}, "BARBARA DE CAMPOS": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Farmacêutica da UNIMED Campinas"}, "BEATRIZ ESPERANCA DE LEO TEDDE": {"days": {"MON": "M", "TUE": "", "WED": "M", "THU": "T", "FRI": "T"}, "obs": "seg 09h - qua 09h - qui e sex 14h"}, "BIANCA RUIZ LIMA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende no ITC"}, "BIANCA ZOCCA MOREIRA CALVILHO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": "T"}, "obs": "Agenda diretamente com ela"}, "BRUNA ADOLFO MESTIERI": {"days": {"MON": "", "TUE": "M", "WED": "DT", "THU": "", "FRI": ""}, "obs": "Secr. Stefani e Sandra, atende Clínica Mestieri Ter-Sex 13h"}, "CAMILA ALMEIDA DO AMARAL KRUZICH": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Ter-14h"}, "CAMILA GALATI ARAUJO": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende no COC e no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "CAMILA HELENA GONZAGA DA SILVA": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "T", "FRI": "T"}, "obs": "Atende no IOS"}, "CAMILLA DELFINO DOS SANTOS": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende no COC e no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "CAMILLA MARIA DE ALENCAR SARAIVA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende na Rua Anchieta, 670 às quintas no começo da tarde"}, "CARLOS EDUARDO ENGEL VELANO": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Está no CIOP quinzenalmente, próximo data é 30/03"}, "CARLOS WILSON DE ALENCAR CANO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na CASSEMS e Onco Vitta"}, "CELSO RICARDO MARCONDES DOS SANTOS": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no Hosp 22 Outubro"}, "CHRISTIANE HATSUE NATORI": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "T", "FRI": ""}, "obs": "Seg Qua 09h"}, "CLAUDIA HELENA RUBI IVAN CARNIELLI": {"days": {"MON": "", "TUE": "DT", "WED": "DT", "THU": "", "FRI": ""}, "obs": "Atende R Peru, 636 - Sala 703 - Secr. Bárbara"}, "CLAUDIA MARIANA SOARES ASSATO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no CDU Bauru - Rua Agenor Meira 12-34"}, "CLAUDIA TERESA DE OLIVEIRA": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende na Al. Octavio Pinheiro Brizola 12-10, Bauru"}, "CLAUDIO RENATO CUNHA FREIRE": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Faz MM junto com Dra. Camila Kruzich no HFC"}, "DANIEL SALAS STEINBAUM": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende na Oncoclínica Seg 13h - Qui 7h30"}, "DEISE FERREIRA NANTES": {"days": {"MON": "T", "TUE": "DT", "WED": "", "THU": "M", "FRI": ""}, "obs": "Seg 14h"}, "DENISE BITTENCOURT SIQUEIRA": {"days": {"MON": "", "TUE": "M", "WED": "M", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas de Três Corações"}, "DIRCEU EURILIO SILVA": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas Varginha a cada 15 dias"}, "EDER SANTANA NAVARRO": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "", "FRI": ""}, "obs": "Atende na clínica Pró Hemo"}, "EDERSON ROBERTO DE MATTOS": {"days": {"MON": "T", "TUE": "T", "WED": "T", "THU": "", "FRI": ""}, "obs": "Atende na Rua das Palmeiras, 43"}, "ELAINE RODRIGUEIRO BELINI": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK, farmaceutica UNIMED Dourados"}, "ELCIO FARIA": {"days": {"MON": "", "TUE": "", "WED": "Ag", "THU": "", "FRI": ""}, "obs": "Atende no Hospital da Unimed Limeira"}, "EVENY CRISTINE LUNA DE OLIVEIRA": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "T", "FRI": ""}, "obs": "OK, atende na clínica ITC"}, "FABIO DE OLIVEIRA MARTIN": {"days": {"MON": "M", "TUE": "", "WED": "", "THU": "M", "FRI": "M"}, "obs": "Atende na clínica Integrada Indaiatuba - Seg-Qui-Sex até 11h30"}, "FABIO JOSE DELLA PIAZZA": {"days": {"MON": "", "TUE": "", "WED": "DT", "THU": "", "FRI": ""}, "obs": "Atende na Clínica Coreon das 8h às 15h"}, "FAUSI PADILHA GONÇALVES": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK, farmaceutico da CASSEMS Dourados"}, "FERNANDO VIEIRA PERICOLE DE SOUZA": {"days": {"MON": "T", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "OK, atende na UNIMED"}, "GISLAINE BORBA OLIVEIRA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no CMC"}, "GIULIA MARIA HAKIM GOMES": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, farmacêutica na clínica Devita"}, "GRAZZIELLA CURADO SIUFI": {"days": {"MON": "T", "TUE": "", "WED": "T", "THU": "", "FRI": ""}, "obs": "OK atende Seg-Ter-Qui 15h"}, "GUILHERME FELIPE DONNANGELO MARTINS": {"days": {"MON": "", "TUE": "DT", "WED": "M", "THU": "", "FRI": ""}, "obs": "OK"}, "GUSTAVO FERNANDO VERALDI ISMAEL": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK já falava"}, "ISOLMAR TADEU SCHETTERT": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK"}, "IVNA BALTAZAR FILGUEIRAS STUCCHI": {"days": {"MON": "M", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "OK atende na Oncocamp e no CMC"}, "JAIR ALVES BONFIM FILHO": {"days": {"MON": "T", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende Seg 14h -Qui 9h"}, "JAMILLE ELITA DE CASTRO CUNHA HERCULANI": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no SOnHe"}, "JIVIANE BEATRIZ CUNHA BARRETO DA SILVA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "23/11: OK, médica respondeu"}, "JOAO GUILHERME MARTINS LUSVARGHI": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Endereço site: Av. Gentil Messías-Kitate, 240 - sala 224 - Vila Cruz, Poços de Caldas - MG, 37701-528"}, "JOAO PAULO MARQUES BIGHETTI": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "14/02: estava saindo de férias e pediu para retornar em Abril"}, "JOAO VICTOR VEZALI COSTARDI": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no consultório R. Sete de Setembro, 979 - Alto Cafezal, Marília - SP, 17502-020"}, "JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas Varginha e Campo Belo"}, "JULIANA LINO DE MATOS ROSA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "JULIANE FONTES SEVERINO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK trabalha no Clínica CEON"}, "JULIO ROBERTO CORREA": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "Atende na Sta Casa"}, "JUNIA RODRIGUES BRANDAO FRANCO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Agendamento direto com ela"}, "KAREN DARIANE BARBOSA DE VASCONCELOS": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas Itajubá e Pouso Alegre"}, "KLEBER KOBAYASHI": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, farmacêutica responsável na OncoVitta / Hominis"}, "LARISSA TADEI DE MARQUI": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Al. Octavio Pinheiro Brizola 12-10, Bauru"}, "LILIAN ZORTEA": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, farmaceutica e compradora da clínica Prognóstica"}, "LISA AQUARONI RICCI": {"days": {"MON": "M", "TUE": "M", "WED": "M", "THU": "M", "FRI": ""}, "obs": "Atende no IOS de Seg à Qui 8h às 11h"}, "LORENA BEDOTTI RIBEIRO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "Ag", "FRI": ""}, "obs": "Agenda almoços pelo WhatsApp"}, "LUCAS OLIVEIRA CANTADORI": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Agendar direto com ele"}, "LUCIANO CARVALHO CAMPOS": {"days": {"MON": "M", "TUE": "T", "WED": "T", "THU": "", "FRI": "M"}, "obs": "Atende R Antonio Goncalves De Faria, 114 - SALA 01 , Secr. Valeria"}, "LUCIANO FUZZATO SILVA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK agendado para 20/12"}, "LUÍS HENRIQUE MASCARENHAS MOREIRA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende na Onco Vitta"}, "LUIZ GUSTAVO RODRIGUES BARBOSA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "CHECAR"}, "MARCELO AUGUSTO ARAUJO ASSUNCAO": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "T", "FRI": ""}, "obs": "Atende qua manhã e qui tarde"}, "MARCELO BERNARDINI ANTUNES": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no NAIC"}, "MARCELO DOS SANTOS SOUZA": {"days": {"MON": "T", "TUE": "T", "WED": "", "THU": "", "FRI": "T"}, "obs": "OK atende Seg-Terc-Sex 14h"}, "MARCO TULIO CESTARI RODRIGUES": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "", "FRI": ""}, "obs": "Atende na clínica prognóstica"}, "MARCOS PAULO COLELLA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no Madre Theodora às segundas 14h"}, "MARCUS VINICIUS FRANZIN BIZZARO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na Advanze Oncologia"}, "MARIA APARECIDA SANTOS PIRES": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "DT", "FRI": "M"}, "obs": "OK atende na Oncoclínica: Sex 8h e Clínica Santa Clara: Seg-Ter 14h / Qui DT"}, "MARIA PAULA NALESSO CAMARGO": {"days": {"MON": "", "TUE": "M", "WED": "T", "THU": "", "FRI": "M"}, "obs": "Atende na clínica DEVITA"}, "MARIAMA NAKAMOTO FERNANDES DOS SANTOS": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK, atende no Hemonúcleo do Hospital Univesitário São Francisco e no Hospital Novo Atibaia"}, "MARIANA CRISTTINA LIMA DE FALCO": {"days": {"MON": "DT", "TUE": "T", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, exceto terça de manhã, todos os dias das 08h30 às 18h"}, "MARILIA SOARES E SILVA ARCADIPANE": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no COJ, chegar antes das 14h"}, "MARINA MOSCA PEDROSO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Farmacêutica da UNIMED Campinas"}, "MARTA APARECIDA SOARES ROSSINI": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende no CME Campinas"}, "MARTA MARIA FALSETTI": {"days": {"MON": "T", "TUE": "", "WED": "T", "THU": "", "FRI": ""}, "obs": "Atende Seg e Qua 14h clínica R Nicolau Falsetti 84"}, "MELINA SALVI DIAS ATHAYDE": {"days": {"MON": "T", "TUE": "", "WED": "M", "THU": "", "FRI": "T"}, "obs": "Qua 8h - Sex 14h, Atende na R Maranhao, 221 - Sala 47 - Centro, Poços de Caldas, Secr. Chayene (35) 3721-1180"}, "MICHELE KAMILA GALGANI AMARU": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "Agendar pelo Centro de Oncologia 19--3634-2102"}, "MONICA DE MACEDO SILVA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende Seg a tarde na Av Bps, 253 - Secr. Luana"}, "PAMELA RISARDI FRANCELIN": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na Advanze Oncologia"}, "PATRICIA GAMA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "PAULA NATASHA RIBEIRO JONAS DE FARIA": {"days": {"MON": "M", "TUE": "", "WED": "T", "THU": "M", "FRI": ""}, "obs": "Atende na Oncominas Varginha e Campo Belo"}, "PAULO EDUARDO DE SOUZA": {"days": {"MON": "T", "TUE": "T", "WED": "T", "THU": "M", "FRI": "T"}, "obs": "Atende na Amavita - Rua Rio Branco 13-74, Bauru"}, "PAULO RIBEIRO CALIL": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na Sta. Casa de Rio Claro. Agendar c/ Claudia no fone 19-98843-7315"}, "RENATA BALDISSERA CARDOSO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "Atende na Sta Casa"}, "RICARDO DAVID FROTA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Agenda diretamente com ele"}, "ROGERIO CAMARA VALSANI": {"days": {"MON": "M", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "Seg-Ter-Qui 11h"}, "ROSANA FERREIRA GOMES SALMAZO": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "Farmaceutica na Oncoclínica"}, "ROSELI NUNES DA SILVEIRA ANTUNES": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende na Sta Casa"}, "SAMIRA DE OLIVEIRA LAUAR": {"days": {"MON": "T", "TUE": "", "WED": "T", "THU": "", "FRI": "T"}, "obs": "Atende na R TIRADENTES,446 - SALA 33 Seg-Qua-Sex 12h"}, "SONIA REGINA IANTAS": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Ter 15h na R TIRADENTES,446 - SALA 33"}, "SORAIA TEIXEIRA ROMANINI": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "", "FRI": ""}, "obs": "OK atende na Onco Vitta"}, "SULEY MARA CHADDAD VANCINE": {"days": {"MON": "M", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "OK, atende na Hemo Análise | Rua Barão de Teffe 1000 - sala 113 - Jundiaí"}, "SUZANA DE FRANCA RIBEIRO GONZAGA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no Centro de Hematologia Sorocaba"}, "SUZANA SILVA PRADO ZINCONE": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": "M"}, "obs": "Disse que é melhor às sextas feiras de manhã na Rua Minas Gerais, 280 - Sala 102"}, "VALTER ADOLPHO MASSAGLI FILHO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Sócio proprietário do Centro de Hematologia Sorocaba"}, "ROBENILSON ALMEIDA SOUZA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Sócio proprietário do Centro de Hematologia Sorocaba"}, "VANESSA MOURA COVEZZI": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Farmacêutica da UNIMED Campinas"}, "VINICIUS BORGES GRILO": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Ok atende no COC"}, "VINICIUS MARTINS NASCIMENTO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK Atende no Vera Cruz e Beneficência"}, "VITOR VASQUEZ DOS SANTOS": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no NAIC"}, "WALTER ASSUNCAO GONCALVES": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "OK"}, "WILLIAN PAIVA DA LUZ": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK trabalha no Hospital CASSEMS"}};
 // CONTAS_DEF: valores base. O CSV de auditoria (cExtra.auditData) sempre sobrescreve.
 var CONTAS_DEF=[{conta:"UNIMED Campinas",scoreTam:3,scoreMom:3,scorePot:3,scoreEsp:2,scoreTotal:11,mat:1904,ytd:129,prioridade:"Prioridade Máxima"},{conta:"UNIMED Jundiaí",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:144,ytd:11,prioridade:"Prioridade Alta"},{conta:"Vera Cruz",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:108,ytd:14,prioridade:"Prioridade Alta"},{conta:"UNIMED Bauru",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:142,ytd:16,prioridade:"Prioridade Alta"},{conta:"UNIMED Sorocaba",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:139,ytd:11,prioridade:"Prioridade Alta"},{conta:"UNIMED Americana",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:102,ytd:0,prioridade:"Prioridade Alta"},{conta:"UNIMED Limeira",scoreTam:2,scoreMom:3,scorePot:2,scoreEsp:2,scoreTotal:9,mat:33,ytd:8,prioridade:"Prioridade Alta"},{conta:"Oncominas",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:50,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Varginha",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:49,ytd:3,prioridade:"Prioridade Média"},{conta:"UNIMED Piracicaba",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:52,ytd:5,prioridade:"Prioridade Média"},{conta:"CASSEMS",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:68,ytd:0,prioridade:"Prioridade Média"},{conta:"Prognóstica",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:40,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED São Carlos",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:39,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Rio Claro",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:2,scoreTotal:7,mat:30,ytd:3,prioridade:"Prioridade Média"},{conta:"Centro de Hematologia Sorocaba",scoreTam:1,scoreMom:3,scorePot:1,scoreEsp:2,scoreTotal:7,mat:11,ytd:11,prioridade:"Prioridade Média"},{conta:"UNIMED Dourados",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Marília",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Campo Grande",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:1,scoreTotal:6,mat:40,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Poços de Caldas",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:5,mat:25,ytd:0,prioridade:"Monitoramento"},{conta:"Consultório",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:"Monitoramento"}];
 
 // ══════════ STATE ══════════
-var mats=[],docs=[],sent={},sentEmail={},cExtra={};
+var mats=[],docs=[],sent={},sentEmail={},cExtra={},docAgenda={};
 // Budget state
 var VERBA_DEF=75000;
 var BUD_CATS_DEF=[
@@ -577,40 +599,83 @@ var fbLoaded=false;
 function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncTxt').textContent=t;}
 
 // ══════════ FIREBASE ══════════
-dbRef.on('value',function(snap){
-  // Se foi a nossa própria escrita, só atualiza status e pula re-render
-  if(_skipNextRender){_skipNextRender=false;return;}
-  var data=snap.val();
-  if(data){mats=data.mats||MATS_DEF;docs=data.docs||DOCS_DEF;sent=data.sent||{};sentEmail=data.sentEmail||{};cExtra=data.cExtra||{};
-    if(data.budget)budget=data.budget;
-  }
-  else{mats=MATS_DEF;docs=DOCS_DEF;sent={};sentEmail={};cExtra={};dbRef.set({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra});}
-  fbLoaded=true;
-  setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
-  // Preserva cards abertos antes de re-renderizar
+function carregarLocalStorage(){
+  try{var v=localStorage.getItem('s5m');if(v)mats=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5d');if(v)docs=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5s');if(v)sent=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5se');if(v)sentEmail=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5ag');if(v)docAgenda=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5c');if(v)cExtra=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5b');if(v)budget=JSON.parse(v);}catch(e){}
+}
+
+function salvarLocalStorage(){
+  try{
+    localStorage.setItem('s5m',JSON.stringify(mats));
+    localStorage.setItem('s5d',JSON.stringify(docs));
+    localStorage.setItem('s5s',JSON.stringify(sent));
+    localStorage.setItem('s5se',JSON.stringify(sentEmail));
+    localStorage.setItem('s5ag',JSON.stringify(docAgenda));
+    localStorage.setItem('s5c',JSON.stringify(cExtra));
+    localStorage.setItem('s5b',JSON.stringify(budget));
+  }catch(e){}
+}
+
+function renderAll(){
   var openDc=saveOpenIds('dc');
   var openCc=saveOpenIds('cc');
   renderDocs();
   if(document.getElementById('p1').classList.contains('on'))renderContas();
   if(document.getElementById('p2').classList.contains('on'))renderCities();
-  if(document.getElementById('p3').classList.contains('on')){ renderInsights(); renderMats(); }
+  if(document.getElementById('p3').classList.contains('on')){renderInsights();renderMats();}
   if(document.getElementById('p4').classList.contains('on'))renderBudget();
   restoreOpenIds(openDc);
   restoreOpenIds(openCc);
-},function(){
-  setSync('err','Offline — dados locais');
-  try{var v=localStorage.getItem('s5m');mats=v?JSON.parse(v):MATS_DEF;}catch(e){mats=MATS_DEF;}
-  try{var v=localStorage.getItem('s5d');docs=v?JSON.parse(v):DOCS_DEF;}catch(e){docs=DOCS_DEF;}
-  try{var v=localStorage.getItem('s5s');if(v)sent=JSON.parse(v);}catch(e){}
-  try{var v=localStorage.getItem('s5se');if(v)sentEmail=JSON.parse(v);}catch(e){}
-  try{var v=localStorage.getItem('s5c');if(v)cExtra=JSON.parse(v);}catch(e){}
-  fbLoaded=true;renderDocs();
+}
+
+function initListener(){
+  dbRef.on('value',function(snap){
+    if(_skipNextRender){_skipNextRender=false;return;}
+    var data=snap.val();
+    // REGRA DE OURO: só aceita dados do Firebase se tiver pelo menos docs ou mats
+    // Jamais substitui dados existentes por null ou objeto vazio
+    if(data && (data.docs||data.mats)){
+      mats=data.mats||MATS_DEF;
+      docs=data.docs||DOCS_DEF;
+      // Para cada campo, só substitui se o Firebase tiver valor não-nulo
+      if(data.sent)       sent=data.sent;
+      if(data.sentEmail)  sentEmail=data.sentEmail;
+      if(data.cExtra)     cExtra=data.cExtra;
+      if(data.docAgenda)  docAgenda=data.docAgenda;
+      if(data.budget && (data.budget.items||data.budget.verba)) budget=data.budget;
+      // Salva cópia local sempre que receber dados válidos do Firebase
+      salvarLocalStorage();
+    } else {
+      // Firebase vazio ou null: usa localStorage, NÃO grava nada no banco
+      carregarLocalStorage();
+    }
+    fbLoaded=true;
+    setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+    renderAll();
+  },function(){
+    setSync('err','Offline — dados locais');
+    carregarLocalStorage();
+    fbLoaded=true;
+    renderDocs();
+  });
+}
+
+// Inicia listener APÓS auth completar (elimina race condition)
+firebase.auth().onAuthStateChanged(function(user){
+  if(user) initListener();
 });
 
 function persist(){
   setSync('syncing','Salvando...');
-  dbRef.set({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget}).catch(function(){setSync('err','Erro ao salvar');});
-  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
+  salvarLocalStorage();
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda})
+    .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
+    .catch(function(){setSync('err','Erro ao salvar');});
 }
 
 // ══════════ SCORES ══════════
@@ -644,9 +709,9 @@ function restoreOpenIds(ids){
 var _skipNextRender=false;
 function persistLocal(){
   _skipNextRender=true;
-  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
+  salvarLocalStorage();
   setSync('syncing','Salvando...');
-  dbRef.set({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget})
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda})
     .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
     .catch(function(){setSync('err','Erro ao salvar');_skipNextRender=false;});
 }
@@ -834,6 +899,7 @@ function renderDocs(){
             '<span><b>Email:</b> '+sc2e+'/'+mats.length+'</span>'+
           '</div>'+
           si+
+          buildAgendaHtml(d.name, di)+
           '<div class="mat-section" id="mats'+di+'">'+
             '<div class="mat-toggle-row" onclick="toggleMats('+di+')">'+
               '<span class="'+matBtnCls+'">'+matBtnLabel+'</span>'+
@@ -1631,7 +1697,113 @@ function renderInsights(){
     '<div class="tip"><b>🏦 Score de contas</b>O número cinza é o score da auditoria. O roxo maior é o total somando os marcadores de contexto. O badge verde/vermelho mostra o delta dos marcadores.</div>'+
     '<div class="tip"><b>🎯 Score médico</b>A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
     '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>';
-}// ══════════ EXPORT / IMPORT ══════════
+}
+// ══════════ AGENDA DE ATENDIMENTO ══════════
+var DAY_LABELS={MON:'Seg',TUE:'Ter',WED:'Qua',THU:'Qui',FRI:'Sex'};
+var DAY_KEYS=['MON','TUE','WED','THU','FRI'];
+var DAY_STATES=['','M','T','DT','Ag'];
+
+function getDayLabel(v){
+  if(!v||v==='')return'—';
+  if(v==='M')return'Manhã';
+  if(v==='T')return'Tarde';
+  if(v==='DT')return'Dia\nTodo';
+  if(v==='Ag')return'Ag.';
+  return v;
+}
+function getDayCls(v){
+  if(!v||v==='')return'off';
+  if(v==='M')return'manha';
+  if(v==='T')return'tarde';
+  if(v==='DT')return'dia-todo';
+  if(v==='Ag')return'ag';
+  return'off';
+}
+
+function buildAgendaHtml(docName,docIdx){
+  var csvDef=SCHEDULE_DEF[docName]||null;
+  var saved=docAgenda[docName]||{};
+  var days={};
+  DAY_KEYS.forEach(function(k){
+    if(saved[k]!==undefined)days[k]=saved[k];
+    else if(csvDef&&csvDef.days&&csvDef.days[k])days[k]=csvDef.days[k];
+    else days[k]='';
+  });
+  var obs=(saved.obs!==undefined)?saved.obs:(csvDef&&csvDef.obs?csvDef.obs:'');
+  var dj=escJ(docName);
+
+  var daysHtml='';
+  DAY_KEYS.forEach(function(k){
+    var v=days[k];
+    var lbl=getDayLabel(v);
+    var cls=getDayCls(v);
+    daysHtml+=
+      '<div class="aday">'+
+        '<div class="aday-lbl">'+DAY_LABELS[k]+'</div>'+
+        '<button class="aday-btn '+cls+'" onclick="event.stopPropagation();cycleDay(\''+dj+'\',\''+k+'\',this)" title="'+esc(lbl)+'">'+
+          esc(lbl)+
+        '</button>'+
+      '</div>';
+  });
+
+  var obsHtml=obs?'<div class="agenda-obs">📝 '+esc(obs)+'</div>':'';
+
+  return '<div class="agenda-wrap">'+
+    '<div class="agenda-title">'+
+      '📅 Agenda de atendimento'+
+      '<button style="font-size:10px;background:none;border:1px solid #ddd;border-radius:6px;padding:2px 7px;color:#888;cursor:pointer;" onclick="event.stopPropagation();editAgendaObs(\''+dj+'\','+docIdx+')">✏️ obs</button>'+
+    '</div>'+
+    '<div class="agenda-days">'+daysHtml+'</div>'+
+    '<div class="agenda-legend">'+
+      '<span class="ag-leg manha">M = Manhã</span>'+
+      '<span class="ag-leg tarde">T = Tarde</span>'+
+      '<span class="ag-leg dia-todo">DT = Dia Todo</span>'+
+      '<span class="ag-leg ag">Ag = Agendado</span>'+
+    '</div>'+
+    obsHtml+
+  '</div>';
+}
+
+function cycleDay(docName,dayKey,btn){
+  if(!docAgenda[docName])docAgenda[docName]={};
+  var cur=docAgenda[docName][dayKey];
+  if(cur===undefined){
+    var csvDef=SCHEDULE_DEF[docName];
+    cur=(csvDef&&csvDef.days&&csvDef.days[dayKey])?csvDef.days[dayKey]:'';
+  }
+  var idx=DAY_STATES.indexOf(cur);
+  var next=DAY_STATES[(idx+1)%DAY_STATES.length];
+  docAgenda[docName][dayKey]=next;
+  var lbl=getDayLabel(next);
+  var cls=getDayCls(next);
+  btn.textContent=lbl;
+  btn.className='aday-btn '+cls;
+  btn.title=lbl;
+  persistLocal();
+}
+
+function editAgendaObs(docName,docIdx){
+  var cur=(docAgenda[docName]&&docAgenda[docName].obs!==undefined)
+    ?docAgenda[docName].obs
+    :(SCHEDULE_DEF[docName]?SCHEDULE_DEF[docName].obs||'':'');
+  var newObs=prompt('Observação de agenda:',cur);
+  if(newObs===null)return;
+  if(!docAgenda[docName])docAgenda[docName]={};
+  docAgenda[docName].obs=newObs;
+  var card=document.getElementById('dc'+docIdx);
+  if(card){
+    var obsEl=card.querySelector('.agenda-obs');
+    if(newObs){
+      if(obsEl){obsEl.textContent='📝 '+newObs;}
+      else{var wrap=card.querySelector('.agenda-wrap');if(wrap){var d=document.createElement('div');d.className='agenda-obs';d.textContent='📝 '+newObs;wrap.appendChild(d);}}
+    } else {
+      if(obsEl)obsEl.remove();
+    }
+  }
+  persistLocal();
+}
+
+// ══════════ EXPORT / IMPORT ══════════
 function exportJSON(){var p={version:2,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,cExtra:cExtra};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara exp.');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');if(f.daraLover)m.push('Dara Lover');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
 function importJSON(evt){var file=evt.target.files&&evt.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(String(r.result||'{}'));if(!p||!Array.isArray(p.docs)||!Array.isArray(p.mats))throw new Error();mats=p.mats;docs=p.docs;sent=p.sent||{};cExtra=p.cExtra||{};persist();alert('Importado ✅ — sincronizando em todos os devices...');}catch(e){alert('Arquivo inválido.');}evt.target.value='';};r.readAsText(file);}
