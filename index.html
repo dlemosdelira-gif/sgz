@@ -277,6 +277,13 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .ag-leg.tarde{background:#dbeafe;color:#1e40af;}
 .ag-leg.dia-todo{background:#d1fae5;color:#065f46;}
 .ag-leg.ag{background:#fffbeb;color:#92400e;}
+
+/* ── FILTRO DE AGENDA ── */
+.agenda-filter-bar{padding:6px 12px 4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.agenda-filter-bar select{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;min-width:80px;}
+.agenda-filter-bar select.active{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.af-clear{border:1px solid #e5e7eb;background:#fff;color:#888;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.af-clear.on{background:#fee2e2;color:#dc2626;border-color:#fca5a5;}
 </style>
 </head>
 <body>
@@ -316,6 +323,24 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
     <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
     <button class="pc pcC" id="pcC" onclick="togglePot('C')">● C</button>
+  </div>
+  <div class="agenda-filter-bar">
+    <select id="afDay" onchange="applyAgendaFilter()">
+      <option value="">📅 Dia</option>
+      <option value="MON">Segunda</option>
+      <option value="TUE">Terça</option>
+      <option value="WED">Quarta</option>
+      <option value="THU">Quinta</option>
+      <option value="FRI">Sexta</option>
+    </select>
+    <select id="afPeriod" onchange="applyAgendaFilter()">
+      <option value="">🕐 Período</option>
+      <option value="M">Manhã</option>
+      <option value="T">Tarde</option>
+      <option value="DT">Dia Todo</option>
+      <option value="Ag">Agendado</option>
+    </select>
+    <button class="af-clear" id="afClear" onclick="clearAgendaFilter()">✕ Limpar</button>
   </div>
   <div class="stline" id="stline"></div>
   <div class="dlist" id="dlist"></div>
@@ -591,6 +616,7 @@ var BUD_CATS_DEF=[
 var budget={verba:VERBA_DEF,cats:BUD_CATS_DEF,items:[]};
 var editBudIdx=-1,pickedIcon='🍽️',budFilter={cat:'',sort:'date_desc',q:''};
 var activeMat=-1,potF={A:true,B:true,C:true};
+var agendaFilter={day:'',period:''};
 var editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
 var auditContaNome='';
 var csvParsedData=[];
@@ -599,6 +625,49 @@ var fbLoaded=false;
 function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncTxt').textContent=t;}
 
 // ══════════ FIREBASE ══════════
+function initListener(){
+  dbRef.on('value',function(snap){
+    // Se foi a nossa própria escrita, só atualiza status e pula re-render
+    if(_skipNextRender){_skipNextRender=false;return;}
+    var data=snap.val();
+    if(data){
+      // Carrega APENAS o que veio do banco — nunca sobrescreve com defaults
+      mats=data.mats||MATS_DEF;
+      docs=data.docs||DOCS_DEF;
+      sent=data.sent||{};
+      sentEmail=data.sentEmail||{};
+      cExtra=data.cExtra||{};
+      docAgenda=data.docAgenda||{};
+      if(data.budget)budget=data.budget;
+    }
+    // SE data===null: banco vazio ou auth ainda pendente.
+    // NÃO gravamos nada — apenas usamos localStorage como fallback.
+    // Isso evita apagar dados reais por uma leitura null temporária.
+    else if(!fbLoaded){
+      // Primeira carga e banco vazio: usa localStorage se disponível
+      carregarLocalStorage();
+    }
+    fbLoaded=true;
+    setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+    // Preserva cards abertos antes de re-renderizar
+    var openDc=saveOpenIds('dc');
+    var openCc=saveOpenIds('cc');
+    renderDocs();
+    if(document.getElementById('p1').classList.contains('on'))renderContas();
+    if(document.getElementById('p2').classList.contains('on'))renderCities();
+    if(document.getElementById('p3').classList.contains('on')){ renderInsights(); renderMats(); }
+    if(document.getElementById('p4').classList.contains('on'))renderBudget();
+    restoreOpenIds(openDc);
+    restoreOpenIds(openCc);
+  },function(){
+    // Erro de conexão / permissão: usa localStorage
+    setSync('err','Offline — dados locais');
+    carregarLocalStorage();
+    fbLoaded=true;
+    renderDocs();
+  });
+}
+
 function carregarLocalStorage(){
   try{var v=localStorage.getItem('s5m');if(v)mats=JSON.parse(v);}catch(e){}
   try{var v=localStorage.getItem('s5d');if(v)docs=JSON.parse(v);}catch(e){}
@@ -609,73 +678,19 @@ function carregarLocalStorage(){
   try{var v=localStorage.getItem('s5b');if(v)budget=JSON.parse(v);}catch(e){}
 }
 
-function salvarLocalStorage(){
-  try{
-    localStorage.setItem('s5m',JSON.stringify(mats));
-    localStorage.setItem('s5d',JSON.stringify(docs));
-    localStorage.setItem('s5s',JSON.stringify(sent));
-    localStorage.setItem('s5se',JSON.stringify(sentEmail));
-    localStorage.setItem('s5ag',JSON.stringify(docAgenda));
-    localStorage.setItem('s5c',JSON.stringify(cExtra));
-    localStorage.setItem('s5b',JSON.stringify(budget));
-  }catch(e){}
-}
-
-function renderAll(){
-  var openDc=saveOpenIds('dc');
-  var openCc=saveOpenIds('cc');
-  renderDocs();
-  if(document.getElementById('p1').classList.contains('on'))renderContas();
-  if(document.getElementById('p2').classList.contains('on'))renderCities();
-  if(document.getElementById('p3').classList.contains('on')){renderInsights();renderMats();}
-  if(document.getElementById('p4').classList.contains('on'))renderBudget();
-  restoreOpenIds(openDc);
-  restoreOpenIds(openCc);
-}
-
-function initListener(){
-  dbRef.on('value',function(snap){
-    if(_skipNextRender){_skipNextRender=false;return;}
-    var data=snap.val();
-    // REGRA DE OURO: só aceita dados do Firebase se tiver pelo menos docs ou mats
-    // Jamais substitui dados existentes por null ou objeto vazio
-    if(data && (data.docs||data.mats)){
-      mats=data.mats||MATS_DEF;
-      docs=data.docs||DOCS_DEF;
-      // Para cada campo, só substitui se o Firebase tiver valor não-nulo
-      if(data.sent)       sent=data.sent;
-      if(data.sentEmail)  sentEmail=data.sentEmail;
-      if(data.cExtra)     cExtra=data.cExtra;
-      if(data.docAgenda)  docAgenda=data.docAgenda;
-      if(data.budget && (data.budget.items||data.budget.verba)) budget=data.budget;
-      // Salva cópia local sempre que receber dados válidos do Firebase
-      salvarLocalStorage();
-    } else {
-      // Firebase vazio ou null: usa localStorage, NÃO grava nada no banco
-      carregarLocalStorage();
-    }
-    fbLoaded=true;
-    setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
-    renderAll();
-  },function(){
-    setSync('err','Offline — dados locais');
-    carregarLocalStorage();
-    fbLoaded=true;
-    renderDocs();
-  });
-}
-
-// Inicia listener APÓS auth completar (elimina race condition)
+// Aguarda auth completar ANTES de iniciar o listener
+// Elimina race condition entre signInAnonymously e dbRef.on
 firebase.auth().onAuthStateChanged(function(user){
-  if(user) initListener();
+  if(user){
+    initListener();
+  }
 });
 
 function persist(){
   setSync('syncing','Salvando...');
-  salvarLocalStorage();
-  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda})
-    .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
-    .catch(function(){setSync('err','Erro ao salvar');});
+  // update() faz merge — nunca apaga campos que não estão sendo alterados
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda}).catch(function(){setSync('err','Erro ao salvar');});
+  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
 }
 
 // ══════════ SCORES ══════════
@@ -709,7 +724,7 @@ function restoreOpenIds(ids){
 var _skipNextRender=false;
 function persistLocal(){
   _skipNextRender=true;
-  salvarLocalStorage();
+  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
   setSync('syncing','Salvando...');
   dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda})
     .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
@@ -783,6 +798,54 @@ function debounceRenderDocs(){
   _docSearchTimer=setTimeout(renderDocs,220);
 }
 
+// ── Filtro de Agenda de Atendimento ──
+function getDocDayValue(docName,dayKey){
+  var saved=docAgenda[docName];
+  if(saved&&saved[dayKey]!==undefined)return saved[dayKey];
+  var csv=SCHEDULE_DEF[docName];
+  if(csv&&csv.days&&csv.days[dayKey]!==undefined)return csv.days[dayKey];
+  return '';
+}
+function docMatchesAgendaFilter(docName){
+  var day=agendaFilter.day,period=agendaFilter.period;
+  if(!day&&!period)return true;
+  var days=['MON','TUE','WED','THU','FRI'];
+  function matchesPeriod(v,p){
+    if(!v)return false;
+    if(p==='M')return v==='M'||v==='DT';
+    if(p==='T')return v==='T'||v==='DT';
+    if(p==='DT')return v==='DT';
+    if(p==='Ag')return v==='Ag';
+    return false;
+  }
+  if(day&&!period){
+    var v=getDocDayValue(docName,day);
+    return v!==''&&v!==null&&v!==undefined;
+  }
+  if(!day&&period){
+    for(var i=0;i<days.length;i++){if(matchesPeriod(getDocDayValue(docName,days[i]),period))return true;}
+    return false;
+  }
+  return matchesPeriod(getDocDayValue(docName,day),period);
+}
+function applyAgendaFilter(){
+  agendaFilter.day=document.getElementById('afDay').value;
+  agendaFilter.period=document.getElementById('afPeriod').value;
+  var d=document.getElementById('afDay'),p=document.getElementById('afPeriod'),c=document.getElementById('afClear');
+  if(d)d.classList.toggle('active',!!agendaFilter.day);
+  if(p)p.classList.toggle('active',!!agendaFilter.period);
+  if(c)c.classList.toggle('on',!!(agendaFilter.day||agendaFilter.period));
+  renderDocs();
+}
+function clearAgendaFilter(){
+  agendaFilter.day='';agendaFilter.period='';
+  var d=document.getElementById('afDay'),p=document.getElementById('afPeriod'),c=document.getElementById('afClear');
+  if(d){d.value='';d.classList.remove('active');}
+  if(p){p.value='';p.classList.remove('active');}
+  if(c)c.classList.remove('on');
+  renderDocs();
+}
+
 // ── Deep link: navega para o card do médico na aba Médicos ──
 function navigateToDoc(docIdx){
   var d=docs[docIdx];
@@ -818,7 +881,13 @@ function renderDocs(){
 
   var q=document.getElementById('srch').value.toLowerCase().trim();
   var filt=[];
-  for(var i=0;i<docs.length;i++){var d=docs[i];if(!potF[d.pot])continue;if(q&&(d.name+' '+(d.city||'')+' '+(d.conta||'')).toLowerCase().indexOf(q)<0)continue;filt.push({d:d,i:i});}
+  for(var i=0;i<docs.length;i++){
+    var d=docs[i];
+    if(!potF[d.pot])continue;
+    if(q&&(d.name+' '+(d.city||'')+' '+(d.conta||'')).toLowerCase().indexOf(q)<0)continue;
+    if(!docMatchesAgendaFilter(d.name))continue;
+    filt.push({d:d,i:i});
+  }
   var sv=document.getElementById('docSort').value;
   var PO={A:0,B:1,C:2};
   filt.sort(function(a,b){
@@ -827,7 +896,16 @@ function renderDocs(){
     if(sv==='potencial'){var p=(PO[a.d.pot]||0)-(PO[b.d.pot]||0);return p!==0?p:a.d.name.localeCompare(b.d.name);}
     var sa=calcScore(a.d),sb=calcScore(b.d);if(sb!==sa)return sb-sa;if(!!b.d.phone!==!!a.d.phone)return a.d.phone?-1:1;return a.d.name.localeCompare(b.d.name);
   });
-  document.getElementById('stline').textContent=filt.length+' médico'+(filt.length!==1?'s':'')+' · '+sv;
+  var agInfo='';
+  if(agendaFilter.day||agendaFilter.period){
+    var _dn={MON:'Seg',TUE:'Ter',WED:'Qua',THU:'Qui',FRI:'Sex'};
+    var _pn={M:'Manhã',T:'Tarde',DT:'Dia Todo',Ag:'Agendado'};
+    var _parts=[];
+    if(agendaFilter.day)_parts.push(_dn[agendaFilter.day]);
+    if(agendaFilter.period)_parts.push(_pn[agendaFilter.period]);
+    agInfo=' · 📅 '+_parts.join(' – ');
+  }
+  document.getElementById('stline').textContent=filt.length+' médico'+(filt.length!==1?'s':'')+' · '+sv+agInfo;
   if(!filt.length){document.getElementById('dlist').innerHTML='<div class="empty">Nenhum médico encontrado.</div>';return;}
   var html='';
   for(var f=0;f<filt.length;f++){
