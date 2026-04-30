@@ -284,6 +284,19 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .agenda-filter-bar select.active{background:#6d28d9;color:#fff;border-color:#6d28d9;}
 .af-clear{border:1px solid #e5e7eb;background:#fff;color:#888;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .af-clear.on{background:#fee2e2;color:#dc2626;border-color:#fca5a5;}
+
+/* ── NOVA CONTA MANUAL ── */
+.new-conta-section{background:#f5f3ff;border-radius:10px;padding:12px 14px;margin-top:12px;border:1.5px dashed #6d28d9;}
+.new-conta-section label{font-size:11px;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;}
+.new-conta-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.new-conta-row input{padding:8px 10px;border-radius:8px;border:1px solid #ddd;font-size:13px;background:#fff;outline:none;font-family:-apple-system,sans-serif;width:100%;}
+.new-conta-full input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #ddd;font-size:13px;background:#fff;outline:none;font-family:-apple-system,sans-serif;margin-bottom:8px;}
+.nc-tag{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;border:1.5px solid transparent;cursor:pointer;margin:2px;}
+.nc-tag.sel{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.nc-tag:not(.sel){background:#fff;color:#6d28d9;border-color:#ddd;}
+.csv-new-item{background:#ede9fe;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12px;}
+.csv-new-item b{color:#6d28d9;}
+.csv-new-item .nc-tag{font-size:10px;}
 </style>
 </head>
 <body>
@@ -353,6 +366,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <h2>Ranking de Contas</h2>
       <div style="display:flex;gap:6px;">
         <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Importar auditoria</button>
+        <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova conta</button>
       </div>
     </div>
     <div id="contaList"></div>
@@ -550,9 +564,44 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <input id="csvFileInput" type="file" accept=".csv,.txt" style="display:none" onchange="loadCsvFile(event)">
     </div>
     <div id="csvResult" class="csv-result" style="display:none"></div>
+    <div id="csvNewContas" style="display:none;margin-top:10px;"></div>
     <div class="brow" style="margin-top:12px;">
       <button class="bcanc" onclick="closeCsvAuditModal()">Fechar</button>
       <button class="bsave" id="csvApplyBtn" style="display:none" onclick="applyCsvAudit()">Aplicar e salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NOVA CONTA MANUAL ══ -->
+<div class="ov" id="newContaOv">
+  <div class="modal">
+    <div class="mhd"><h2>➕ Nova conta</h2><button onclick="closeNewContaModal()">×</button></div>
+    <div class="field"><label>Nome da conta</label><input id="nc_nome" placeholder="Ex: Hospital São Lucas" autocomplete="off" spellcheck="false"></div>
+    <div class="f2">
+      <div class="field"><label>MAT (unidades)</label><input id="nc_mat" type="number" min="0" placeholder="0"></div>
+      <div class="field"><label>YTD (unidades)</label><input id="nc_ytd" type="number" min="0" placeholder="0"></div>
+    </div>
+    <div class="field">
+      <label>Scores de auditoria (1–3)</label>
+      <div class="audit-grid" style="margin-bottom:0">
+        <div class="audit-field"><label>Tamanho</label><input type="number" id="nc_tam" min="1" max="3" value="1"></div>
+        <div class="audit-field"><label>Momento</label><input type="number" id="nc_mom" min="1" max="3" value="1"></div>
+        <div class="audit-field"><label>Pot. Estratégico</label><input type="number" id="nc_pot" min="1" max="3" value="1"></div>
+        <div class="audit-field"><label>Espaço</label><input type="number" id="nc_esp" min="1" max="3" value="1"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Prioridade</label>
+      <select id="nc_prio" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;font-size:14px;background:#f9f9f9;outline:none;-webkit-appearance:none;">
+        <option value="Prioridade Máxima">🔴 Prioridade Máxima</option>
+        <option value="Prioridade Alta">🟠 Prioridade Alta</option>
+        <option value="Prioridade Média" selected>🟡 Prioridade Média</option>
+        <option value="Monitoramento">⚪ Monitoramento</option>
+      </select>
+    </div>
+    <div class="brow">
+      <button class="bcanc" onclick="closeNewContaModal()">Cancelar</button>
+      <button class="bsave" onclick="saveNewConta()">Criar conta</button>
     </div>
   </div>
 </div>
@@ -1534,14 +1583,43 @@ function processCsvAudit(){
 
   csvParsedData=parsed;
   var found=parsed.filter(function(r){return r.conta;}).length;
+  var notFound=parsed.filter(function(r){return !r.conta;});
   var resultEl=document.getElementById('csvResult');
   resultEl.style.display='block';
   resultEl.innerHTML='<b>'+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
-  document.getElementById('csvApplyBtn').style.display=found>0?'':'none';
+  document.getElementById('csvApplyBtn').style.display=found>0||notFound.length>0?'':'none';
+
+  // Mostra contas novas não encontradas com opção de incluir
+  csvNewContasPending=notFound;
+  var newEl=document.getElementById('csvNewContas');
+  if(newEl&&notFound.length>0){
+    var h='<div style="margin-top:10px;"><b style="color:#6d28d9;">🆕 '+notFound.length+' conta(s) nova(s) na auditoria — incluir?</b></div>';
+    for(var ni=0;ni<notFound.length;ni++){
+      var nr=notFound[ni];
+      h+='<div class="csv-new-item">'+
+        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">'+
+          '<input type="checkbox" data-idx="'+ni+'" checked style="width:16px;height:16px;cursor:pointer;">'+
+          '<span><b>'+esc(nr.contaRaw)+'</b>'+
+            (nr.mat!=null?' · MAT '+nr.mat:'')+
+            (nr.ytd!=null?' · YTD '+nr.ytd:'')+
+          '</span>'+
+        '</label>'+
+      '</div>';
+    }
+    newEl.style.display='block';
+    newEl.innerHTML=h;
+  } else if(newEl){
+    newEl.style.display='none';
+    newEl.innerHTML='';
+  }
 }
+
+// Guarda contas novas pendentes de confirmação
+var csvNewContasPending=[];
 
 function applyCsvAudit(){
   var updated=0;
+  // 1. Atualiza contas já conhecidas
   for(var i=0;i<csvParsedData.length;i++){
     var row=csvParsedData[i];
     if(!row.conta)continue;
@@ -1556,9 +1634,71 @@ function applyCsvAudit(){
     if(row.scoreEsp!=null)ad.scoreEsp=row.scoreEsp;
     updated++;
   }
+  // 2. Adiciona contas novas ao CONTAS_DEF (já aprovadas pelo usuário via checkbox)
+  var newEl=document.getElementById('csvNewContas');
+  if(newEl){
+    var checks=newEl.querySelectorAll('input[type=checkbox]:checked');
+    for(var j=0;j<checks.length;j++){
+      var idx=parseInt(checks[j].dataset.idx);
+      var nr=csvNewContasPending[idx];
+      if(!nr)continue;
+      // Cria entry no CONTAS_DEF
+      var newCt={
+        conta:nr.contaRaw,
+        scoreTam:nr.scoreTam||1, scoreMom:nr.scoreMom||1,
+        scorePot:nr.scorePot||1, scoreEsp:nr.scoreEsp||1,
+        scoreTotal:4, mat:nr.mat||0, ytd:nr.ytd||0,
+        prioridade:'Monitoramento'
+      };
+      CONTAS_DEF.push(newCt);
+      // Salva auditData
+      if(!cExtra[nr.contaRaw])cExtra[nr.contaRaw]={};
+      cExtra[nr.contaRaw].auditData={
+        scoreTam:newCt.scoreTam, scoreMom:newCt.scoreMom,
+        scorePot:newCt.scorePot, scoreEsp:newCt.scoreEsp,
+        mat:newCt.mat, ytd:newCt.ytd
+      };
+      updated++;
+    }
+  }
   persist();
   closeCsvAuditModal();
-  alert('✅ '+updated+' contas atualizadas e sincronizadas!');
+  renderContas();
+  alert('✅ '+updated+' conta(s) atualizadas/criadas e sincronizadas!');
+}
+
+// ── Nova conta manual ──
+function openNewContaModal(){
+  ['nc_nome','nc_mat','nc_ytd'].forEach(function(id){document.getElementById(id).value='';});
+  ['nc_tam','nc_mom','nc_pot','nc_esp'].forEach(function(id){document.getElementById(id).value=1;});
+  document.getElementById('nc_prio').value='Prioridade Média';
+  document.getElementById('newContaOv').classList.add('on');
+}
+function closeNewContaModal(){document.getElementById('newContaOv').classList.remove('on');}
+function saveNewConta(){
+  var nome=document.getElementById('nc_nome').value.trim();
+  if(!nome){alert('Informe o nome da conta.');return;}
+  // Verifica duplicata
+  for(var i=0;i<CONTAS_DEF.length;i++){
+    if(CONTAS_DEF[i].conta.toLowerCase()===nome.toLowerCase()){
+      alert('Conta "'+nome+'" já existe.');return;
+    }
+  }
+  var tam=parseInt(document.getElementById('nc_tam').value)||1;
+  var mom=parseInt(document.getElementById('nc_mom').value)||1;
+  var pot=parseInt(document.getElementById('nc_pot').value)||1;
+  var esp=parseInt(document.getElementById('nc_esp').value)||1;
+  var mat=parseFloat(document.getElementById('nc_mat').value)||0;
+  var ytd=parseFloat(document.getElementById('nc_ytd').value)||0;
+  var prio=document.getElementById('nc_prio').value;
+  var newCt={conta:nome,scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,scoreTotal:tam+mom+pot+esp,mat:mat,ytd:ytd,prioridade:prio};
+  CONTAS_DEF.push(newCt);
+  if(!cExtra[nome])cExtra[nome]={};
+  cExtra[nome].auditData={scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,mat:mat,ytd:ytd};
+  persist();
+  closeNewContaModal();
+  renderContas();
+  setSync('ok','Conta "'+nome+'" criada ✓');
 }
 
 // ══════════ CIDADES ══════════
