@@ -285,18 +285,36 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .af-clear{border:1px solid #e5e7eb;background:#fff;color:#888;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .af-clear.on{background:#fee2e2;color:#dc2626;border-color:#fca5a5;}
 
-/* ── NOVA CONTA MANUAL ── */
-.new-conta-section{background:#f5f3ff;border-radius:10px;padding:12px 14px;margin-top:12px;border:1.5px dashed #6d28d9;}
-.new-conta-section label{font-size:11px;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;}
-.new-conta-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-.new-conta-row input{padding:8px 10px;border-radius:8px;border:1px solid #ddd;font-size:13px;background:#fff;outline:none;font-family:-apple-system,sans-serif;width:100%;}
-.new-conta-full input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #ddd;font-size:13px;background:#fff;outline:none;font-family:-apple-system,sans-serif;margin-bottom:8px;}
-.nc-tag{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;border:1.5px solid transparent;cursor:pointer;margin:2px;}
-.nc-tag.sel{background:#6d28d9;color:#fff;border-color:#6d28d9;}
-.nc-tag:not(.sel){background:#fff;color:#6d28d9;border-color:#ddd;}
-.csv-new-item{background:#ede9fe;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12px;}
-.csv-new-item b{color:#6d28d9;}
-.csv-new-item .nc-tag{font-size:10px;}
+/* ── FILTRO DE CONTAS ── */
+.conta-filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.conta-filter-row select{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;min-width:90px;}
+.conta-srch{width:100%;padding:8px 14px;border-radius:11px;border:1px solid #ddd;font-size:14px;background:#fff;outline:none;margin-bottom:8px;}
+
+/* ── PAINÉIS DE DECISÃO ── */
+.dec-card{background:#fff;border-radius:13px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.dec-card h3{font-size:14px;font-weight:700;margin-bottom:4px;}
+.dec-card .sub{font-size:11px;color:#888;margin-bottom:10px;}
+.dec-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f2f2f7;font-size:12px;}
+.dec-row:last-child{border-bottom:none;}
+.dec-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+.dec-bar-wrap{width:70px;height:6px;background:#f2f2f7;border-radius:3px;overflow:hidden;flex-shrink:0;}
+.dec-bar-fill{height:100%;border-radius:3px;}
+.dec-val{font-size:11px;font-weight:700;flex-shrink:0;min-width:52px;text-align:right;}
+.signal{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0;}
+.sig-up{background:#d1fae5;color:#065f46;}
+.sig-down{background:#fee2e2;color:#b91c1c;}
+.sig-warn{background:#fef3c7;color:#92400e;}
+.sig-ok{background:#dbeafe;color:#1e40af;}
+.sig-neu{background:#f3f4f6;color:#6b7280;}
+.roi-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.roi-box{background:#f9f9f9;border-radius:9px;padding:9px 11px;text-align:center;}
+.roi-box .rv{font-size:18px;font-weight:700;}
+.roi-box .rl{font-size:10px;color:#888;margin-top:2px;}
+.conc-row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #f2f2f7;font-size:12px;}
+.conc-row:last-child{border-bottom:none;}
+.conc-bar-bud{background:#6d28d9;}
+.conc-bar-ytd{background:#22c55e;}
+.conc-bar-pot{background:#f59e0b;}
 </style>
 </head>
 <body>
@@ -368,6 +386,25 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
         <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Importar auditoria</button>
         <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova conta</button>
       </div>
+    </div>
+    <input class="conta-srch" id="contaSrch" type="search" placeholder="🔍 Buscar conta..." oninput="renderContas()" autocomplete="off" spellcheck="false">
+    <div class="conta-filter-row">
+      <select id="contaSort" onchange="renderContas()">
+        <option value="score">↓ Score total</option>
+        <option value="scoreAudit">↓ Score auditoria</option>
+        <option value="nome">A–Z Nome</option>
+        <option value="mat">↓ MAT</option>
+        <option value="ytd">↓ YTD</option>
+        <option value="investimento">↓ Investimento</option>
+        <option value="ritmo">↓ Ritmo YTD/MAT</option>
+      </select>
+      <select id="contaPrio" onchange="renderContas()">
+        <option value="">Todas prioridades</option>
+        <option value="Prioridade Máxima">🔴 Máxima</option>
+        <option value="Prioridade Alta">🟠 Alta</option>
+        <option value="Prioridade Média">🟡 Média</option>
+        <option value="Monitoramento">⚪ Monitoramento</option>
+      </select>
     </div>
     <div id="contaList"></div>
   </div>
@@ -572,40 +609,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<!-- ══ MODAL NOVA CONTA MANUAL ══ -->
-<div class="ov" id="newContaOv">
-  <div class="modal">
-    <div class="mhd"><h2>➕ Nova conta</h2><button onclick="closeNewContaModal()">×</button></div>
-    <div class="field"><label>Nome da conta</label><input id="nc_nome" placeholder="Ex: Hospital São Lucas" autocomplete="off" spellcheck="false"></div>
-    <div class="f2">
-      <div class="field"><label>MAT (unidades)</label><input id="nc_mat" type="number" min="0" placeholder="0"></div>
-      <div class="field"><label>YTD (unidades)</label><input id="nc_ytd" type="number" min="0" placeholder="0"></div>
-    </div>
-    <div class="field">
-      <label>Scores de auditoria (1–3)</label>
-      <div class="audit-grid" style="margin-bottom:0">
-        <div class="audit-field"><label>Tamanho</label><input type="number" id="nc_tam" min="1" max="3" value="1"></div>
-        <div class="audit-field"><label>Momento</label><input type="number" id="nc_mom" min="1" max="3" value="1"></div>
-        <div class="audit-field"><label>Pot. Estratégico</label><input type="number" id="nc_pot" min="1" max="3" value="1"></div>
-        <div class="audit-field"><label>Espaço</label><input type="number" id="nc_esp" min="1" max="3" value="1"></div>
-      </div>
-    </div>
-    <div class="field">
-      <label>Prioridade</label>
-      <select id="nc_prio" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;font-size:14px;background:#f9f9f9;outline:none;-webkit-appearance:none;">
-        <option value="Prioridade Máxima">🔴 Prioridade Máxima</option>
-        <option value="Prioridade Alta">🟠 Prioridade Alta</option>
-        <option value="Prioridade Média" selected>🟡 Prioridade Média</option>
-        <option value="Monitoramento">⚪ Monitoramento</option>
-      </select>
-    </div>
-    <div class="brow">
-      <button class="bcanc" onclick="closeNewContaModal()">Cancelar</button>
-      <button class="bsave" onclick="saveNewConta()">Criar conta</button>
-    </div>
-  </div>
-</div>
-
 <div class="ov" id="delOv">
   <div class="modal">
     <div class="mhd"><h2>Confirmar</h2><button onclick="closeDelOv()">×</button></div>
@@ -669,6 +672,7 @@ var agendaFilter={day:'',period:''};
 var editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
 var auditContaNome='';
 var csvParsedData=[];
+var csvNewContasPending=[];
 var fbLoaded=false;
 
 function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncTxt').textContent=t;}
@@ -754,6 +758,25 @@ function calcScore(d){
   return s;
 }
 function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
+
+// Calcula investimento total em budget para uma conta (via médicos)
+function budInvestimentoConta(contaNome){
+  var cdocs=[];
+  for(var i=0;i<docs.length;i++){if((docs[i].conta||'Sem conta')===contaNome)cdocs.push(docs[i].name);}
+  var total=0;
+  (budget.items||[]).forEach(function(it){
+    if(it.docName&&cdocs.indexOf(it.docName)>=0)total+=it.val||0;
+  });
+  return total;
+}
+
+// Calcula ritmo: YTD normalizado pelo mês atual vs MAT esperado
+function calcRitmoConta(ytd,mat){
+  if(!mat||mat===0)return ytd>0?999:0;
+  var mes=new Date().getMonth()+1; // 1-12
+  var esperado=mat/12*mes;
+  return esperado>0?Math.round(ytd/esperado*100):0;
+}
 
 function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(Math.max(0,Math.min(3,val||0))/3*100)+'%"></div></div><span class="sbar-v">'+(val||0)+'</span></div>';}
 function toggleCc(i){var el=document.getElementById('cc'+i);if(el)el.classList.toggle('open');}
@@ -1190,9 +1213,27 @@ function renderContas(){
   var cdMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.conta||'Sem conta';if(!cdMap[c])cdMap[c]=[];cdMap[c].push(d);}
   var contas=CONTAS_DEF.slice();
   for(var cn in cdMap){var found=false;for(var j=0;j<contas.length;j++){if(contas[j].conta===cn){found=true;break;}}if(!found)contas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
-  // ordena por score total final
+
+  // Filtro por busca
+  var q=(document.getElementById('contaSrch')||{}).value;
+  q=q?q.toLowerCase().trim():'';
+  if(q)contas=contas.filter(function(ct){return ct.conta.toLowerCase().indexOf(q)>=0;});
+
+  // Filtro por prioridade
+  var prioFil=(document.getElementById('contaPrio')||{}).value||'';
+  if(prioFil)contas=contas.filter(function(ct){return ct.prioridade===prioFil;});
+
+  // Ordenação
+  var sv=(document.getElementById('contaSort')||{}).value||'score';
   contas.sort(function(a,b){
     var da=getContaData(a),db=getContaData(b);
+    if(sv==='score')return db.scoreTotal-da.scoreTotal;
+    if(sv==='scoreAudit')return db.scoreAudit-da.scoreAudit;
+    if(sv==='nome')return a.conta.localeCompare(b.conta);
+    if(sv==='mat')return db.mat-da.mat;
+    if(sv==='ytd')return db.ytd-da.ytd;
+    if(sv==='investimento')return budInvestimentoConta(b.conta)-budInvestimentoConta(a.conta);
+    if(sv==='ritmo')return calcRitmoConta(db.ytd,db.mat)-calcRitmoConta(da.ytd,da.mat);
     return db.scoreTotal-da.scoreTotal;
   });
   var priCol={'Prioridade Máxima':'r1','Prioridade Alta':'r2','Prioridade Média':'r3','Monitoramento':'rn'};
@@ -1517,7 +1558,10 @@ function openCsvAuditModal(){
   document.getElementById('csvResult').style.display='none';
   document.getElementById('csvResult').innerHTML='';
   document.getElementById('csvApplyBtn').style.display='none';
+  var newEl=document.getElementById('csvNewContas');
+  if(newEl){newEl.innerHTML='';newEl.style.display='none';}
   csvParsedData=[];
+  csvNewContasPending=[];
   document.getElementById('csvAuditOv').classList.add('on');
 }
 function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.remove('on');}
@@ -1584,41 +1628,41 @@ function processCsvAudit(){
   csvParsedData=parsed;
   var found=parsed.filter(function(r){return r.conta;}).length;
   var notFound=parsed.filter(function(r){return !r.conta;});
+  csvNewContasPending=notFound;
+
   var resultEl=document.getElementById('csvResult');
   resultEl.style.display='block';
   resultEl.innerHTML='<b>'+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
-  document.getElementById('csvApplyBtn').style.display=found>0||notFound.length>0?'':'none';
+  document.getElementById('csvApplyBtn').style.display=(found>0||notFound.length>0)?'':'none';
 
-  // Mostra contas novas não encontradas com opção de incluir
-  csvNewContasPending=notFound;
+  // Exibe contas novas com checkbox
   var newEl=document.getElementById('csvNewContas');
   if(newEl&&notFound.length>0){
-    var h='<div style="margin-top:10px;"><b style="color:#6d28d9;">🆕 '+notFound.length+' conta(s) nova(s) na auditoria — incluir?</b></div>';
+    var h='<div style="margin-top:8px;padding:10px 12px;background:#ede9fe;border-radius:10px;">'+
+      '<div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:8px;">🆕 '+notFound.length+' conta(s) nova(s) na auditoria — incluir?</div>';
     for(var ni=0;ni<notFound.length;ni++){
       var nr=notFound[ni];
-      h+='<div class="csv-new-item">'+
-        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">'+
-          '<input type="checkbox" data-idx="'+ni+'" checked style="width:16px;height:16px;cursor:pointer;">'+
-          '<span><b>'+esc(nr.contaRaw)+'</b>'+
-            (nr.mat!=null?' · MAT '+nr.mat:'')+
-            (nr.ytd!=null?' · YTD '+nr.ytd:'')+
-          '</span>'+
-        '</label>'+
-      '</div>';
+      h+='<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 0;border-bottom:1px solid #ddd8fe;font-size:13px;">'+
+        '<input type="checkbox" data-idx="'+ni+'" checked style="width:16px;height:16px;cursor:pointer;accent-color:#6d28d9;">'+
+        '<span><b>'+esc(nr.contaRaw)+'</b>'+
+          (nr.mat!=null?' · MAT '+nr.mat:'')+
+          (nr.ytd!=null?' · YTD '+nr.ytd:'')+
+          ' <span style="font-size:10px;color:#888;">(prioridade: Monitoramento)</span>'+
+        '</span>'+
+      '</label>';
     }
-    newEl.style.display='block';
+    h+='</div>';
     newEl.innerHTML=h;
+    newEl.style.display='block';
   } else if(newEl){
-    newEl.style.display='none';
     newEl.innerHTML='';
+    newEl.style.display='none';
   }
 }
 
-// Guarda contas novas pendentes de confirmação
-var csvNewContasPending=[];
-
 function applyCsvAudit(){
   var updated=0;
+
   // 1. Atualiza contas já conhecidas
   for(var i=0;i<csvParsedData.length;i++){
     var row=csvParsedData[i];
@@ -1634,7 +1678,8 @@ function applyCsvAudit(){
     if(row.scoreEsp!=null)ad.scoreEsp=row.scoreEsp;
     updated++;
   }
-  // 2. Adiciona contas novas ao CONTAS_DEF (já aprovadas pelo usuário via checkbox)
+
+  // 2. Cria contas novas marcadas pelo usuário
   var newEl=document.getElementById('csvNewContas');
   if(newEl){
     var checks=newEl.querySelectorAll('input[type=checkbox]:checked');
@@ -1642,63 +1687,31 @@ function applyCsvAudit(){
       var idx=parseInt(checks[j].dataset.idx);
       var nr=csvNewContasPending[idx];
       if(!nr)continue;
-      // Cria entry no CONTAS_DEF
-      var newCt={
+      // Evita duplicata
+      var jaExiste=false;
+      for(var k=0;k<CONTAS_DEF.length;k++){if(CONTAS_DEF[k].conta===nr.contaRaw){jaExiste=true;break;}}
+      if(jaExiste)continue;
+      var tam=nr.scoreTam||1,mom=nr.scoreMom||1,pot2=nr.scorePot||1,esp=nr.scoreEsp||1;
+      CONTAS_DEF.push({
         conta:nr.contaRaw,
-        scoreTam:nr.scoreTam||1, scoreMom:nr.scoreMom||1,
-        scorePot:nr.scorePot||1, scoreEsp:nr.scoreEsp||1,
-        scoreTotal:4, mat:nr.mat||0, ytd:nr.ytd||0,
+        scoreTam:tam,scoreMom:mom,scorePot:pot2,scoreEsp:esp,
+        scoreTotal:tam+mom+pot2+esp,
+        mat:nr.mat||0,ytd:nr.ytd||0,
         prioridade:'Monitoramento'
-      };
-      CONTAS_DEF.push(newCt);
-      // Salva auditData
+      });
       if(!cExtra[nr.contaRaw])cExtra[nr.contaRaw]={};
       cExtra[nr.contaRaw].auditData={
-        scoreTam:newCt.scoreTam, scoreMom:newCt.scoreMom,
-        scorePot:newCt.scorePot, scoreEsp:newCt.scoreEsp,
-        mat:newCt.mat, ytd:newCt.ytd
+        scoreTam:tam,scoreMom:mom,scorePot:pot2,scoreEsp:esp,
+        mat:nr.mat||0,ytd:nr.ytd||0
       };
       updated++;
     }
   }
+
   persist();
   closeCsvAuditModal();
   renderContas();
-  alert('✅ '+updated+' conta(s) atualizadas/criadas e sincronizadas!');
-}
-
-// ── Nova conta manual ──
-function openNewContaModal(){
-  ['nc_nome','nc_mat','nc_ytd'].forEach(function(id){document.getElementById(id).value='';});
-  ['nc_tam','nc_mom','nc_pot','nc_esp'].forEach(function(id){document.getElementById(id).value=1;});
-  document.getElementById('nc_prio').value='Prioridade Média';
-  document.getElementById('newContaOv').classList.add('on');
-}
-function closeNewContaModal(){document.getElementById('newContaOv').classList.remove('on');}
-function saveNewConta(){
-  var nome=document.getElementById('nc_nome').value.trim();
-  if(!nome){alert('Informe o nome da conta.');return;}
-  // Verifica duplicata
-  for(var i=0;i<CONTAS_DEF.length;i++){
-    if(CONTAS_DEF[i].conta.toLowerCase()===nome.toLowerCase()){
-      alert('Conta "'+nome+'" já existe.');return;
-    }
-  }
-  var tam=parseInt(document.getElementById('nc_tam').value)||1;
-  var mom=parseInt(document.getElementById('nc_mom').value)||1;
-  var pot=parseInt(document.getElementById('nc_pot').value)||1;
-  var esp=parseInt(document.getElementById('nc_esp').value)||1;
-  var mat=parseFloat(document.getElementById('nc_mat').value)||0;
-  var ytd=parseFloat(document.getElementById('nc_ytd').value)||0;
-  var prio=document.getElementById('nc_prio').value;
-  var newCt={conta:nome,scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,scoreTotal:tam+mom+pot+esp,mat:mat,ytd:ytd,prioridade:prio};
-  CONTAS_DEF.push(newCt);
-  if(!cExtra[nome])cExtra[nome]={};
-  cExtra[nome].auditData={scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,mat:mat,ytd:ytd};
-  persist();
-  closeNewContaModal();
-  renderContas();
-  setSync('ok','Conta "'+nome+'" criada ✓');
+  alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!');
 }
 
 // ══════════ CIDADES ══════════
@@ -1914,7 +1927,178 @@ function renderInsights(){
     '<div class="tip"><b>📊 Atualizar auditoria</b>Na aba Contas, clique em "📊 Importar auditoria" para colar o CSV do Excel e atualizar MAT, YTD e scores de todas as contas de uma vez. Ou expanda um card e clique em "✏️ Editar auditoria" para editar individualmente.</div>'+
     '<div class="tip"><b>🏦 Score de contas</b>O número cinza é o score da auditoria. O roxo maior é o total somando os marcadores de contexto. O badge verde/vermelho mostra o delta dos marcadores.</div>'+
     '<div class="tip"><b>🎯 Score médico</b>A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
-    '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>';
+    '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>'+
+    renderDecisaoHTML();
+}
+
+// ══════════ PAINÉIS DE DECISÃO ══════════
+function renderDecisaoHTML(){
+  var html='<div class="sec-title">🎯 Painéis de Decisão</div>';
+
+  // ── PAINEL 1: Cruzamento Investimento × Resultado por Conta ──
+  var contasComDados=[];
+  var allContas=CONTAS_DEF.slice();
+  // Inclui contas extras que não estão no DEF
+  var cdMap={};
+  for(var i=0;i<docs.length;i++){var c=docs[i].conta||'Sem conta';if(!cdMap[c])cdMap[c]=1;}
+  for(var cn in cdMap){var f=false;for(var j=0;j<allContas.length;j++){if(allContas[j].conta===cn){f=true;break;}}if(!f)allContas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
+
+  for(var i=0;i<allContas.length;i++){
+    var ct=allContas[i];
+    var cd=getContaData(ct);
+    var inv=budInvestimentoConta(ct.conta);
+    var ritmo=calcRitmoConta(cd.ytd,cd.mat);
+    contasComDados.push({conta:ct.conta,ytd:cd.ytd,mat:cd.mat,score:cd.scoreTotal,inv:inv,ritmo:ritmo});
+  }
+  contasComDados=contasComDados.filter(function(c){return c.mat>0||c.inv>0||c.ytd>0;});
+  contasComDados.sort(function(a,b){return b.inv-a.inv;});
+
+  var maxInv=contasComDados.reduce(function(m,c){return Math.max(m,c.inv);},0);
+  var maxMat=contasComDados.reduce(function(m,c){return Math.max(m,c.mat);},0);
+  var totalInv=contasComDados.reduce(function(s,c){return s+c.inv;},0);
+
+  if(contasComDados.length){
+    var rows='';
+    contasComDados.forEach(function(c){
+      var invPct=maxInv?Math.round(c.inv/maxInv*100):0;
+      var matPct=maxMat?Math.round(c.mat/maxMat*100):0;
+      // Sinal: investimento alto + YTD baixo = alerta
+      var sig='';
+      if(c.inv>0&&c.ytd===0)sig='<span class="signal sig-warn">⚠️ Sem YTD</span>';
+      else if(c.ritmo>=120)sig='<span class="signal sig-up">🚀 +'+c.ritmo+'%</span>';
+      else if(c.ritmo>=80)sig='<span class="signal sig-ok">✓ '+c.ritmo+'%</span>';
+      else if(c.ritmo>0&&c.ritmo<60)sig='<span class="signal sig-down">↓ '+c.ritmo+'%</span>';
+      else if(c.ritmo===0&&c.mat>0)sig='<span class="signal sig-neu">0%</span>';
+      rows+='<div class="dec-row">'+
+        '<div class="dec-name" title="'+esc(c.conta)+'">'+esc(c.conta)+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:2px;width:70px;flex-shrink:0;">'+
+          '<div style="display:flex;align-items:center;gap:3px;">'+
+            '<div class="dec-bar-wrap" style="width:60px;"><div class="dec-bar-fill" style="width:'+invPct+'%;background:#6d28d9;"></div></div>'+
+            '<span style="font-size:9px;color:#888;width:8px;">R$</span>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:3px;">'+
+            '<div class="dec-bar-wrap" style="width:60px;"><div class="dec-bar-fill" style="width:'+matPct+'%;background:#22c55e;"></div></div>'+
+            '<span style="font-size:9px;color:#888;width:8px;">M</span>'+
+          '</div>'+
+        '</div>'+
+        '<div class="dec-val">'+fmtBRL(c.inv)+'</div>'+
+        sig+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>💰 Investimento × Resultado por Conta</h3>'+
+      '<div class="sub">🟣 Investimento budget · 🟢 MAT · Ritmo = YTD atual vs esperado no período</div>'+
+      '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
+        '<div class="roi-box"><div class="rv" style="color:#6d28d9;">'+fmtBRL(totalInv)+'</div><div class="rl">Total investido</div></div>'+
+        '<div class="roi-box"><div class="rv" style="color:#22c55e;">'+contasComDados.filter(function(c){return c.ytd>0;}).length+'</div><div class="rl">Contas com YTD</div></div>'+
+        '<div class="roi-box"><div class="rv" style="color:#dc2626;">'+contasComDados.filter(function(c){return c.inv>0&&c.ytd===0;}).length+'</div><div class="rl">Inv. sem retorno</div></div>'+
+      '</div>'+
+      rows+
+    '</div>';
+  }
+
+  // ── PAINEL 2: Score de Retorno por Médico ──
+  var topDocsBud=[];
+  for(var i=0;i<docs.length;i++){
+    var d=docs[i];
+    var inv=(budget.items||[]).filter(function(it){return it.docName===d.name;}).reduce(function(s,it){return s+(it.val||0);},0);
+    var nMat=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])nMat++;}
+    var nEmail=0;for(var mi=0;mi<mats.length;mi++){if(sentEmail[sk(d.name,mi)+'__e'])nEmail++;}
+    var sc=calcScore(d);
+    var envios=nMat+nEmail;
+    // Score de retorno: só entra se tiver algum dado de investimento ou envio
+    if(inv>0||envios>0){
+      var retScore=0;
+      if(sc>=5)retScore+=3;else if(sc>=2)retScore+=1;
+      if(envios>=4)retScore+=3;else if(envios>=2)retScore+=1;
+      if(inv===0)retScore+=1; // baixo custo
+      else if(inv<500)retScore+=2;
+      topDocsBud.push({name:d.name,pot:d.pot,sc:sc,inv:inv,envios:envios,ret:retScore});
+    }
+  }
+  if(topDocsBud.length){
+    // Ordena por: alto score + baixo investimento = oportunidade; alto investimento + baixo envio = alerta
+    topDocsBud.sort(function(a,b){return b.ret-a.ret||b.sc-a.sc;});
+    var rows2='';
+    // Top 8 oportunidades (alto retorno, baixo custo)
+    var oportun=topDocsBud.filter(function(d){return d.sc>=5&&d.inv<500;}).slice(0,5);
+    // Alertas (alto investimento, baixo envio)
+    var alertas=topDocsBud.filter(function(d){return d.inv>=500&&d.envios<2;}).slice(0,5);
+    if(oportun.length){
+      rows2+='<div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.4px;margin:6px 0 4px;">🚀 Oportunidades — alta prioridade, baixo custo</div>';
+      oportun.forEach(function(d){
+        rows2+='<div class="dec-row">'+
+          '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+          '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+          '<span class="signal sig-up">Score '+d.sc+'</span>'+
+          '<div class="dec-val">'+fmtBRL(d.inv)+'</div>'+
+        '</div>';
+      });
+    }
+    if(alertas.length){
+      rows2+='<div style="font-size:11px;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:.4px;margin:10px 0 4px;">⚠️ Revisar — investimento alto, poucos envios</div>';
+      alertas.forEach(function(d){
+        rows2+='<div class="dec-row">'+
+          '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+          '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+          '<span class="signal sig-warn">'+d.envios+'/'+mats.length+' envios</span>'+
+          '<div class="dec-val">'+fmtBRL(d.inv)+'</div>'+
+        '</div>';
+      });
+    }
+    if(rows2)html+='<div class="dec-card"><h3>👤 Score de Retorno por Médico</h3><div class="sub">Médicos com maior potencial vs custo de investimento. Oportunidades e alertas.</div>'+rows2+'</div>';
+  }
+
+  // ── PAINEL 3: Mapa de Concentração ──
+  var contasConc=[];
+  var totalBudAll=(budget.items||[]).reduce(function(s,it){return s+(it.val||0);},0);
+  var allContasConc=CONTAS_DEF.slice();
+  for(var cn2 in cdMap){var f2=false;for(var j=0;j<allContasConc.length;j++){if(allContasConc[j].conta===cn2){f2=true;break;}}if(!f2)allContasConc.push({conta:cn2,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
+
+  var totalMat=allContasConc.reduce(function(s,ct){return s+getContaData(ct).mat;},0);
+  var totalYtdAll=allContasConc.reduce(function(s,ct){return s+getContaData(ct).ytd;},0);
+
+  for(var i=0;i<allContasConc.length;i++){
+    var ct2=allContasConc[i];
+    var cd2=getContaData(ct2);
+    var inv2=budInvestimentoConta(ct2.conta);
+    if(cd2.mat>0||inv2>0){
+      contasConc.push({
+        conta:ct2.conta,
+        pctBud:totalBudAll?Math.round(inv2/totalBudAll*100):0,
+        pctMat:totalMat?Math.round(cd2.mat/totalMat*100):0,
+        pctYtd:totalYtdAll?Math.round(cd2.ytd/totalYtdAll*100):0,
+        scoreTotal:cd2.scoreTotal,
+        mat:cd2.mat, ytd:cd2.ytd, inv:inv2
+      });
+    }
+  }
+  contasConc.sort(function(a,b){return b.pctMat-a.pctMat;}).slice(0,10);
+  if(contasConc.length){
+    var rows3='<div style="display:flex;gap:12px;margin-bottom:8px;font-size:10px;font-weight:700;color:#888;">'+
+      '<span>🟣 % Budget</span><span>🟢 % MAT</span><span>🔵 Score</span>'+
+    '</div>';
+    contasConc.slice(0,10).forEach(function(c){
+      var gap=c.pctBud-c.pctMat; // positivo = investindo mais que o potencial indica
+      var gapSig=gap>15?'<span class="signal sig-warn">↑ +'+gap+'% bud</span>':
+                 gap<-15?'<span class="signal sig-up">↓ sub-inv.</span>':'';
+      rows3+='<div class="conc-row">'+
+        '<div class="dec-name">'+esc(c.conta)+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:2px;width:90px;flex-shrink:0;">'+
+          '<div style="display:flex;align-items:center;gap:2px;"><div style="width:'+Math.min(c.pctBud*1.5,90)+'px;height:5px;border-radius:3px;background:#6d28d9;"></div><span style="font-size:9px;color:#888;">'+c.pctBud+'%</span></div>'+
+          '<div style="display:flex;align-items:center;gap:2px;"><div style="width:'+Math.min(c.pctMat*1.5,90)+'px;height:5px;border-radius:3px;background:#22c55e;"></div><span style="font-size:9px;color:#888;">'+c.pctMat+'%</span></div>'+
+        '</div>'+
+        (gapSig||'<span class="signal sig-neu">Score '+c.scoreTotal+'</span>')+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>🗺️ Mapa de Concentração</h3>'+
+      '<div class="sub">Compara onde está seu budget vs onde está o potencial (MAT). Sub-investida = oportunidade.</div>'+
+      rows3+
+    '</div>';
+  }
+
+  return html;
 }
 // ══════════ AGENDA DE ATENDIMENTO ══════════
 var DAY_LABELS={MON:'Seg',TUE:'Ter',WED:'Qua',THU:'Qui',FRI:'Sex'};
