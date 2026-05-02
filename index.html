@@ -1,3 +1,1214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Gestão de Território</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:16px;}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:100;}
+.tab-btn{flex:1;padding:11px 2px 9px;font-size:11px;font-weight:700;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;}
+.tab-btn.on{color:#6d28d9;border-bottom-color:#6d28d9;}
+.page{display:none;}.page.on{display:block;}
+.sync-bar{display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:11px;color:#888;background:#f9f9f9;border-bottom:1px solid #eee;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;}
+.sync-dot.ok{background:#22c55e;}.sync-dot.err{background:#ef4444;}.sync-dot.syncing{background:#f59e0b;animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hdr{background:#6d28d9;color:#fff;padding:13px 14px 11px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.hdr h1{font-size:17px;font-weight:700;}.hdr p{font-size:11px;opacity:.8;margin-top:2px;}
+.hdr-btn{background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:18px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.sbar{padding:9px 12px 0;background:#f2f2f7;}.sbar input{width:100%;padding:9px 14px;border-radius:11px;border:1px solid #ddd;font-size:15px;background:#fff;outline:none;}
+.ctrl-row{padding:7px 12px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.ctrl-row select{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;}
+.ctrl-btn{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.ctrl-btn.primary{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.chips{padding:6px 12px 4px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}.chips::-webkit-scrollbar{display:none;}
+.chip{white-space:nowrap;padding:5px 11px;border-radius:18px;font-size:11px;font-weight:700;border:1px solid #ddd;cursor:pointer;background:#fff;color:#6d28d9;flex-shrink:0;}
+.chip.on{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.chip.all{background:#e5e7eb;color:#374151;border-color:#e5e7eb;}.chip.all.on{background:#374151;color:#fff;}
+.pot-row{padding:0 12px 6px;display:flex;gap:6px;}
+.pc{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;border:none;cursor:pointer;}
+.pcA{background:#d1fae5;color:#065f46;}.pcB{background:#dbeafe;color:#1e40af;}.pcC{background:#f3f4f6;color:#374151;}
+.pc.dim{opacity:.3;}
+.stline{padding:4px 12px 8px;font-size:13px;color:#888;}
+.dlist{padding:0 12px 90px;}
+/* ── MATERIAIS NO CARD ── */
+.mat-section{border-top:1px solid #f2f2f7;}
+.mat-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;cursor:pointer;background:#fafafa;}
+.mat-toggle-row:active{background:#f2f2f7;}
+.mat-toggle-btn{font-size:14px;font-weight:600;color:#6d28d9;}
+.mat-toggle-btn.sent{color:#065f46;}
+.mat-chev{font-size:10px;color:#aaa;transition:transform .2s;}
+.dc{background:#fff;border-radius:14px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.dc-hd{padding:12px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;}
+.dc-info{flex:1;min-width:0;}
+.dc-name{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;flex-wrap:wrap;align-items:center;gap:3px;}
+.dc-sub{font-size:13px;color:#888;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;margin-right:4px;}
+.bA{background:#d1fae5;color:#065f46;}.bB{background:#dbeafe;color:#1e40af;}.bC{background:#f3f4f6;color:#374151;}
+.sc-badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;margin-left:3px;}
+.s-hi{background:#fef3c7;color:#92400e;}.s-md{background:#e0e7ff;color:#3730a3;}.s-lo{background:#f3f4f6;color:#6b7280;}
+.dc-acts{display:flex;gap:5px;flex-shrink:0;}
+.ibtn{background:none;border:1px solid #e5e5ea;border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;}
+.ibtn.d{border-color:#fca5a5;color:#dc2626;}
+.chev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
+.dc.open .chev{transform:rotate(180deg);}
+.dc-body{display:none;border-top:1px solid #f2f2f7;}.dc.open .dc-body{display:block;}
+.dc-detail{padding:10px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;font-size:13px;color:#555;display:flex;flex-wrap:wrap;gap:10px;}
+.dc-detail span b{color:#1c1c1e;}
+.score-detail{padding:10px 13px;background:#f5f3ff;border-bottom:1px solid #f2f2f7;}
+.sd-title{font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.sd-items{display:flex;flex-wrap:wrap;gap:5px;}
+.si{padding:4px 9px;border-radius:8px;font-size:12px;font-weight:600;}
+.si-pos{background:#d1fae5;color:#065f46;}.si-neg{background:#fee2e2;color:#b91c1c;}.si-neu{background:#f3f4f6;color:#374151;}
+.mrow:last-child{border-bottom:none;}
+.mlabel{flex:1;font-size:15px;color:#333;min-width:0;line-height:1.4;}
+.stag{display:inline-block;font-size:11px;background:#d1fae5;color:#065f46;border-radius:6px;padding:3px 8px;font-weight:700;margin-left:6px;cursor:pointer;border:none;vertical-align:middle;}
+.stag:active{background:#a7f3d0;}
+.etag{display:inline-block;font-size:11px;background:#dbeafe;color:#1e40af;border-radius:6px;padding:3px 8px;font-weight:700;margin-left:4px;cursor:pointer;border:none;vertical-align:middle;}
+.etag:active{background:#bfdbfe;}
+.wbtn{display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;}
+.ebtn{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#6d28d9;border:1.5px solid #6d28d9;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.ebtn.done{background:#22c55e;border-color:#22c55e;color:#fff;}
+.mrow{display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid #f9f9f9;flex-wrap:wrap;}
+.nophone{font-size:12px;color:#dc2626;background:#fee2e2;padding:6px 10px;border-radius:8px;flex-shrink:0;}
+.fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
+.pwrap{padding:12px 12px 90px;}
+.phd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;}
+.phd h2{font-size:17px;font-weight:700;}
+.mcard{background:#fff;border-radius:13px;padding:13px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.mcard-t{font-size:14px;font-weight:600;margin-bottom:4px;}
+.mcard-p{font-size:12px;color:#888;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.mcard-a{display:flex;gap:8px;margin-top:10px;}
+
+/* ── CONTAS ── */
+.ccard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.ccard-hd{padding:12px 13px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.crank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.r1{background:#fef3c7;color:#92400e;}.r2{background:#f3f4f6;color:#374151;}.r3{background:#fce7f3;color:#9d174d;}.rn{background:#ede9fe;color:#5b21b6;}
+.ccard-main{flex:1;min-width:0;}
+.ccard-name{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ccard-sub{font-size:11px;color:#888;margin-top:3px;}
+.ccard-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.cscore-box{text-align:center;}
+.cscore-audit{font-size:13px;font-weight:700;color:#aaa;line-height:1;}
+.cscore-total{font-size:22px;font-weight:700;color:#6d28d9;line-height:1;margin-top:2px;}
+.cscore-lbl{font-size:9px;color:#aaa;margin-top:1px;}
+.cscore-delta{font-size:11px;font-weight:700;padding:2px 6px;border-radius:8px;align-self:flex-start;margin-top:4px;}
+.cscore-delta.pos{background:#d1fae5;color:#065f46;}
+.cscore-delta.neg{background:#fee2e2;color:#b91c1c;}
+.cscore-delta.zero{background:#f3f4f6;color:#888;}
+.cchev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;margin-top:6px;}
+.ccard.open .cchev{transform:rotate(180deg);}
+.ccard-body{display:none;border-top:1px solid #f2f2f7;}.ccard.open .ccard-body{display:block;}
+/* info row dentro do card */
+.cinfo-row{padding:8px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#555;align-items:center;}
+.cinfo-row span b{color:#1c1c1e;}
+/* barras */
+.sbars{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.sbar-r{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px;}
+.sbar-lbl{width:90px;color:#555;flex-shrink:0;}
+.sbar-out{flex:1;height:6px;background:#f2f2f7;border-radius:3px;overflow:hidden;}
+.sbar-in{height:100%;border-radius:3px;background:#6d28d9;}
+.sbar-v{width:16px;font-weight:700;color:#6d28d9;flex-shrink:0;text-align:right;}
+/* marcadores de conta */
+.cmk-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.cmk-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.cmk-title{font-size:12px;font-weight:700;color:#1c1c1e;}
+.cmk-pts{font-size:12px;font-weight:700;}
+.cmk-pts.pos{color:#065f46;}.cmk-pts.neg{color:#b91c1c;}.cmk-pts.zero{color:#888;}
+.cmk-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.cmk-section.pos{color:#22c55e;}.cmk-section.neg{color:#ef4444;}
+.cmk-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.cmk-chip{padding:5px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1.5px solid #e5e7eb;cursor:pointer;background:#fff;color:#374151;transition:all .15s;}
+.cmk-chip.pos:not(.sel){border-color:#86efac;color:#166534;}
+.cmk-chip.pos.sel{background:#22c55e;color:#fff;border-color:#22c55e;}
+.cmk-chip.neg:not(.sel){border-color:#fca5a5;color:#991b1b;}
+.cmk-chip.neg.sel{background:#ef4444;color:#fff;border-color:#ef4444;}
+/* barreira */
+.barr-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.barr-lbl{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.barr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;align-items:center;}
+.bchip{padding:5px 11px;border-radius:16px;font-size:12px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;}
+.bchip.sel{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+/* add row e botão delete custom */
+.cmk-add-row{display:flex;gap:6px;margin-top:8px;align-items:center;}
+.cmk-add-input{flex:1;padding:7px 10px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;outline:none;font-family:-apple-system,sans-serif;}
+.cmk-add-pts{width:58px;padding:7px 8px;border-radius:9px;border:1px solid #ddd;font-size:13px;background:#f9f9f9;outline:none;font-family:-apple-system,sans-serif;text-align:center;flex-shrink:0;}
+.cmk-add-btn{padding:7px 12px;border-radius:9px;border:none;background:#6d28d9;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.cmk-del{background:none;border:none;color:#dc2626;font-size:14px;font-weight:700;cursor:pointer;padding:2px 4px;line-height:1;flex-shrink:0;margin-left:-2px;}
+/* docs na conta */
+.cdoc-list{padding:10px 13px;}
+.cdoc-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.cdoc-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f9f9f9;font-size:12px;}
+.cdoc-row:last-child{border-bottom:none;}
+
+/* CIDADES */
+.citycard{background:#fff;border-radius:13px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.citycard-hd{padding:12px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.city-ico{width:36px;height:36px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.city-main{flex:1;min-width:0;}
+.city-nm{font-size:15px;font-weight:700;}
+.city-sb{font-size:11px;color:#888;margin-top:2px;}
+.city-cnt{font-size:20px;font-weight:700;color:#6d28d9;flex-shrink:0;}
+.city-chev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
+.citycard.open .city-chev{transform:rotate(180deg);}
+.citycard-body{display:none;border-top:1px solid #f2f2f7;}.citycard.open .citycard-body{display:block;}
+.city-pot{padding:10px 13px;background:#fafafa;border-bottom:1px solid #f2f2f7;display:flex;gap:8px;align-items:center;}
+.cpot{padding:4px 10px;border-radius:14px;font-size:12px;font-weight:700;}
+.city-docs{padding:0 13px 8px;}
+.city-doc-item{padding:7px 0;border-bottom:1px solid #f9f9f9;font-size:13px;display:flex;align-items:center;gap:6px;}
+.city-doc-item:last-child{border-bottom:none;}
+
+/* INSIGHTS */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.metric{border-radius:12px;padding:12px;text-align:center;}
+.metric .ml{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;}
+.metric .mv{font-size:26px;font-weight:700;}
+.m1{background:#ede9fe;}.m1 .ml{color:#6d28d9;}.m1 .mv{color:#6d28d9;}
+.m2{background:#d1fae5;}.m2 .ml{color:#065f46;}.m2 .mv{color:#065f46;}
+.m3{background:#dbeafe;}.m3 .ml{color:#1e40af;}.m3 .mv{color:#1e40af;}
+.m4{background:#fef3c7;}.m4 .ml{color:#92400e;}.m4 .mv{color:#92400e;}
+.icard{background:#fff;border-radius:13px;padding:13px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.icard h3{font-size:14px;font-weight:700;margin-bottom:8px;}
+.irow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f2f2f7;font-size:13px;gap:8px;}
+.irow:last-child{border-bottom:none;}
+.irow span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pill{padding:2px 8px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;}
+.pg{background:#d1fae5;color:#065f46;}.po{background:#fef3c7;color:#92400e;}.pr{background:#fee2e2;color:#b91c1c;}.pb{background:#dbeafe;color:#1e40af;}
+.prog{height:5px;border-radius:3px;background:#f2f2f7;overflow:hidden;width:60px;}
+.pf{height:100%;border-radius:3px;background:#6d28d9;}
+.tip{border-left:3px solid #6d28d9;background:#f5f3ff;border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#4c1d95;line-height:1.5;}
+.tip b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+.sec-title{font-size:15px;font-weight:700;margin:14px 0 8px;}
+
+/* MODAIS */
+.ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:500;}
+.ov.on{display:flex;align-items:flex-end;justify-content:center;}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:20px 18px 40px;max-height:90vh;overflow-y:auto;}
+.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.mhd h2{font-size:17px;font-weight:700;}
+.mhd button{background:none;border:none;font-size:22px;color:#888;cursor:pointer;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ddd;font-size:15px;font-family:-apple-system,sans-serif;background:#f9f9f9;color:#1c1c1e;outline:none;-webkit-appearance:none;}
+.field .cmk-add-row input{width:auto;padding:7px 10px;font-size:13px;border-radius:9px;}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5;}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.brow{display:flex;gap:9px;margin-top:8px;}
+.bsave{flex:1;background:#6d28d9;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
+.bdel{flex:1;background:#dc2626;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
+.bcanc{flex:1;background:#f2f2f7;color:#333;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;}
+.empty{text-align:center;padding:50px 20px;color:#888;font-size:14px;}
+.score-section-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px;}
+
+/* MODAL AUDITORIA */
+.audit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.audit-field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+.audit-field input{width:100%;padding:9px 12px;border-radius:10px;border:1px solid #ddd;font-size:15px;background:#f9f9f9;outline:none;font-family:-apple-system,sans-serif;}
+.audit-preview{background:#f5f3ff;border-radius:10px;padding:10px 13px;margin-bottom:12px;font-size:12px;color:#4c1d95;line-height:1.6;}
+.audit-preview b{font-size:13px;}
+
+/* CSV IMPORT MODAL */
+.csv-info{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 13px;font-size:12px;color:#166534;line-height:1.6;margin-bottom:12px;}
+.csv-info code{display:block;font-family:monospace;background:#dcfce7;padding:4px 8px;border-radius:6px;margin-top:6px;font-size:11px;word-break:break-all;}
+.csv-result{margin-top:10px;font-size:12px;color:#555;background:#f9f9f9;border-radius:8px;padding:8px 12px;max-height:120px;overflow-y:auto;}
+.csv-result .ok{color:#065f46;}.csv-result .warn{color:#92400e;}
+
+/* Deep-link: nome clicável nas listas de Contas e Cidades */
+.doc-link{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6d28d9;font-weight:600;cursor:pointer;background:none;border:none;padding:0;font-size:inherit;font-family:inherit;text-align:left;}
+.doc-link:active{opacity:.7;}
+/* Select de ordenação dentro dos cards */
+.cdoc-sort{border:1px solid #e5e7eb;background:#f9f9f9;color:#6d28d9;border-radius:10px;padding:3px 8px;font-size:10px;font-weight:700;outline:none;-webkit-appearance:none;cursor:pointer;margin-left:auto;}
+
+/* ── BUDGET ── */
+.bud-hero{background:linear-gradient(135deg,#6d28d9,#4f46e5);color:#fff;margin:12px 12px 0;border-radius:16px;padding:18px 18px 16px;}
+.bud-hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.bud-hero-label{font-size:11px;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.5px;}
+.bud-hero-val{font-size:36px;font-weight:700;line-height:1;}
+.bud-hero-sub{font-size:12px;opacity:.7;margin-top:3px;}
+.bud-badge{background:rgba(255,255,255,.18);border-radius:10px;padding:8px 12px;text-align:right;}
+.bud-badge-label{font-size:10px;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.bud-badge-val{font-size:20px;font-weight:700;}
+.bud-bar-wrap{height:8px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden;}
+.bud-bar-fill{height:100%;border-radius:4px;background:#fff;transition:width .4s;}
+.bud-bar-pct{font-size:11px;opacity:.75;margin-top:4px;}
+.bud-cats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 12px 0;}
+.bud-cat{background:#fff;border-radius:12px;padding:12px 13px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.bud-cat-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.bud-cat-name{font-size:12px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;}
+.bud-cat-count{font-size:10px;color:#aaa;}
+.bud-cat-val{font-size:18px;font-weight:700;color:#6d28d9;}
+.bud-cat-sub{font-size:10px;color:#888;margin-top:1px;}
+.bud-add-cat{background:#fff;border:2px dashed #ddd;border-radius:12px;padding:12px 13px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:13px;color:#888;font-weight:600;}
+.bud-add-cat:active{background:#f9f9f9;}
+.bud-sec-title{font-size:14px;font-weight:700;margin:14px 12px 8px;color:#1c1c1e;}
+.bud-list{padding:0 12px;}
+.bud-item{background:#fff;border-radius:12px;margin-bottom:8px;padding:13px;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:flex-start;gap:10px;}
+.bud-item-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px;}
+.bud-item-info{flex:1;min-width:0;}
+.bud-item-desc{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bud-item-sub{font-size:12px;color:#888;margin-top:2px;}
+.bud-item-val{font-size:16px;font-weight:700;color:#dc2626;flex-shrink:0;}
+.bud-item-acts{display:flex;gap:5px;flex-shrink:0;}
+.bud-fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
+.bud-empty{text-align:center;padding:30px 20px;color:#888;font-size:14px;}
+.cat-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;flex-shrink:0;}
+
+/* ── AGENDA DE ATENDIMENTO ── */
+.agenda-wrap{padding:10px 13px;border-bottom:1px solid #f2f2f7;}
+.agenda-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.agenda-days{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+.aday{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;}
+.aday-lbl{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;}
+.aday-btn{width:44px;height:34px;border-radius:9px;border:1.5px solid #e5e7eb;background:#fff;cursor:pointer;font-size:11px;font-weight:700;color:#aaa;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1.2;text-align:center;}
+.aday-btn:active{transform:scale(.95);}
+.aday-btn.ag{border-color:#f59e0b;background:#fffbeb;color:#92400e;}
+.aday-btn.manha{border-color:#6d28d9;background:#ede9fe;color:#4c1d95;}
+.aday-btn.tarde{border-color:#2563eb;background:#dbeafe;color:#1e40af;}
+.aday-btn.dia-todo{border-color:#059669;background:#d1fae5;color:#065f46;}
+.aday-btn.off{border-color:#f3f4f6;background:#f9f9f9;color:#d1d5db;}
+.agenda-obs{font-size:12px;color:#555;background:#fafafa;border-radius:8px;padding:6px 10px;margin-top:4px;line-height:1.5;border-left:3px solid #e5e7eb;}
+.agenda-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.ag-leg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;}
+.ag-leg.manha{background:#ede9fe;color:#4c1d95;}
+.ag-leg.tarde{background:#dbeafe;color:#1e40af;}
+.ag-leg.dia-todo{background:#d1fae5;color:#065f46;}
+.ag-leg.ag{background:#fffbeb;color:#92400e;}
+
+/* ── FILTRO DE AGENDA ── */
+.agenda-filter-bar{padding:6px 12px 4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.agenda-filter-bar select{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;min-width:80px;}
+.agenda-filter-bar select.active{background:#6d28d9;color:#fff;border-color:#6d28d9;}
+.af-clear{border:1px solid #e5e7eb;background:#fff;color:#888;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.af-clear.on{background:#fee2e2;color:#dc2626;border-color:#fca5a5;}
+
+/* ── FILTRO DE CONTAS ── */
+.conta-filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.conta-filter-row select{border:1px solid #e5e7eb;background:#fff;color:#6d28d9;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;min-width:90px;}
+.conta-srch{width:100%;padding:8px 14px;border-radius:11px;border:1px solid #ddd;font-size:14px;background:#fff;outline:none;margin-bottom:8px;}
+
+/* ── PAINÉIS DE DECISÃO ── */
+.dec-card{background:#fff;border-radius:13px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.dec-card h3{font-size:14px;font-weight:700;margin-bottom:4px;}
+.dec-card .sub{font-size:11px;color:#888;margin-bottom:10px;}
+.dec-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f2f2f7;font-size:12px;}
+.dec-row:last-child{border-bottom:none;}
+.dec-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+.dec-bar-wrap{width:70px;height:6px;background:#f2f2f7;border-radius:3px;overflow:hidden;flex-shrink:0;}
+.dec-bar-fill{height:100%;border-radius:3px;}
+.dec-val{font-size:11px;font-weight:700;flex-shrink:0;min-width:52px;text-align:right;}
+.signal{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0;}
+.sig-up{background:#d1fae5;color:#065f46;}
+.sig-down{background:#fee2e2;color:#b91c1c;}
+.sig-warn{background:#fef3c7;color:#92400e;}
+.sig-ok{background:#dbeafe;color:#1e40af;}
+.sig-neu{background:#f3f4f6;color:#6b7280;}
+.roi-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.roi-box{background:#f9f9f9;border-radius:9px;padding:9px 11px;text-align:center;}
+.roi-box .rv{font-size:18px;font-weight:700;}
+.roi-box .rl{font-size:10px;color:#888;margin-top:2px;}
+.conc-row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #f2f2f7;font-size:12px;}
+.conc-row:last-child{border-bottom:none;}
+.conc-bar-bud{background:#6d28d9;}
+.conc-bar-ytd{background:#22c55e;}
+.conc-bar-pot{background:#f59e0b;}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab-btn on" id="t0" onclick="goTab(0)">👨‍⚕️ Médicos</button>
+  <button class="tab-btn" id="t1" onclick="goTab(1)">🏆 Contas</button>
+  <button class="tab-btn" id="t2" onclick="goTab(2)">🗺️ Cidades</button>
+  <button class="tab-btn" id="t4" onclick="goTab(4)">💰 Budget</button>
+  <button class="tab-btn" id="t3" onclick="goTab(3)">📊 Insights</button>
+</div>
+
+<div class="sync-bar">
+  <div class="sync-dot syncing" id="syncDot"></div>
+  <span id="syncTxt">Conectando ao Firebase...</span>
+</div>
+
+<div class="page on" id="p0">
+  <div class="hdr">
+    <div><h1>Gestão de Território</h1><p>Sincronizado em todos os devices</p></div>
+    <button class="hdr-btn" onclick="openDocModal(-1)">+ Médico</button>
+  </div>
+  <div class="sbar"><input id="srch" type="search" placeholder="🔍 Nome, cidade ou conta..." oninput="debounceRenderDocs()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+  <div class="ctrl-row">
+    <select id="docSort" onchange="renderDocs()">
+      <option value="score">Ordenar: Score</option>
+      <option value="nome">Ordenar: Nome</option>
+      <option value="cidade">Ordenar: Cidade</option>
+      <option value="potencial">Ordenar: Potencial</option>
+    </select>
+    <button class="ctrl-btn" onclick="exportCSV()">📥 CSV</button>
+    <button class="ctrl-btn primary" onclick="exportJSON()">💾 Backup</button>
+    <button class="ctrl-btn" onclick="document.getElementById('importFile').click()">📂 Restaurar</button>
+    <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importJSON(event)">
+  </div>
+  <div class="pot-row">
+    <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
+    <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
+    <button class="pc pcC" id="pcC" onclick="togglePot('C')">● C</button>
+  </div>
+  <div class="agenda-filter-bar">
+    <select id="afDay" onchange="applyAgendaFilter()">
+      <option value="">📅 Dia</option>
+      <option value="MON">Segunda</option>
+      <option value="TUE">Terça</option>
+      <option value="WED">Quarta</option>
+      <option value="THU">Quinta</option>
+      <option value="FRI">Sexta</option>
+    </select>
+    <select id="afPeriod" onchange="applyAgendaFilter()">
+      <option value="">🕐 Período</option>
+      <option value="M">Manhã</option>
+      <option value="T">Tarde</option>
+      <option value="DT">Dia Todo</option>
+      <option value="Ag">Agendado</option>
+    </select>
+    <button class="af-clear" id="afClear" onclick="clearAgendaFilter()">✕ Limpar</button>
+  </div>
+  <div class="stline" id="stline"></div>
+  <div class="dlist" id="dlist"></div>
+  <button class="fab" onclick="openDocModal(-1)">+</button>
+</div>
+
+<div class="page" id="p1">
+  <div class="pwrap">
+    <div class="phd">
+      <h2>Ranking de Contas</h2>
+      <div style="display:flex;gap:6px;">
+        <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Importar auditoria</button>
+        <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova conta</button>
+      </div>
+    </div>
+    <input class="conta-srch" id="contaSrch" type="search" placeholder="🔍 Buscar conta..." oninput="renderContas()" autocomplete="off" spellcheck="false">
+    <div class="conta-filter-row">
+      <select id="contaSort" onchange="renderContas()">
+        <option value="score">↓ Score total</option>
+        <option value="scoreAudit">↓ Score auditoria</option>
+        <option value="nome">A–Z Nome</option>
+        <option value="mat">↓ MAT</option>
+        <option value="ytd">↓ YTD</option>
+        <option value="investimento">↓ Investimento</option>
+        <option value="ritmo">↓ Ritmo YTD/MAT</option>
+      </select>
+      <select id="contaPrio" onchange="renderContas()">
+        <option value="">Todas prioridades</option>
+        <option value="Prioridade Máxima">🔴 Máxima</option>
+        <option value="Prioridade Alta">🟠 Alta</option>
+        <option value="Prioridade Média">🟡 Média</option>
+        <option value="Monitoramento">⚪ Monitoramento</option>
+      </select>
+    </div>
+    <div id="contaList"></div>
+  </div>
+</div>
+
+<div class="page" id="p2">
+  <div class="pwrap"><div class="phd"><h2>Clusters por Cidade</h2></div><div id="cityList"></div></div>
+</div>
+
+<div class="page" id="p3">
+  <div class="pwrap">
+    <h2 style="margin-bottom:12px">📊 Insights</h2>
+    <div id="insDiv"></div>
+    
+    <div class="phd" style="margin-top:30px;">
+      <h2>📄 Materiais</h2>
+      <button class="hdr-btn" style="background:#6d28d9;color:#fff" onclick="openMatModal(-1)">+ Novo</button>
+    </div>
+    <div id="matList"></div>
+  </div>
+</div>
+
+<div class="page" id="p4">
+  <div id="budHero"></div>
+  <div class="bud-cats" id="budCats"></div>
+  <div style="padding:8px 12px 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span class="bud-sec-title" style="margin:0;flex:1;">Lançamentos</span>
+    <button class="ctrl-btn primary" onclick="exportBudCSV()" style="font-size:11px;">📥 Exportar</button>
+  </div>
+  <div style="padding:0 12px 6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+    <select id="budSortSel" onchange="setBudSort(this.value)" style="border:1px solid #e5e7eb;background:#fff;color:#374151;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;">
+      <option value="date_desc">Data ↓</option>
+      <option value="date_asc">Data ↑</option>
+      <option value="val_desc">Valor ↓</option>
+      <option value="val_asc">Valor ↑</option>
+      <option value="cat">Categoria</option>
+      <option value="doc">Médico</option>
+    </select>
+    <select id="budCatFil" onchange="setBudCatFilter(this.value)" style="border:1px solid #e5e7eb;background:#fff;color:#374151;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;outline:none;-webkit-appearance:none;flex:1;" ></select>
+  </div>
+  <div style="padding:0 12px 6px;"><input id="budSrch" type="search" placeholder="🔍 Médico ou descrição..." oninput="setBudQ(this.value)" style="width:100%;padding:8px 12px;border-radius:11px;border:1px solid #ddd;font-size:14px;background:#fff;outline:none;"></div>
+  <div class="bud-list" id="budList" style="padding-bottom:90px;"></div>
+  <button class="bud-fab" onclick="openBudModal(-1)">+</button>
+</div>
+
+<div class="ov" id="budOv">
+  <div class="modal">
+    <div class="mhd"><h2 id="budMT">Novo lançamento</h2><button onclick="closeBudModal()">×</button></div>
+    <div class="field">
+      <label>Categoria</label>
+      <select id="bCat" onchange="onBudCatChange()"></select>
+    </div>
+    <div class="field" id="bNewCatWrap" style="display:none">
+      <label>Nome da nova categoria</label>
+      <input id="bNewCat" placeholder="Ex: Congresso Hematologia" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field" id="bDocWrap" style="display:none">
+      <label>Médico</label>
+      <select id="bDoc"></select>
+    </div>
+    <div class="field">
+      <label>Descrição</label>
+      <input id="bDesc" placeholder="Ex: Jantar Vera Cruz" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="f2">
+      <div class="field">
+        <label>Data</label>
+        <input id="bDate" type="date">
+      </div>
+      <div class="field">
+        <label>Valor (R$)</label>
+        <input id="bVal" type="text" inputmode="decimal" placeholder="0,00" oninput="this.value=this.value.replace(/[^0-9,.]/g,'')">
+      </div>
+    </div>
+    <div class="brow"><button class="bcanc" onclick="closeBudModal()">Cancelar</button><button class="bsave" onclick="saveBud()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="budCatOv">
+  <div class="modal">
+    <div class="mhd"><h2>Nova categoria</h2><button onclick="closeBudCatModal()">×</button></div>
+    <div class="field"><label>Nome</label><input id="bcName" placeholder="Ex: Apoio Simpósio" autocomplete="off" spellcheck="false"></div>
+    <div class="field"><label>Emoji / ícone</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="bcIconPicker">
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="🎤">🎤</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="🍽️">🍽️</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="🏆">🏆</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="📋">📋</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="🎯">🎯</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="📣">📣</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="🧪">🧪</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="✈️">✈️</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="💊">💊</button>
+        <button type="button" class="bchip" onclick="pickIcon(this)" data-icon="🤝">🤝</button>
+      </div>
+    </div>
+    <div class="brow"><button class="bcanc" onclick="closeBudCatModal()">Cancelar</button><button class="bsave" onclick="saveBudCat()">Criar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="budVerbaOv">
+  <div class="modal">
+    <div class="mhd"><h2>Verba total do território</h2><button onclick="closeBudVerbaModal()">×</button></div>
+    <div class="field"><label>Verba total (R$)</label><input id="bVerba" type="number" min="0" step="100"></div>
+    <div class="brow"><button class="bcanc" onclick="closeBudVerbaModal()">Cancelar</button><button class="bsave" onclick="saveBudVerba()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="docOv">
+  <div class="modal">
+    <div class="mhd"><h2 id="docMT">Médico</h2><button onclick="closeDocModal()">×</button></div>
+    <div class="field"><label>Nome</label><input id="dName" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"></div>
+    <div class="f2">
+      <div class="field"><label>CRM</label><input id="dCrm" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label>Potencial</label><select id="dPot"><option value="A">A – Alta</option><option value="B">B – Média</option><option value="C" selected>C – Monitor.</option></select></div>
+    </div>
+    <div class="field"><label>WhatsApp (ex: 19-99999-9999)</label><input id="dPhone" type="tel"></div>
+    <div class="f2">
+      <div class="field"><label>Cidade</label><input id="dCity" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+      <div class="field"><label>Especialidade</label><select id="dEsp"><option value="Hematologia (BR)">Hematologia</option><option value="Farmacia (BR)">Farmácia</option></select></div>
+    </div>
+    <div class="field"><label>Conta / Instituição</label><input id="dConta" autocomplete="off" spellcheck="false"></div>
+    <div class="field">
+      <label>Marcadores de score</label>
+      <div class="score-section-label">✅ Positivos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="scoreChipsPos">
+        <button type="button" class="bchip" data-v="hasAccess" onclick="toggleSc(this)">✓ Acesso institucional (+3)</button>
+        <button type="button" class="bchip" data-v="testedSarc" onclick="toggleSc(this)">✓ Testou Sarclisa (+2)</button>
+        <button type="button" class="bchip" data-v="daraRelacao" onclick="toggleSc(this)">✓ Experiência com Dara (+1)</button>
+        <button type="button" class="bchip" data-v="aberturaGuideline" onclick="toggleSc(this)">✓ Aberto a guideline (+1)</button>
+      </div>
+      <div class="score-section-label">❌ Negativos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="scoreChipsNeg">
+        <button type="button" class="bchip" data-v="noAccess" onclick="toggleSc(this)">✗ Sem acesso (−2)</button>
+        <button type="button" class="bchip" data-v="prefereSQ" onclick="toggleSc(this)">✗ Prefere SC/SQ (−2)</button>
+        <button type="button" class="bchip" data-v="concorrenciaForte" onclick="toggleSc(this)">✗ Concorrência forte (−1)</button>
+        <button type="button" class="bchip" data-v="daraLover" onclick="toggleSc(this)">✗ Dara Lover (−2)</button>
+      </div>
+    </div>
+    <div class="field">
+      <label style="margin-bottom:8px;display:block;">✨ Personalizados</label>
+      <div id="customScoreChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;align-items:center;"></div>
+      <div class="cmk-add-row">
+        <input id="csLabel" class="cmk-add-input" placeholder="Nome do marcador" autocomplete="off" spellcheck="false">
+        <input id="csPts" class="cmk-add-pts" type="number" placeholder="pts">
+        <button type="button" class="cmk-add-btn" onclick="addCustomScoreFlag()">+ Add</button>
+      </div>
+    </div>
+    <div class="brow"><button class="bcanc" onclick="closeDocModal()">Cancelar</button><button class="bsave" onclick="saveDoc()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="matOv">
+  <div class="modal">
+    <div class="mhd"><h2 id="matMT">Material</h2><button onclick="closeMatModal()">×</button></div>
+    <div class="field"><label>Nome</label><input id="mName"></div>
+    <div class="field"><label>Mensagem WhatsApp</label><textarea id="mMsg" placeholder="Olá! ..."></textarea></div>
+    <div class="brow"><button class="bcanc" onclick="closeMatModal()">Cancelar</button><button class="bsave" onclick="saveMat()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="auditOv">
+  <div class="modal">
+    <div class="mhd"><h2 id="auditTitle">Editar auditoria</h2><button onclick="closeAuditModal()">×</button></div>
+    <div class="audit-preview" id="auditPreview"></div>
+    <div class="audit-grid">
+      <div class="audit-field"><label>Score Tamanho (1-3)</label><input type="number" id="at_tam" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>Score Momento (1-3)</label><input type="number" id="at_mom" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>Score Pot. Estratégico (1-3)</label><input type="number" id="at_pot" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>Score Espaço (1-3)</label><input type="number" id="at_esp" min="1" max="3" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>MAT (unidades)</label><input type="number" id="at_mat" min="0" oninput="updateAuditPreview()"></div>
+      <div class="audit-field"><label>YTD (unidades)</label><input type="number" id="at_ytd" min="0" oninput="updateAuditPreview()"></div>
+    </div>
+    <div class="brow"><button class="bcanc" onclick="closeAuditModal()">Cancelar</button><button class="bsave" onclick="saveAuditModal()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="csvAuditOv">
+  <div class="modal">
+    <div class="mhd"><h2>📊 Importar auditoria</h2><button onclick="closeCsvAuditModal()">×</button></div>
+    <div class="csv-info">
+      Cole os dados direto do Excel — ou importe um arquivo CSV.<br>
+      <strong>Formato esperado (com cabeçalho):</strong>
+      <code>Conta;MAT;YTD;Tamanho;Momento;Pot.Estrat.;Espaco</code>
+      As colunas Tamanho, Momento, Pot.Estrat. e Espaço são <strong>opcionais</strong> — se omitidas, só MAT e YTD são atualizados.
+    </div>
+    <div class="field">
+      <label>Cole o CSV aqui</label>
+      <textarea id="csvPaste" style="min-height:130px;font-family:monospace;font-size:12px;" placeholder="Conta;MAT;YTD&#10;UNIMED Campinas;1980;142&#10;CASSEMS;70;5"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button class="ctrl-btn primary" onclick="processCsvAudit()">✓ Processar</button>
+      <button class="ctrl-btn" onclick="document.getElementById('csvFileInput').click()">📂 Importar arquivo</button>
+      <input id="csvFileInput" type="file" accept=".csv,.txt" style="display:none" onchange="loadCsvFile(event)">
+    </div>
+    <div id="csvResult" class="csv-result" style="display:none"></div>
+    <div id="csvNewContas" style="display:none;margin-top:10px;"></div>
+    <div class="brow" style="margin-top:12px;">
+      <button class="bcanc" onclick="closeCsvAuditModal()">Fechar</button>
+      <button class="bsave" id="csvApplyBtn" style="display:none" onclick="applyCsvAudit()">Aplicar e salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="delOv">
+  <div class="modal">
+    <div class="mhd"><h2>Confirmar</h2><button onclick="closeDelOv()">×</button></div>
+    <p id="delMsg" style="font-size:14px;color:#333;margin-bottom:20px;line-height:1.5;"></p>
+    <div class="brow"><button class="bcanc" onclick="closeDelOv()">Cancelar</button><button class="bdel" onclick="confirmDel()">Excluir</button></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+// ══════════ FIREBASE ══════════
+var firebaseConfig={apiKey:"AIzaSyAj9A7DIKLUTcdpumERhK4Kk7ieLatZytU",authDomain:"ssgz-16baf.firebaseapp.com",databaseURL:"https://ssgz-16baf-default-rtdb.firebaseio.com",projectId:"ssgz-16baf",storageBucket:"ssgz-16baf.firebasestorage.app",messagingSenderId:"838715682754",appId:"1:838715682754:web:b130266eb2e714e478705b"};
+// polyfill findIndex para Safari antigo
+if(!Array.prototype.findIndex){Array.prototype.findIndex=function(fn){for(var i=0;i<this.length;i++){if(fn(this[i],i,this))return i;}return -1;};}
+firebase.initializeApp(firebaseConfig);
+firebase.auth().signInAnonymously().catch(function(err){console.warn('Auth error:',err);setSync('err','Erro de autenticação');});
+var db=firebase.database();
+var dbRef=db.ref('sarclisa');
+
+// ══════════ MARCADORES DE CONTA ══════════
+var CONTA_FLAGS={
+  protocolo_aberto:{label:'Protocolo aberto/em discussão',pts:+1,type:'pos'},
+  medico_chave:    {label:'Médico-chave prescriptor ativo',pts:+2,type:'pos'},
+  hist_inovacao:   {label:'Histórico de adoção de inovação',pts:+1,type:'pos'},
+  vol_crescendo:   {label:'Volume crescendo 2+ ciclos',pts:+1,type:'pos'},
+  sem_protocolo:   {label:'Sem protocolo para MM',pts:-2,type:'neg'},
+  convenio_rest:   {label:'Convênio com restrição',pts:-1,type:'neg'},
+  comite_lento:    {label:'Comitê de padronização lento',pts:-1,type:'neg'},
+  pref_sq:         {label:'Preferência SC/SQ',pts:-1,type:'neg'},
+  restricao_orc:   {label:'Restrição orçamentária',pts:-1,type:'neg'}
+};
+
+var BARREIRAS=['Acesso convênio','Protocolo institucional','Preferência por esquema SC/SQ','Forte investimento da concorrência','Comitê de padronização lento','Restrição orçamentária','Acesso ao corpo clínico','Engajamento do corpo clínico','Sem barreiras identificadas'];
+
+// ══════════ DADOS PADRÃO ══════════
+var MATS_DEF=[{name:"HD7 – Caso clínico (indução TE)",msg:"Olá!\n\nUm ponto que tem chamado atenção no HD7 é a rapidez da resposta já na indução com Sarclisa® + VRd nesse caso clínico elegível ao TMO. Caso tenha tido experiência, você tem percebido diferença quando intensifica com anti-CD38 logo na 1ª linha?\n\nVeja esse caso clínico com resposta rápida ao tratamento de indução em pacientes elegíveis ao TACT: https://bit.ly/4scupfx"},{name:"HD7 – Eficácia (DRM na indução)",msg:"Olá!\n\nEsse dado do HD7 é interessante: aumento relevante de DRM negativa ainda antes do transplante com Sarclisa® + VRd. De que forma alcançar DRM- já na indução muda sua visão sobre a manutenção depois do TMO?\n\nVeja mais no nosso artigo de tratamento para pacientes MMRD elegíveis: análise da DRM e o impacto na SLP: https://bit.ly/46G6U6r"},{name:"HD7 – Posologia (exposição curta)",msg:"Olá!\n\nUm detalhe prático do HD7 que costuma gerar discussão é o uso de Sarclisa® em apenas 11 doses durante a indução com VRd. Esse formato mais curto facilita considerar quadruplete na sua rotina?\n\nVeja mais sobre a posologia administração de Sarclisa® no HD7: https://bit.ly/4lIIoGA"},{name:"IMROZ – Eficácia",msg:"Olá!\n\nNo IMROZ, chamou atenção a SLP mais longa com Sarclisa® + VRd já na 1ª linha dos pacientes sem indicação de TMO. Como você enxerga quadrupletes como estratégia inicial nesses casos?\n\nSaiba mais em: https://bit.ly/3BIcvM8"},{name:"IMROZ – DRM longitudinal",msg:"Olá!\n\nOutro ponto interessante do IMROZ foi o aumento progressivo da DRM negativa ao longo do tratamento com Sarclisa®. Como esse aprofundamento contínuo da resposta influencia sua escolha do esquema inicial?\n\nSaiba mais sobre a dinâmica da negatividade da doença residual mínima em pacientes com mieloma múltiplo recém-diagnosticado: https://bit.ly/42izZRF"},{name:"IMROZ – Caso clínico",msg:"Olá!\n\nEsse caso clínico mostra resposta já no primeiro ciclo com Sarclisa® + VRd em paciente inelegível ao transplante, bem alinhado com o IMROZ. Caso já tenha tido experiência, você tem observado respostas precoces assim com quadruplete na prática?\n\nSaiba mais nesse interessante caso clínico: https://bit.ly/4aBvlT5"}];
+
+var DOCS_DEF=[{"name":"ALESSANDRA DA COSTA KILER CHIQUITO","crm":"SP0097010","pot":"C","phone":"19-99219-9293","city":"ARARAS","conta":"UNIMED Araras","esp":"Hematologia (BR)"},{"name":"ALINE SHIRATA","crm":"SP0066559","pot":"C","phone":"11-99190-9023","city":"SOROCABA","conta":"Centro de Hematologia Sorocaba","esp":"Farmacia (BR)"},{"name":"AMAURI GUIMARAES BARREIRO","crm":"MG0016661","pot":"C","phone":"35-98805-3242","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"ANA CLAUDIA CHIARI","crm":"SP0091141","pot":"C","phone":"11-97497-9698","city":"SALTO","conta":"UNIMED Salto Itu","esp":"Hematologia (BR)"},{"name":"ANA GABRIELA POVEDA BISMARA","crm":"SP0155612","pot":"C","phone":"15-97401-0226","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ANA PAULA VAZ DE CARVALHO","crm":"SP0124222","pot":"C","phone":"15-99837-9898","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"ANDREZA LAMONICA","crm":"SP0170196","pot":"B","phone":"14-99757-2922","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"ANTONIO PAULO SERVANTES","crm":"SP0120597","pot":"B","phone":"11-99658-9732","city":"BRAGANÇA PAULISTA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"ARIELLA CASSIA DE MOURA","crm":"SP0144898","pot":"B","phone":"15-98117-1088","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ARLETE DELFINA MARQUES MAIA","crm":"MS0001781","pot":"C","phone":"67-99983-2782","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BARBARA DE CAMPOS","crm":"SP0050377","pot":"C","phone":"19-99896-2012","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"BEATRIZ ESPERANCA DE LEO TEDDE","crm":"MS0011076","pot":"B","phone":"67-98185-1289","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"BIANCA RUIZ LIMA","crm":"MS0014139","pot":"B","phone":"17-99627-2767","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"BIANCA ZOCCA MOREIRA CALVILHO","crm":"SP0122878","pot":"C","phone":"11-98647-0067","city":"SOROCABA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"BRUNA ADOLFO MESTIERI","crm":"SP0131046","pot":"B","phone":"11-96343-0217","city":"SALTO","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"CAMILA ALMEIDA DO AMARAL KRUZICH","crm":"SP0170850","pot":"A","phone":"19-98127-1677","city":"PIRACICABA","conta":"UNIMED Piracicaba","esp":"Hematologia (BR)"},{"name":"CAMILA GALATI ARAUJO","crm":"SP0139517","pot":"A","phone":"19-99203-0783","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILA HELENA GONZAGA DA SILVA","crm":"SP0185490","pot":"C","phone":"11-97054-4955","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"CAMILLA DELFINO DOS SANTOS","crm":"SP0120589","pot":"A","phone":"19-99210-5299","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"CAMILLA MARIA DE ALENCAR SARAIVA","crm":"SP0186160","pot":"A","phone":"19-93861-5507","city":"JUNDIAÍ","conta":"UNIMED Jundiaí","esp":"Hematologia (BR)"},{"name":"CARLOS EDUARDO ENGEL VELANO","crm":"MG0038289","pot":"C","phone":"35-98855-9623","city":"POÇOS DE CALDAS","conta":"CIOP","esp":"Hematologia (BR)"},{"name":"CARLOS WILSON DE ALENCAR CANO","crm":"MS0010775","pot":"B","phone":"67-99298-6769","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"CELSO RICARDO MARCONDES DOS SANTOS","crm":"SP0133318","pot":"C","phone":"19-99779-2759","city":"MOGI MIRIM","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"CHRISTIANE HATSUE NATORI","crm":"MS0005859","pot":"B","phone":"67-99931-4884","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"CLAUDIA HELENA RUBI IVAN CARNIELLI","crm":"SP0086931","pot":"C","phone":"19-99765-0337","city":"AMERICANA","conta":"UNIMED Americana","esp":"Hematologia (BR)"},{"name":"CLAUDIA MARIANA SOARES ASSATO","crm":"SP0080136","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIA TERESA DE OLIVEIRA","crm":"SP0079679","pot":"C","phone":"14-98111-3156","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"CLAUDIO RENATO CUNHA FREIRE","crm":"SP0165149","pot":"C","phone":"19-98428-4249","city":"PIRACICABA","conta":"HFC","esp":"Hematologia (BR)"},{"name":"DANIEL SALAS STEINBAUM","crm":"MS0006995","pot":"B","phone":"67-98186-6162","city":"DOURADOS","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"DEISE FERREIRA NANTES","crm":"MS0007182","pot":"B","phone":"67-99626-8780","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"DENISE BITTENCOURT SIQUEIRA","crm":"MG0064853","pot":"C","phone":"14-98100-0879","city":"TRÊS CORAÇÕES","conta":"UNIMED Três Corações","esp":"Hematologia (BR)"},{"name":"DIRCEU EURILIO SILVA","crm":"MG0023077","pot":"C","phone":"35-99989-6568","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"EDER SANTANA NAVARRO","crm":"SP0163202","pot":"B","phone":"15-99148-4884","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"EDERSON ROBERTO DE MATTOS","crm":"SP0102054","pot":"B","phone":"14-99133-7515","city":"JAU","conta":"UNIMED Jaú","esp":"Hematologia (BR)"},{"name":"ELAINE RODRIGUEIRO BELINI","crm":"MS0005330","pot":"C","phone":"67-99918-0823","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Farmacia (BR)"},{"name":"ELCIO FARIA","crm":"SP0072992","pot":"A","phone":"19-99269-5304","city":"LIMEIRA","conta":"UNIMED Limeira","esp":"Hematologia (BR)"},{"name":"EVENY CRISTINE LUNA DE OLIVEIRA","crm":"MS0003339","pot":"C","phone":"67-99886-2908","city":"CAMPO GRANDE","conta":"ITC","esp":"Hematologia (BR)"},{"name":"FABIO DE OLIVEIRA MARTIN","crm":"SP0105791","pot":"C","phone":"19-98210-1000","city":"INDAIATUBA","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"FABIO JOSE DELLA PIAZZA","crm":"SP0035390","pot":"C","phone":"19-99167-3832","city":"LIMEIRA","conta":"PHS","esp":"Hematologia (BR)"},{"name":"FAUSI PADILHA GONÇALVES","crm":"MS0003941","pot":"C","phone":"67-99629-0985","city":"DOURADOS","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"FERNANDO VIEIRA PERICOLE DE SOUZA","crm":"SP0115806","pot":"A","phone":"19-99167-0235","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GISLAINE BORBA OLIVEIRA","crm":"SP0077416","pot":"A","phone":"19-99111-3664","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"GIULIA MARIA HAKIM GOMES","crm":"SP0092755","pot":"C","phone":"15-99736-5649","city":"SOROCABA","conta":"Clínica Devita","esp":"Farmacia (BR)"},{"name":"GRAZZIELLA CURADO SIUFI","crm":"MS0003940","pot":"C","phone":"67-98136-4547","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"GUILHERME FELIPE DONNANGELO MARTINS","crm":"SP0141014","pot":"C","phone":"19-99720-1637","city":"MOGI GUAÇU","conta":"UNIMED Baixa Mogiana","esp":"Hematologia (BR)"},{"name":"GUSTAVO FERNANDO VERALDI ISMAEL","crm":"SP0111953","pot":"C","phone":"19-98328-3595","city":"RIO CLARO","conta":"UNIMED Rio Claro","esp":"Hematologia (BR)"},{"name":"ISOLMAR TADEU SCHETTERT","crm":"SP0077418","pot":"A","phone":"11-99204-0828","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"IVNA BALTAZAR FILGUEIRAS STUCCHI","crm":"SP0195674","pot":"C","phone":"19-98443-4272","city":"CAMPINAS","conta":"Oncocamp","esp":"Hematologia (BR)"},{"name":"JAIR ALVES BONFIM FILHO","crm":"MS0007667","pot":"B","phone":"67-98219-1787","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"JAMILLE ELITA DE CASTRO CUNHA HERCULANI","crm":"SP0165407","pot":"C","phone":"11-98711-2081","city":"CAMPINAS","conta":"Vera Cruz","esp":"Hematologia (BR)"},{"name":"JIVIANE BEATRIZ CUNHA BARRETO DA SILVA","crm":"SP0130850","pot":"C","phone":"19-98207-2627","city":"CAMPINAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO GUILHERME MARTINS LUSVARGHI","crm":"MG0063578","pot":"C","phone":"35-99147-1807","city":"POÇOS DE CALDAS","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO PAULO MARQUES BIGHETTI","crm":"SP0081779","pot":"C","phone":"19-98105-3992","city":"LIMEIRA","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"JOAO VICTOR VEZALI COSTARDI","crm":"SP0182816","pot":"C","phone":"67-99985-5233","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE","crm":"MG0059217","pot":"B","phone":"35-99896-6688","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"JULIANA LINO DE MATOS ROSA","crm":"SP0125303","pot":"C","phone":"11-98183-3301","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"JULIANE FONTES SEVERINO","crm":"MS0004494","pot":"C","phone":"67-98209-6367","city":"CAMPO GRANDE","conta":"CEON","esp":"Farmacia (BR)"},{"name":"JULIO ROBERTO CORREA","crm":"SP0030752","pot":"C","phone":"14-99798-9420","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"JUNIA RODRIGUES BRANDAO FRANCO","crm":"","pot":"C","phone":"13-98160-8661","city":"SÃO JOÃO DA BOA VISTA","conta":"Clinion","esp":"Hematologia (BR)"},{"name":"KAREN DARIANE BARBOSA DE VASCONCELOS","crm":"MG0060816","pot":"C","phone":"35-9857-3052","city":"ITAJUBÁ","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"KLEBER KOBAYASHI","crm":"MS0006294","pot":"C","phone":"67-99940-4149","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"},{"name":"LARISSA TADEI DE MARQUI","crm":"SP0120705","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"LILIAN ZORTEA","crm":"MS0002863","pot":"C","phone":"67-99285-1305","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Farmacia (BR)"},{"name":"LISA AQUARONI RICCI","crm":"SP0109006","pot":"B","phone":"15-99787-2900","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"LORENA BEDOTTI RIBEIRO","crm":"SP0158055","pot":"C","phone":"19-99373-9827","city":"CAMPINAS","conta":"SOnHe","esp":"Hematologia (BR)"},{"name":"LUCAS OLIVEIRA CANTADORI","crm":"SP0134571","pot":"B","phone":"14-98124-2886","city":"BOTUCATU","conta":"UNIMED Botucatu","esp":"Hematologia (BR)"},{"name":"LUCIANO CARVALHO CAMPOS","crm":"MG0030620","pot":"C","phone":"35-99931-8459","city":"LAVRAS","conta":"UNIMED Lavras","esp":"Hematologia (BR)"},{"name":"LUCIANO FUZZATO SILVA","crm":"SP0105298","pot":"B","phone":"19-99939-9355","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"LUÍS HENRIQUE MASCARENHAS MOREIRA","crm":"MS0002209","pot":"A","phone":"67-99981-7430","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"LUIZ GUSTAVO RODRIGUES BARBOSA","crm":"SP0168761","pot":"C","phone":"14-98141-9491","city":"JAU","conta":"Hospital Amaral Carvalho","esp":"Hematologia (BR)"},{"name":"MARCELO AUGUSTO ARAUJO ASSUNCAO","crm":"MG0061475","pot":"C","phone":"31-99762-9558","city":"LAVRAS","conta":"Onco Lavras","esp":"Hematologia (BR)"},{"name":"MARCELO BERNARDINI ANTUNES","crm":"SP0104562","pot":"B","phone":"14-99792-3873","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"MARCELO DOS SANTOS SOUZA","crm":"MS0003287","pot":"C","phone":"67-99219-6811","city":"CAMPO GRANDE","conta":"UNIMED Campo Grande","esp":"Hematologia (BR)"},{"name":"MARCO TULIO CESTARI RODRIGUES","crm":"MS0010456","pot":"C","phone":"67-99913-0498","city":"CAMPO GRANDE","conta":"Prognóstica","esp":"Hematologia (BR)"},{"name":"MARCOS PAULO COLELLA","crm":"SP0115844","pot":"C","phone":"19-99672-9777","city":"CAMPINAS","conta":"Américas","esp":"Hematologia (BR)"},{"name":"MARCUS VINICIUS FRANZIN BIZZARO","crm":"SP0104373","pot":"C","phone":"16-99606-8878","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"MARIA APARECIDA SANTOS PIRES","crm":"MS0001826","pot":"C","phone":"67-99971-5464","city":"DOURADOS","conta":"UNIMED Dourados","esp":"Hematologia (BR)"},{"name":"MARIA PAULA NALESSO CAMARGO","crm":"SP0130139","pot":"C","phone":"15-99828-2282","city":"SOROCABA","conta":"Clínica Devita","esp":"Hematologia (BR)"},{"name":"MARIAMA NAKAMOTO FERNANDES DOS SANTOS","crm":"SP0175995","pot":"B","phone":"17-99709-5757","city":"BRAGANÇA PAULISTA","conta":"Rede D'Or","esp":"Hematologia (BR)"},{"name":"MARIANA CRISTTINA LIMA DE FALCO","crm":"SP0199193","pot":"C","phone":"19-99318-3106","city":"MOGI MIRIM","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARILIA SOARES E SILVA ARCADIPANE","crm":"SP0130636","pot":"C","phone":"11-99659-2105","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MARINA MOSCA PEDROSO","crm":"SP0066536","pot":"C","phone":"19-99715-9343","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"MARTA APARECIDA SOARES ROSSINI","crm":"SP0051528","pot":"C","phone":"19-99791-6553","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"MARTA MARIA FALSETTI","crm":"SP0064717","pot":"C","phone":"19-99782-0795","city":"MOGI GUAÇU","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"MELINA SALVI DIAS ATHAYDE","crm":"MG0046660","pot":"C","phone":"31-8636-6412","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"MICHELE KAMILA GALGANI AMARU","crm":"SP0152391","pot":"C","phone":"19-98159-4768","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"MONICA DE MACEDO SILVA","crm":"MG0025086","pot":"C","phone":"","city":"ITAJUBÁ","conta":"UNIMED Itajubá","esp":"Hematologia (BR)"},{"name":"PAMELA RISARDI FRANCELIN","crm":"SP0162649","pot":"C","phone":"16-99706-4239","city":"SAO CARLOS","conta":"UNIMED São Carlos","esp":"Hematologia (BR)"},{"name":"PATRICIA GAMA","crm":"SP0080550","pot":"B","phone":"19-98314-7273","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"PAULA NATASHA RIBEIRO JONAS DE FARIA","crm":"MG0066565","pot":"B","phone":"35-99764-5849","city":"VARGINHA","conta":"Oncominas","esp":"Hematologia (BR)"},{"name":"PAULO EDUARDO DE SOUZA","crm":"SP0043194","pot":"C","phone":"","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"PAULO RIBEIRO CALIL","crm":"SP0085651","pot":"C","phone":"19-99608-5236","city":"RIO CLARO","conta":"UNIMED SBO/Americana","esp":"Hematologia (BR)"},{"name":"RENATA BALDISSERA CARDOSO","crm":"SP0073499","pot":"C","phone":"14-99854-3939","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"RICARDO DAVID FROTA","crm":"MG0031433","pot":"B","phone":"35-9969-7573","city":"VARGINHA","conta":"UNIMED Varginha","esp":"Hematologia (BR)"},{"name":"ROBENILSON ALMEIDA SOUZA","crm":"SP0097171","pot":"B","phone":"","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"ROGERIO CAMARA VALSANI","crm":"SP0044912","pot":"C","phone":"19-99604-6750","city":"SÃO JOÃO DA BOA VISTA","conta":"UNIMED Leste Paulista","esp":"Hematologia (BR)"},{"name":"ROSANA FERREIRA GOMES SALMAZO","crm":"MS0002830","pot":"C","phone":"67-99618-1927","city":"DOURADOS","conta":"Oncoclínica Dourados","esp":"Farmacia (BR)"},{"name":"ROSELI NUNES DA SILVEIRA ANTUNES","crm":"SP0073565","pot":"C","phone":"14-98121-8959","city":"MARILIA","conta":"UNIMED Marília","esp":"Hematologia (BR)"},{"name":"SAMIRA DE OLIVEIRA LAUAR","crm":"SP0055618","pot":"A","phone":"19-99771-8182","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SONIA REGINA IANTAS","crm":"SP0062938","pot":"A","phone":"11-99654-1639","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"SORAIA TEIXEIRA ROMANINI","crm":"MS0005113","pot":"C","phone":"67-98154-0224","city":"CAMPO GRANDE","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SULEY MARA CHADDAD VANCINE","crm":"SP0109239","pot":"C","phone":"11-99621-3922","city":"JUNDIAÍ","conta":"Consultório","esp":"Hematologia (BR)"},{"name":"SUZANA DE FRANCA RIBEIRO GONZAGA","crm":"SP0148118","pot":"B","phone":"11-95425-4245","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"SUZANA SILVA PRADO ZINCONE","crm":"MG0029613","pot":"C","phone":"35-99146-8499","city":"POÇOS DE CALDAS","conta":"UNIMED Poços de Caldas","esp":"Hematologia (BR)"},{"name":"VALTER ADOLPHO MASSAGLI FILHO","crm":"SP0121800","pot":"A","phone":"15-99779-0506","city":"SOROCABA","conta":"UNIMED Sorocaba","esp":"Hematologia (BR)"},{"name":"VANESSA MOURA COVEZZI","crm":"SP0080419","pot":"C","phone":"19-99378-7233","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Farmacia (BR)"},{"name":"VINICIUS BORGES GRILO","crm":"SP0130949","pot":"B","phone":"19-98431-1616","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VINICIUS MARTINS NASCIMENTO","crm":"SP0163864","pot":"A","phone":"13-99716-3844","city":"CAMPINAS","conta":"UNIMED Campinas","esp":"Hematologia (BR)"},{"name":"VITOR VASQUEZ DOS SANTOS","crm":"SP0162252","pot":"C","phone":"17-99769-8366","city":"BAURU","conta":"UNIMED Bauru","esp":"Hematologia (BR)"},{"name":"WALTER ASSUNCAO GONCALVES","crm":"MS0008678","pot":"C","phone":"67-98186-7166","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Hematologia (BR)"},{"name":"WILLIAN PAIVA DA LUZ","crm":"MS0003713","pot":"C","phone":"67-98202-3177","city":"CAMPO GRANDE","conta":"CASSEMS","esp":"Farmacia (BR)"}];
+
+var SCHEDULE_DEF={"ALESSANDRA DA COSTA KILER CHIQUITO": {"days": {"MON": "T", "TUE": "T", "WED": "", "THU": "T", "FRI": ""}, "obs": "Agendamento no WhatsApp (19) 99601-6636"}, "ALINE SHIRATA": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "T", "FRI": ""}, "obs": "Atende no Centro de Hematologia Sorocaba"}, "AMAURI GUIMARAES BARREIRO": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Nas terças após 14h no CAU (Centro de Atendimento UNIMED) R. Nico Duarte - Jardim do Ginasio, Poços de Caldas - MG, 37701-507"}, "ANA CLAUDIA CHIARI": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Neo Onco, prefere agendamento na UNIMED (11) 97662-0472"}, "ANA GABRIELA POVEDA BISMARA": {"days": {"MON": "", "TUE": "M", "WED": "T", "THU": "M", "FRI": ""}, "obs": "Atende na clínica Alevato (15) 99116-8362"}, "ANA PAULA VAZ DE CARVALHO": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "M", "FRI": ""}, "obs": "Atende na Devita"}, "ANDREZA LAMONICA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "OK Atende no Vera Cruz e Beneficência"}, "ANTONIO PAULO SERVANTES": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK atende junto com Dr. Newton Polimeno"}, "ARIELLA CASSIA DE MOURA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": "M"}, "obs": "Atende em São Roque e na clínica Alevato (15) 99116-8362"}, "ARLETE DELFINA MARQUES MAIA": {"days": {"MON": "", "TUE": "", "WED": "T", "THU": "T", "FRI": "T"}, "obs": "OK"}, "BARBARA DE CAMPOS": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Farmacêutica da UNIMED Campinas"}, "BEATRIZ ESPERANCA DE LEO TEDDE": {"days": {"MON": "M", "TUE": "", "WED": "M", "THU": "T", "FRI": "T"}, "obs": "seg 09h - qua 09h - qui e sex 14h"}, "BIANCA RUIZ LIMA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende no ITC"}, "BIANCA ZOCCA MOREIRA CALVILHO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": "T"}, "obs": "Agenda diretamente com ela"}, "BRUNA ADOLFO MESTIERI": {"days": {"MON": "", "TUE": "M", "WED": "DT", "THU": "", "FRI": ""}, "obs": "Secr. Stefani e Sandra, atende Clínica Mestieri Ter-Sex 13h"}, "CAMILA ALMEIDA DO AMARAL KRUZICH": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Ter-14h"}, "CAMILA GALATI ARAUJO": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende no COC e no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "CAMILA HELENA GONZAGA DA SILVA": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "T", "FRI": "T"}, "obs": "Atende no IOS"}, "CAMILLA DELFINO DOS SANTOS": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende no COC e no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "CAMILLA MARIA DE ALENCAR SARAIVA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende na Rua Anchieta, 670 às quintas no começo da tarde"}, "CARLOS EDUARDO ENGEL VELANO": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Está no CIOP quinzenalmente, próximo data é 30/03"}, "CARLOS WILSON DE ALENCAR CANO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na CASSEMS e Onco Vitta"}, "CELSO RICARDO MARCONDES DOS SANTOS": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no Hosp 22 Outubro"}, "CHRISTIANE HATSUE NATORI": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "T", "FRI": ""}, "obs": "Seg Qua 09h"}, "CLAUDIA HELENA RUBI IVAN CARNIELLI": {"days": {"MON": "", "TUE": "DT", "WED": "DT", "THU": "", "FRI": ""}, "obs": "Atende R Peru, 636 - Sala 703 - Secr. Bárbara"}, "CLAUDIA MARIANA SOARES ASSATO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no CDU Bauru - Rua Agenor Meira 12-34"}, "CLAUDIA TERESA DE OLIVEIRA": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende na Al. Octavio Pinheiro Brizola 12-10, Bauru"}, "CLAUDIO RENATO CUNHA FREIRE": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Faz MM junto com Dra. Camila Kruzich no HFC"}, "DANIEL SALAS STEINBAUM": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende na Oncoclínica Seg 13h - Qui 7h30"}, "DEISE FERREIRA NANTES": {"days": {"MON": "T", "TUE": "DT", "WED": "", "THU": "M", "FRI": ""}, "obs": "Seg 14h"}, "DENISE BITTENCOURT SIQUEIRA": {"days": {"MON": "", "TUE": "M", "WED": "M", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas de Três Corações"}, "DIRCEU EURILIO SILVA": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas Varginha a cada 15 dias"}, "EDER SANTANA NAVARRO": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "", "FRI": ""}, "obs": "Atende na clínica Pró Hemo"}, "EDERSON ROBERTO DE MATTOS": {"days": {"MON": "T", "TUE": "T", "WED": "T", "THU": "", "FRI": ""}, "obs": "Atende na Rua das Palmeiras, 43"}, "ELAINE RODRIGUEIRO BELINI": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK, farmaceutica UNIMED Dourados"}, "ELCIO FARIA": {"days": {"MON": "", "TUE": "", "WED": "Ag", "THU": "", "FRI": ""}, "obs": "Atende no Hospital da Unimed Limeira"}, "EVENY CRISTINE LUNA DE OLIVEIRA": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "T", "FRI": ""}, "obs": "OK, atende na clínica ITC"}, "FABIO DE OLIVEIRA MARTIN": {"days": {"MON": "M", "TUE": "", "WED": "", "THU": "M", "FRI": "M"}, "obs": "Atende na clínica Integrada Indaiatuba - Seg-Qui-Sex até 11h30"}, "FABIO JOSE DELLA PIAZZA": {"days": {"MON": "", "TUE": "", "WED": "DT", "THU": "", "FRI": ""}, "obs": "Atende na Clínica Coreon das 8h às 15h"}, "FAUSI PADILHA GONÇALVES": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK, farmaceutico da CASSEMS Dourados"}, "FERNANDO VIEIRA PERICOLE DE SOUZA": {"days": {"MON": "T", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "OK, atende na UNIMED"}, "GISLAINE BORBA OLIVEIRA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no CMC"}, "GIULIA MARIA HAKIM GOMES": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, farmacêutica na clínica Devita"}, "GRAZZIELLA CURADO SIUFI": {"days": {"MON": "T", "TUE": "", "WED": "T", "THU": "", "FRI": ""}, "obs": "OK atende Seg-Ter-Qui 15h"}, "GUILHERME FELIPE DONNANGELO MARTINS": {"days": {"MON": "", "TUE": "DT", "WED": "M", "THU": "", "FRI": ""}, "obs": "OK"}, "GUSTAVO FERNANDO VERALDI ISMAEL": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK já falava"}, "ISOLMAR TADEU SCHETTERT": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK"}, "IVNA BALTAZAR FILGUEIRAS STUCCHI": {"days": {"MON": "M", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "OK atende na Oncocamp e no CMC"}, "JAIR ALVES BONFIM FILHO": {"days": {"MON": "T", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende Seg 14h -Qui 9h"}, "JAMILLE ELITA DE CASTRO CUNHA HERCULANI": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no SOnHe"}, "JIVIANE BEATRIZ CUNHA BARRETO DA SILVA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "23/11: OK, médica respondeu"}, "JOAO GUILHERME MARTINS LUSVARGHI": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Endereço site: Av. Gentil Messías-Kitate, 240 - sala 224 - Vila Cruz, Poços de Caldas - MG, 37701-528"}, "JOAO PAULO MARQUES BIGHETTI": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "14/02: estava saindo de férias e pediu para retornar em Abril"}, "JOAO VICTOR VEZALI COSTARDI": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no consultório R. Sete de Setembro, 979 - Alto Cafezal, Marília - SP, 17502-020"}, "JULIANA COZADI COUSO ROIZ OLIVEIRA SEBODE": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas Varginha e Campo Belo"}, "JULIANA LINO DE MATOS ROSA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "JULIANE FONTES SEVERINO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK trabalha no Clínica CEON"}, "JULIO ROBERTO CORREA": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "Atende na Sta Casa"}, "JUNIA RODRIGUES BRANDAO FRANCO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Agendamento direto com ela"}, "KAREN DARIANE BARBOSA DE VASCONCELOS": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Oncominas Itajubá e Pouso Alegre"}, "KLEBER KOBAYASHI": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, farmacêutica responsável na OncoVitta / Hominis"}, "LARISSA TADEI DE MARQUI": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende na Al. Octavio Pinheiro Brizola 12-10, Bauru"}, "LILIAN ZORTEA": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, farmaceutica e compradora da clínica Prognóstica"}, "LISA AQUARONI RICCI": {"days": {"MON": "M", "TUE": "M", "WED": "M", "THU": "M", "FRI": ""}, "obs": "Atende no IOS de Seg à Qui 8h às 11h"}, "LORENA BEDOTTI RIBEIRO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "Ag", "FRI": ""}, "obs": "Agenda almoços pelo WhatsApp"}, "LUCAS OLIVEIRA CANTADORI": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Agendar direto com ele"}, "LUCIANO CARVALHO CAMPOS": {"days": {"MON": "M", "TUE": "T", "WED": "T", "THU": "", "FRI": "M"}, "obs": "Atende R Antonio Goncalves De Faria, 114 - SALA 01 , Secr. Valeria"}, "LUCIANO FUZZATO SILVA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK agendado para 20/12"}, "LUÍS HENRIQUE MASCARENHAS MOREIRA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende na Onco Vitta"}, "LUIZ GUSTAVO RODRIGUES BARBOSA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "CHECAR"}, "MARCELO AUGUSTO ARAUJO ASSUNCAO": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "T", "FRI": ""}, "obs": "Atende qua manhã e qui tarde"}, "MARCELO BERNARDINI ANTUNES": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no NAIC"}, "MARCELO DOS SANTOS SOUZA": {"days": {"MON": "T", "TUE": "T", "WED": "", "THU": "", "FRI": "T"}, "obs": "OK atende Seg-Terc-Sex 14h"}, "MARCO TULIO CESTARI RODRIGUES": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "", "FRI": ""}, "obs": "Atende na clínica prognóstica"}, "MARCOS PAULO COLELLA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no Madre Theodora às segundas 14h"}, "MARCUS VINICIUS FRANZIN BIZZARO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na Advanze Oncologia"}, "MARIA APARECIDA SANTOS PIRES": {"days": {"MON": "", "TUE": "T", "WED": "T", "THU": "DT", "FRI": "M"}, "obs": "OK atende na Oncoclínica: Sex 8h e Clínica Santa Clara: Seg-Ter 14h / Qui DT"}, "MARIA PAULA NALESSO CAMARGO": {"days": {"MON": "", "TUE": "M", "WED": "T", "THU": "", "FRI": "M"}, "obs": "Atende na clínica DEVITA"}, "MARIAMA NAKAMOTO FERNANDES DOS SANTOS": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK, atende no Hemonúcleo do Hospital Univesitário São Francisco e no Hospital Novo Atibaia"}, "MARIANA CRISTTINA LIMA DE FALCO": {"days": {"MON": "DT", "TUE": "T", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "OK, exceto terça de manhã, todos os dias das 08h30 às 18h"}, "MARILIA SOARES E SILVA ARCADIPANE": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no COJ, chegar antes das 14h"}, "MARINA MOSCA PEDROSO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Farmacêutica da UNIMED Campinas"}, "MARTA APARECIDA SOARES ROSSINI": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "OK atende no CME Campinas"}, "MARTA MARIA FALSETTI": {"days": {"MON": "T", "TUE": "", "WED": "T", "THU": "", "FRI": ""}, "obs": "Atende Seg e Qua 14h clínica R Nicolau Falsetti 84"}, "MELINA SALVI DIAS ATHAYDE": {"days": {"MON": "T", "TUE": "", "WED": "M", "THU": "", "FRI": "T"}, "obs": "Qua 8h - Sex 14h, Atende na R Maranhao, 221 - Sala 47 - Centro, Poços de Caldas, Secr. Chayene (35) 3721-1180"}, "MICHELE KAMILA GALGANI AMARU": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "Agendar pelo Centro de Oncologia 19--3634-2102"}, "MONICA DE MACEDO SILVA": {"days": {"MON": "T", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende Seg a tarde na Av Bps, 253 - Secr. Luana"}, "PAMELA RISARDI FRANCELIN": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na Advanze Oncologia"}, "PATRICIA GAMA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende no CHH (Centro Médico) 19-3287-5079 Secr Priscila"}, "PAULA NATASHA RIBEIRO JONAS DE FARIA": {"days": {"MON": "M", "TUE": "", "WED": "T", "THU": "M", "FRI": ""}, "obs": "Atende na Oncominas Varginha e Campo Belo"}, "PAULO EDUARDO DE SOUZA": {"days": {"MON": "T", "TUE": "T", "WED": "T", "THU": "M", "FRI": "T"}, "obs": "Atende na Amavita - Rua Rio Branco 13-74, Bauru"}, "PAULO RIBEIRO CALIL": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Atende na Sta. Casa de Rio Claro. Agendar c/ Claudia no fone 19-98843-7315"}, "RENATA BALDISSERA CARDOSO": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "M", "FRI": ""}, "obs": "Atende na Sta Casa"}, "RICARDO DAVID FROTA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Agenda diretamente com ele"}, "ROGERIO CAMARA VALSANI": {"days": {"MON": "M", "TUE": "M", "WED": "", "THU": "M", "FRI": ""}, "obs": "Seg-Ter-Qui 11h"}, "ROSANA FERREIRA GOMES SALMAZO": {"days": {"MON": "DT", "TUE": "DT", "WED": "DT", "THU": "DT", "FRI": "DT"}, "obs": "Farmaceutica na Oncoclínica"}, "ROSELI NUNES DA SILVEIRA ANTUNES": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "T", "FRI": ""}, "obs": "Atende na Sta Casa"}, "SAMIRA DE OLIVEIRA LAUAR": {"days": {"MON": "T", "TUE": "", "WED": "T", "THU": "", "FRI": "T"}, "obs": "Atende na R TIRADENTES,446 - SALA 33 Seg-Qua-Sex 12h"}, "SONIA REGINA IANTAS": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "Ter 15h na R TIRADENTES,446 - SALA 33"}, "SORAIA TEIXEIRA ROMANINI": {"days": {"MON": "", "TUE": "", "WED": "M", "THU": "", "FRI": ""}, "obs": "OK atende na Onco Vitta"}, "SULEY MARA CHADDAD VANCINE": {"days": {"MON": "M", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "OK, atende na Hemo Análise | Rua Barão de Teffe 1000 - sala 113 - Jundiaí"}, "SUZANA DE FRANCA RIBEIRO GONZAGA": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no Centro de Hematologia Sorocaba"}, "SUZANA SILVA PRADO ZINCONE": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": "M"}, "obs": "Disse que é melhor às sextas feiras de manhã na Rua Minas Gerais, 280 - Sala 102"}, "VALTER ADOLPHO MASSAGLI FILHO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Sócio proprietário do Centro de Hematologia Sorocaba"}, "ROBENILSON ALMEIDA SOUZA": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Sócio proprietário do Centro de Hematologia Sorocaba"}, "VANESSA MOURA COVEZZI": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "Farmacêutica da UNIMED Campinas"}, "VINICIUS BORGES GRILO": {"days": {"MON": "", "TUE": "M", "WED": "", "THU": "", "FRI": ""}, "obs": "Ok atende no COC"}, "VINICIUS MARTINS NASCIMENTO": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK Atende no Vera Cruz e Beneficência"}, "VITOR VASQUEZ DOS SANTOS": {"days": {"MON": "", "TUE": "", "WED": "", "THU": "", "FRI": ""}, "obs": "Atende no NAIC"}, "WALTER ASSUNCAO GONCALVES": {"days": {"MON": "", "TUE": "T", "WED": "", "THU": "", "FRI": ""}, "obs": "OK"}, "WILLIAN PAIVA DA LUZ": {"days": {"MON": "Ag", "TUE": "Ag", "WED": "Ag", "THU": "Ag", "FRI": "Ag"}, "obs": "OK trabalha no Hospital CASSEMS"}};
+// CONTAS_DEF: valores base. O CSV de auditoria (cExtra.auditData) sempre sobrescreve.
+var CONTAS_DEF=[{conta:"UNIMED Campinas",scoreTam:3,scoreMom:3,scorePot:3,scoreEsp:2,scoreTotal:11,mat:1904,ytd:129,prioridade:"Prioridade Máxima"},{conta:"UNIMED Jundiaí",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:144,ytd:11,prioridade:"Prioridade Alta"},{conta:"Vera Cruz",scoreTam:3,scoreMom:1,scorePot:3,scoreEsp:3,scoreTotal:10,mat:108,ytd:14,prioridade:"Prioridade Alta"},{conta:"UNIMED Bauru",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:142,ytd:16,prioridade:"Prioridade Alta"},{conta:"UNIMED Sorocaba",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:139,ytd:11,prioridade:"Prioridade Alta"},{conta:"UNIMED Americana",scoreTam:3,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:9,mat:102,ytd:0,prioridade:"Prioridade Alta"},{conta:"UNIMED Limeira",scoreTam:2,scoreMom:3,scorePot:2,scoreEsp:2,scoreTotal:9,mat:33,ytd:8,prioridade:"Prioridade Alta"},{conta:"Oncominas",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:50,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Varginha",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:49,ytd:3,prioridade:"Prioridade Média"},{conta:"UNIMED Piracicaba",scoreTam:2,scoreMom:2,scorePot:2,scoreEsp:2,scoreTotal:8,mat:52,ytd:5,prioridade:"Prioridade Média"},{conta:"CASSEMS",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:3,scoreTotal:8,mat:68,ytd:0,prioridade:"Prioridade Média"},{conta:"Prognóstica",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:40,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED São Carlos",scoreTam:2,scoreMom:1,scorePot:2,scoreEsp:2,scoreTotal:7,mat:39,ytd:0,prioridade:"Prioridade Média"},{conta:"UNIMED Rio Claro",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:2,scoreTotal:7,mat:30,ytd:3,prioridade:"Prioridade Média"},{conta:"Centro de Hematologia Sorocaba",scoreTam:1,scoreMom:3,scorePot:1,scoreEsp:2,scoreTotal:7,mat:11,ytd:11,prioridade:"Prioridade Média"},{conta:"UNIMED Dourados",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Marília",scoreTam:2,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:6,mat:36,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Campo Grande",scoreTam:2,scoreMom:2,scorePot:1,scoreEsp:1,scoreTotal:6,mat:40,ytd:0,prioridade:"Monitoramento"},{conta:"UNIMED Poços de Caldas",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:2,scoreTotal:5,mat:25,ytd:0,prioridade:"Monitoramento"},{conta:"Consultório",scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:"Monitoramento"}];
+
+// ══════════ STATE ══════════
+var mats=[],docs=[],sent={},sentEmail={},cExtra={},docAgenda={};
+// Budget state
+var VERBA_DEF=75000;
+var BUD_CATS_DEF=[
+  {id:'refeicao',name:'Refeição',icon:'🍽️'},
+  {id:'simposio',name:'Apoio Simpósio',icon:'🎤'},
+  {id:'speaker',name:'Speaker Meeting',icon:'📣'},
+  {id:'congresso',name:'Apoio Congresso',icon:'🏆'}
+];
+// Budget: itens carregados do Firebase. Default vazio — Firebase é a fonte da verdade.
+var budget={verba:VERBA_DEF,cats:BUD_CATS_DEF,items:[]};
+var editBudIdx=-1,pickedIcon='🍽️',budFilter={cat:'',sort:'date_desc',q:''};
+var activeMat=-1,potF={A:true,B:true,C:true};
+var agendaFilter={day:'',period:''};
+var editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
+var auditContaNome='';
+var csvParsedData=[];
+var csvNewContasPending=[];
+var fbLoaded=false;
+
+function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncTxt').textContent=t;}
+
+// ══════════ FIREBASE ══════════
+function initListener(){
+  dbRef.on('value',function(snap){
+    // Se foi a nossa própria escrita, só atualiza status e pula re-render
+    if(_skipNextRender){_skipNextRender=false;return;}
+    var data=snap.val();
+    if(data){
+      // Carrega APENAS o que veio do banco — nunca sobrescreve com defaults
+      mats=data.mats||MATS_DEF;
+      docs=data.docs||DOCS_DEF;
+      sent=data.sent||{};
+      sentEmail=data.sentEmail||{};
+      cExtra=data.cExtra||{};
+      docAgenda=data.docAgenda||{};
+      if(data.budget)budget=data.budget;
+    }
+    // SE data===null: banco vazio ou auth ainda pendente.
+    // NÃO gravamos nada — apenas usamos localStorage como fallback.
+    // Isso evita apagar dados reais por uma leitura null temporária.
+    else if(!fbLoaded){
+      // Primeira carga e banco vazio: usa localStorage se disponível
+      carregarLocalStorage();
+    }
+    fbLoaded=true;
+    setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+    // Preserva cards abertos antes de re-renderizar
+    var openDc=saveOpenIds('dc');
+    var openCc=saveOpenIds('cc');
+    renderDocs();
+    if(document.getElementById('p1').classList.contains('on'))renderContas();
+    if(document.getElementById('p2').classList.contains('on'))renderCities();
+    if(document.getElementById('p3').classList.contains('on')){ renderInsights(); renderMats(); }
+    if(document.getElementById('p4').classList.contains('on'))renderBudget();
+    restoreOpenIds(openDc);
+    restoreOpenIds(openCc);
+  },function(){
+    // Erro de conexão / permissão: usa localStorage
+    setSync('err','Offline — dados locais');
+    carregarLocalStorage();
+    fbLoaded=true;
+    renderDocs();
+  });
+}
+
+function carregarLocalStorage(){
+  try{var v=localStorage.getItem('s5m');if(v)mats=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5d');if(v)docs=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5s');if(v)sent=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5se');if(v)sentEmail=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5ag');if(v)docAgenda=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5c');if(v)cExtra=JSON.parse(v);}catch(e){}
+  try{var v=localStorage.getItem('s5b');if(v)budget=JSON.parse(v);}catch(e){}
+}
+
+// Aguarda auth completar ANTES de iniciar o listener
+// Elimina race condition entre signInAnonymously e dbRef.on
+firebase.auth().onAuthStateChanged(function(user){
+  if(user){
+    initListener();
+  }
+});
+
+function persist(){
+  setSync('syncing','Salvando...');
+  // update() faz merge — nunca apaga campos que não estão sendo alterados
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda}).catch(function(){setSync('err','Erro ao salvar');});
+  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
+}
+
+// ══════════ SCORES ══════════
+function calcScore(d){
+  var s=0;if(d.pot==='A')s+=3;else if(d.pot==='B')s+=1;
+  var f=d.scoreFlags||{};
+  if(f.hasAccess)s+=3;if(f.testedSarc)s+=2;if(f.daraRelacao)s+=1;if(f.aberturaGuideline)s+=1;
+  if(f.noAccess)s-=2;if(f.prefereSQ)s-=2;if(f.concorrenciaForte)s-=1;if(f.daraLover)s-=2;
+  // Marcadores personalizados do médico
+  var cf=d.customScoreFlags||[];
+  for(var i=0;i<cf.length;i++){if(cf[i].active!==false)s+=cf[i].pts;}
+  return s;
+}
+function scoreLabel(s){if(s>=5)return{cls:'s-hi',txt:'⚡ Alta'};if(s>=2)return{cls:'s-md',txt:'→ Média'};return{cls:'s-lo',txt:'· Monitor.'};}
+
+// Calcula investimento total em budget para uma conta (via médicos)
+function budInvestimentoConta(contaNome){
+  var cdocs=[];
+  for(var i=0;i<docs.length;i++){if((docs[i].conta||'Sem conta')===contaNome)cdocs.push(docs[i].name);}
+  var total=0;
+  (budget.items||[]).forEach(function(it){
+    if(it.docName&&cdocs.indexOf(it.docName)>=0)total+=it.val||0;
+  });
+  return total;
+}
+
+// Calcula ritmo: YTD normalizado pelo mês atual vs MAT esperado
+function calcRitmoConta(ytd,mat){
+  if(!mat||mat===0)return ytd>0?999:0;
+  var mes=new Date().getMonth()+1; // 1-12
+  var esperado=mat/12*mes;
+  return esperado>0?Math.round(ytd/esperado*100):0;
+}
+
+function bar(label,val){return'<div class="sbar-r"><span class="sbar-lbl">'+label+'</span><div class="sbar-out"><div class="sbar-in" style="width:'+(Math.max(0,Math.min(3,val||0))/3*100)+'%"></div></div><span class="sbar-v">'+(val||0)+'</span></div>';}
+function toggleCc(i){var el=document.getElementById('cc'+i);if(el)el.classList.toggle('open');}
+
+// ── Preserva estado aberto dos cards durante re-render ──
+function saveOpenIds(prefix){
+  var open=[];
+  var els=document.querySelectorAll('[id^="'+prefix+'"]');
+  for(var i=0;i<els.length;i++){if(els[i].classList.contains('open'))open.push(els[i].id);}
+  return open;
+}
+function restoreOpenIds(ids){
+  for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el)el.classList.add('open');}
+}
+// Wrapper para persist que NÃO re-renderiza via Firebase listener imediato —
+// em vez disso, salva localmente e aplica a mudança direto no DOM (só re-renderiza se vier de outro device)
+var _skipNextRender=false;
+function persistLocal(){
+  _skipNextRender=true;
+  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
+  setSync('syncing','Salvando...');
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda})
+    .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
+    .catch(function(){setSync('err','Erro ao salvar');_skipNextRender=false;});
+}
+
+function calcContaFlagScore(ext){
+  var s=0,flags=ext.flags||{},keys=Object.keys(CONTA_FLAGS);
+  for(var i=0;i<keys.length;i++){if(flags[keys[i]])s+=CONTA_FLAGS[keys[i]].pts;}
+  var cf=ext.customFlags||[];
+  for(var i=0;i<cf.length;i++){if(cf[i].active)s+=cf[i].pts;}
+  return s;
+}
+function getContaData(ct){
+  // aplica overrides de auditoria salvas em cExtra
+  var ext=cExtra[ct.conta]||{},ad=ext.auditData||{};
+  var tam=ad.scoreTam!=null?parseInt(ad.scoreTam):ct.scoreTam;
+  var mom=ad.scoreMom!=null?parseInt(ad.scoreMom):ct.scoreMom;
+  var pot=ad.scorePot!=null?parseInt(ad.scorePot):ct.scorePot;
+  var esp=ad.scoreEsp!=null?parseInt(ad.scoreEsp):ct.scoreEsp;
+  var mat=ad.mat!=null?parseFloat(ad.mat):ct.mat;
+  var ytd=ad.ytd!=null?parseFloat(ad.ytd):ct.ytd;
+  var scoreAudit=tam+mom+pot+esp;
+  var flagScore=calcContaFlagScore(ext);
+  return{tam:tam,mom:mom,pot:pot,esp:esp,mat:mat,ytd:ytd,scoreAudit:scoreAudit,flagScore:flagScore,scoreTotal:scoreAudit+flagScore};
+}
+
+// ══════════ HELPERS ══════════
+function tc(s){if(!s)return'';return s.toLowerCase().replace(/\b(\w)/g,function(c){return c.toUpperCase();});}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+// escJ: escapa para uso dentro de string JS em onclick="funcao('valor')"
+// substitui \ → \\ e ' → \' para não quebrar o atributo HTML
+function escJ(s){if(!s)return'';return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function wurl(ph,msg){var n=String(ph||'').replace(/\D/g,'');if(!n)return'#';if(n.length<=11)n='55'+n;return'https://wa.me/'+n+'?text='+encodeURIComponent(msg||'');}
+function sk(n,i){return n+'__'+i;}
+function fmtDate(iso){if(!iso)return'';var d=new Date(iso);return d.getDate()+'/'+(d.getMonth()+1).toString().padStart(2,'0');}
+
+// ══════════ TABS ══════════
+function goTab(n){
+  for(var i=0;i<5;i++){
+    var tb=document.getElementById('t'+i),pg=document.getElementById('p'+i);
+    if(tb)tb.classList.toggle('on',i===n);
+    if(pg)pg.classList.toggle('on',i===n);
+  }
+  if(n===1)renderContas();
+  if(n===2)renderCities();
+  if(n===3){ renderInsights(); renderMats(); }
+  if(n===4)renderBudget();
+}
+
+// ══════════ MÉDICOS ══════════
+function togglePot(p){
+  potF[p]=!potF[p];
+  // Atualiza os botões na aba de Médicos
+  var btn1 = document.getElementById('pc'+p); 
+  if(btn1) btn1.classList.toggle('dim',!potF[p]);
+  
+  // Atualiza os botões na aba de Insights (se existirem)
+  var btn2 = document.getElementById('ipc'+p); 
+  if(btn2) btn2.classList.toggle('dim',!potF[p]);
+  
+  // Recarrega as duas telas
+  renderDocs();
+  if(document.getElementById('p3').classList.contains('on')) renderInsights();
+}
+
+// ── Debounce para busca de médicos ──
+var _docSearchTimer=null;
+function debounceRenderDocs(){
+  clearTimeout(_docSearchTimer);
+  _docSearchTimer=setTimeout(renderDocs,220);
+}
+
+// ── Filtro de Agenda de Atendimento ──
+function getDocDayValue(docName,dayKey){
+  var saved=docAgenda[docName];
+  if(saved&&saved[dayKey]!==undefined)return saved[dayKey];
+  var csv=SCHEDULE_DEF[docName];
+  if(csv&&csv.days&&csv.days[dayKey]!==undefined)return csv.days[dayKey];
+  return '';
+}
+function docMatchesAgendaFilter(docName){
+  var day=agendaFilter.day,period=agendaFilter.period;
+  if(!day&&!period)return true;
+  var days=['MON','TUE','WED','THU','FRI'];
+  function matchesPeriod(v,p){
+    if(!v)return false;
+    if(p==='M')return v==='M'||v==='DT';
+    if(p==='T')return v==='T'||v==='DT';
+    if(p==='DT')return v==='DT';
+    if(p==='Ag')return v==='Ag';
+    return false;
+  }
+  if(day&&!period){
+    var v=getDocDayValue(docName,day);
+    return v!==''&&v!==null&&v!==undefined;
+  }
+  if(!day&&period){
+    for(var i=0;i<days.length;i++){if(matchesPeriod(getDocDayValue(docName,days[i]),period))return true;}
+    return false;
+  }
+  return matchesPeriod(getDocDayValue(docName,day),period);
+}
+function applyAgendaFilter(){
+  agendaFilter.day=document.getElementById('afDay').value;
+  agendaFilter.period=document.getElementById('afPeriod').value;
+  var d=document.getElementById('afDay'),p=document.getElementById('afPeriod'),c=document.getElementById('afClear');
+  if(d)d.classList.toggle('active',!!agendaFilter.day);
+  if(p)p.classList.toggle('active',!!agendaFilter.period);
+  if(c)c.classList.toggle('on',!!(agendaFilter.day||agendaFilter.period));
+  renderDocs();
+}
+function clearAgendaFilter(){
+  agendaFilter.day='';agendaFilter.period='';
+  var d=document.getElementById('afDay'),p=document.getElementById('afPeriod'),c=document.getElementById('afClear');
+  if(d){d.value='';d.classList.remove('active');}
+  if(p){p.value='';p.classList.remove('active');}
+  if(c)c.classList.remove('on');
+  renderDocs();
+}
+
+// ── Deep link: navega para o card do médico na aba Médicos ──
+function navigateToDoc(docIdx){
+  var d=docs[docIdx];
+  if(d&&!potF[d.pot]){
+    potF[d.pot]=true;
+    var btn=document.getElementById('pc'+d.pot);
+    if(btn)btn.classList.remove('dim');
+  }
+  var srch=document.getElementById('srch');
+  if(srch)srch.value='';
+  goTab(0);
+  setTimeout(function(){
+    var el=document.getElementById('dc'+docIdx);
+    if(!el)return;
+    if(!el.classList.contains('open'))el.classList.add('open');
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+  },80);
+}
+
+var EMAIL_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>';
+var WA_ICON='<svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
+
+function renderDocs(){
+  if(!fbLoaded){document.getElementById('dlist').innerHTML='<div class="empty">Conectando...</div>';return;}
+
+  // 1. MEMÓRIA: Salva quais cards de médicos e listas de materiais estão abertos agora
+  var openDc = [];
+  var openMats = [];
+  var dcs = document.querySelectorAll('.dc.open');
+  for(var i=0; i<dcs.length; i++) openDc.push(dcs[i].id);
+  var mls = document.querySelectorAll('.mat-list');
+  for(var i=0; i<mls.length; i++){ if(mls[i].style.display==='block') openMats.push(mls[i].id); }
+
+  var q=document.getElementById('srch').value.toLowerCase().trim();
+  var filt=[];
+  for(var i=0;i<docs.length;i++){
+    var d=docs[i];
+    if(!potF[d.pot])continue;
+    if(q&&(d.name+' '+(d.city||'')+' '+(d.conta||'')).toLowerCase().indexOf(q)<0)continue;
+    if(!docMatchesAgendaFilter(d.name))continue;
+    filt.push({d:d,i:i});
+  }
+  var sv=document.getElementById('docSort').value;
+  var PO={A:0,B:1,C:2};
+  filt.sort(function(a,b){
+    if(sv==='nome')return a.d.name.localeCompare(b.d.name);
+    if(sv==='cidade'){var c=String(a.d.city||'').localeCompare(String(b.d.city||''));return c!==0?c:a.d.name.localeCompare(b.d.name);}
+    if(sv==='potencial'){var p=(PO[a.d.pot]||0)-(PO[b.d.pot]||0);return p!==0?p:a.d.name.localeCompare(b.d.name);}
+    var sa=calcScore(a.d),sb=calcScore(b.d);if(sb!==sa)return sb-sa;if(!!b.d.phone!==!!a.d.phone)return a.d.phone?-1:1;return a.d.name.localeCompare(b.d.name);
+  });
+  var agInfo='';
+  if(agendaFilter.day||agendaFilter.period){
+    var _dn={MON:'Seg',TUE:'Ter',WED:'Qua',THU:'Qui',FRI:'Sex'};
+    var _pn={M:'Manhã',T:'Tarde',DT:'Dia Todo',Ag:'Agendado'};
+    var _parts=[];
+    if(agendaFilter.day)_parts.push(_dn[agendaFilter.day]);
+    if(agendaFilter.period)_parts.push(_pn[agendaFilter.period]);
+    agInfo=' · 📅 '+_parts.join(' – ');
+  }
+  document.getElementById('stline').textContent=filt.length+' médico'+(filt.length!==1?'s':'')+' · '+sv+agInfo;
+  if(!filt.length){document.getElementById('dlist').innerHTML='<div class="empty">Nenhum médico encontrado.</div>';return;}
+  var html='';
+  for(var f=0;f<filt.length;f++){
+    var d=filt[f].d,di=filt[f].i,sc=calcScore(d),sl=scoreLabel(sc);
+    var sc2=0,sc2e=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])sc2++;if(sentEmail[sk(d.name,mi)+'__e'])sc2e++;}
+    var sf=d.scoreFlags||{};
+
+    // Score chips
+    var si='<div class="score-detail"><div class="sd-title">Score: '+sc+'</div><div class="sd-items">';
+    if(d.pot==='A')si+='<span class="si si-pos">+3 Pot.A</span>';else if(d.pot==='B')si+='<span class="si si-neu">+1 Pot.B</span>';else si+='<span class="si si-neu">+0 Pot.C</span>';
+    if(sf.hasAccess)si+='<span class="si si-pos">+3 Acesso</span>';
+    if(sf.testedSarc)si+='<span class="si si-pos">+2 Sarclisa</span>';
+    if(sf.daraRelacao)si+='<span class="si si-pos">+1 Dara exp.</span>';
+    if(sf.aberturaGuideline)si+='<span class="si si-pos">+1 Guideline</span>';
+    if(sf.noAccess)si+='<span class="si si-neg">−2 Sem acesso</span>';
+    if(sf.prefereSQ)si+='<span class="si si-neg">−2 SC/SQ</span>';
+    if(sf.concorrenciaForte)si+='<span class="si si-neg">−1 Concorrência</span>';
+    if(sf.daraLover)si+='<span class="si si-neg">−2 Dara Lover</span>';
+    // Marcadores personalizados do médico
+    var cf=d.customScoreFlags||[];
+    for(var cfi=0;cfi<cf.length;cfi++){
+      if(cf[cfi].active===false)continue;
+      var cfCls=cf[cfi].pts>=0?'si si-pos':'si si-neg';
+      si+='<span class="'+cfCls+'">'+(cf[cfi].pts>0?'+':'')+cf[cfi].pts+' '+esc(cf[cfi].label)+'</span>';
+    }
+    si+='</div></div>';
+
+    // Materiais
+    var rows='';
+    for(var r=0;r<mats.length;r++){
+      var m=mats[r],midx=r,sk2=sk(d.name,midx),ws=sent[sk2];
+      var stag=ws?'<button class="stag" onclick="event.stopPropagation();toggleSent(\''+di+'\',\''+midx+'\')">✓ WA '+fmtDate(ws)+'</button>':'';
+      var ekey=sk(d.name,midx)+'__e';
+      var we=sentEmail[ekey];
+      
+      var etag=we?'<button class="etag" onclick="event.stopPropagation();editEmailDate(\''+di+'\',\''+midx+'\')" title="Clique para editar a data">✓ Email '+fmtDate(we)+'</button>':'';
+      var btn=d.phone
+        ?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="event.stopPropagation();markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener">'+WA_ICON+' Enviar</a>'
+        :'<span class="nophone">Sem WhatsApp</span>';
+        
+      var doneCls=we?' done':'';
+      var ebtn='<button class="ebtn'+doneCls+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')" title="Marcar envio via E-mail/Email">'+EMAIL_ICON+(we?' E-mail':' E-mail')+'</button>';
+      
+      rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+etag+'</div>'+btn+ebtn+'</div>';
+    }
+
+    var waLbl=sc2>0?'WA:'+sc2:'';var eLbl=sc2e>0?'Email:'+sc2e:'';var sentSummary=[waLbl,eLbl].filter(Boolean).join(' · ');var matBtnLabel=sentSummary?'📨 '+sentSummary+' / '+mats.length:'📤 Enviar materiais';
+    var matBtnCls=sc2>0?'mat-toggle-btn sent':'mat-toggle-btn';
+
+    html+=
+      '<div class="dc" id="dc'+di+'">'+
+        '<div class="dc-hd" onclick="toggleDc('+di+')">'+
+          '<div class="dc-info">'+
+            '<div class="dc-name"><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'<span class="sc-badge '+sl.cls+'">'+sl.txt+' ('+sc+'pts)</span></div>'+
+            '<div class="dc-sub">'+(d.phone?'📱 '+esc(d.phone):'⚠️ Sem WhatsApp')+' · '+esc(tc(d.city||''))+' · '+esc(d.conta||'')+'</div>'+
+          '</div>'+
+          '<div class="dc-acts" onclick="event.stopPropagation()">'+
+            '<button class="ibtn" onclick="openDocModal('+di+')">✏️</button>'+
+            '<button class="ibtn d" onclick="askDel(\'doc\','+di+')">🗑️</button>'+
+          '</div>'+
+          '<button class="chev">▼</button>'+
+        '</div>'+
+        '<div class="dc-body">'+
+          '<div class="dc-detail">'+
+            '<span><b>CRM:</b> '+esc(d.crm||'—')+'</span>'+
+            '<span><b>Cidade:</b> '+esc(tc(d.city||''))+'</span>'+
+            '<span><b>Conta:</b> '+esc(d.conta||'—')+'</span>'+
+            '<span><b>WA:</b> '+sc2+'/'+mats.length+'</span>'+
+            '<span><b>Email:</b> '+sc2e+'/'+mats.length+'</span>'+
+          '</div>'+
+          si+
+          buildAgendaHtml(d.name, di)+
+          '<div class="mat-section" id="mats'+di+'">'+
+            '<div class="mat-toggle-row" onclick="toggleMats('+di+')">'+
+              '<span class="'+matBtnCls+'">'+matBtnLabel+'</span>'+
+              '<span class="mat-chev" id="mc'+di+'">▼</span>'+
+            '</div>'+
+            '<div class="mat-list" id="ml'+di+'" style="display:none">'+rows+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  }
+  document.getElementById('dlist').innerHTML=html;
+
+  // 2. RESTAURAR: Reabre os cards e listas de materiais que estavam abertos
+  for(var i=0; i<openDc.length; i++) {
+    var el = document.getElementById(openDc[i]);
+    if(el) el.classList.add('open');
+  }
+  for(var i=0; i<openMats.length; i++) {
+    var ml = document.getElementById(openMats[i]);
+    if(ml) {
+      ml.style.display = 'block';
+      var mc = document.getElementById(openMats[i].replace('ml', 'mc'));
+      if(mc) mc.style.transform = 'rotate(180deg)'; // Gira a setinha para cima
+    }
+  }
+}
+function toggleDc(i){var el=document.getElementById('dc'+i);if(el)el.classList.toggle('open');}
+function toggleMats(i){
+  var ml=document.getElementById('ml'+i);
+  var mc=document.getElementById('mc'+i);
+  if(!ml)return;
+  var open=ml.style.display==='none';
+  ml.style.display=open?'block':'none';
+  if(mc)mc.style.transform=open?'rotate(180deg)':'';
+}
+function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();}
+function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();
+}
+function toggleEmailSent(di,mi){
+  var nm=docs[parseInt(di)].name;
+  var k=sk(nm,parseInt(mi))+'__e';
+  if(sentEmail[k])delete sentEmail[k];
+  else sentEmail[k]=new Date().toISOString();
+  persist();
+}
+function editEmailDate(di, mi) {
+  var nm = docs[parseInt(di)].name;
+  var k = sk(nm, parseInt(mi)) + '__e';
+  if (!sentEmail[k]) return;
+  
+  // Pega a data atual salva e formata para YYYY-MM-DD
+  var currentDate = new Date(sentEmail[k]);
+  var formattedDate = currentDate.toISOString().split('T')[0];
+  
+  // Pergunta a nova data ao usuário
+  var newDate = prompt("Editar data de envio do e-mail (Formato: AAAA-MM-DD):", formattedDate);
+  
+  if (newDate) {
+    // Adiciona T12:00:00Z para evitar problemas de fuso horário deslocando o dia
+    var parsed = new Date(newDate + 'T12:00:00Z'); 
+    if (!isNaN(parsed)) {
+      sentEmail[k] = parsed.toISOString();
+      persist();
+    } else {
+      alert("Data inválida. Use o formato AAAA-MM-DD.");
+    }
+  }
+}
+function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
+
+// ── Marcadores personalizados de score do médico ──
+var customScoreFlags=[];
+
+function renderCustomScoreChips(){
+  var container=document.getElementById('customScoreChips');
+  if(!container)return;
+  var h='';
+  for(var i=0;i<customScoreFlags.length;i++){
+    var cf=customScoreFlags[i];
+    var active=cf.active!==false;
+    var cls=cf.pts>=0?'cmk-chip pos':'cmk-chip neg';
+    if(active)cls+=' sel';
+    h+='<button type="button" class="'+cls+'" onclick="toggleCustomScoreFlag('+i+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+       '<button type="button" class="cmk-del" onclick="deleteCustomScoreFlag('+i+')" title="Remover">×</button>';
+  }
+  container.innerHTML=h;
+}
+function toggleCustomScoreFlag(i){
+  if(!customScoreFlags[i])return;
+  customScoreFlags[i].active=!( customScoreFlags[i].active!==false );
+  renderCustomScoreChips();
+}
+function deleteCustomScoreFlag(i){
+  customScoreFlags.splice(i,1);
+  renderCustomScoreChips();
+}
+function addCustomScoreFlag(){
+  var label=document.getElementById('csLabel').value.trim();
+  var pts=parseInt(document.getElementById('csPts').value)||0;
+  if(!label){alert('Informe o nome do marcador.');return;}
+  customScoreFlags.push({label:label,pts:pts,active:true});
+  document.getElementById('csLabel').value='';
+  document.getElementById('csPts').value='';
+  renderCustomScoreChips();
+}
+
+function openDocModal(idx){
+  editDocIdx=idx;scFlags={};customScoreFlags=[];
+  document.getElementById('docMT').childNodes[0].nodeValue=idx===-1?'Novo Médico ':'Editar Médico ';
+  if(idx>=0){
+    var d=docs[idx];
+    document.getElementById('dName').value=d.name||'';
+    document.getElementById('dCrm').value=d.crm||'';
+    document.getElementById('dPot').value=d.pot||'C';
+    document.getElementById('dPhone').value=d.phone||'';
+    document.getElementById('dCity').value=d.city||'';
+    document.getElementById('dEsp').value=d.esp||'Hematologia (BR)';
+    document.getElementById('dConta').value=d.conta||'';
+    scFlags=d.scoreFlags?JSON.parse(JSON.stringify(d.scoreFlags)):{};
+    customScoreFlags=d.customScoreFlags?JSON.parse(JSON.stringify(d.customScoreFlags)):[];
+  } else {
+    ['dName','dCrm','dPhone','dCity','dConta'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('dPot').value='C';
+    document.getElementById('dEsp').value='Hematologia (BR)';
+  }
+  var allBtns=document.querySelectorAll('#scoreChipsPos .bchip,#scoreChipsNeg .bchip');
+  for(var i=0;i<allBtns.length;i++){allBtns[i].classList.toggle('sel',!!scFlags[allBtns[i].dataset.v]);}
+  renderCustomScoreChips();
+  document.getElementById('docOv').classList.add('on');
+}
+function closeDocModal(){document.getElementById('docOv').classList.remove('on');}
+function saveDoc(){
+  var nm=document.getElementById('dName').value.trim().toUpperCase();if(!nm){alert('Informe o nome.');return;}
+  var d={
+    name:nm,crm:document.getElementById('dCrm').value.trim(),
+    pot:document.getElementById('dPot').value,
+    phone:document.getElementById('dPhone').value.trim(),
+    city:document.getElementById('dCity').value.trim().toUpperCase(),
+    esp:document.getElementById('dEsp').value,
+    conta:document.getElementById('dConta').value.trim(),
+    scoreFlags:JSON.parse(JSON.stringify(scFlags)),
+    customScoreFlags:JSON.parse(JSON.stringify(customScoreFlags))
+  };
+  if(editDocIdx===-1)docs.push(d);else docs[editDocIdx]=d;
+  persist();closeDocModal();
+}
+
+// ══════════ MATERIAIS ══════════
+function openMatModal(idx){editMatIdx=idx;document.getElementById('matMT').childNodes[0].nodeValue=idx===-1?'Novo Material ':'Editar Material ';document.getElementById('mName').value=idx>=0?mats[idx].name:'';document.getElementById('mMsg').value=idx>=0?mats[idx].msg:'';document.getElementById('matOv').classList.add('on');}
+function closeMatModal(){document.getElementById('matOv').classList.remove('on');}
+function saveMat(){var nm=document.getElementById('mName').value.trim(),msg=document.getElementById('mMsg').value.trim();if(!nm||!msg){alert('Preencha nome e mensagem.');return;}if(editMatIdx===-1)mats.push({name:nm,msg:msg});else mats[editMatIdx]={name:nm,msg:msg};persist();closeMatModal();renderMats();renderInsights();}
+function renderMats(){var h='';for(var i=0;i<mats.length;i++){var m=mats[i];h+='<div class="mcard"><div class="mcard-t">'+esc(m.name)+'</div><div class="mcard-p">'+esc(m.msg)+'</div><div class="mcard-a"><button class="ibtn" onclick="openMatModal('+i+')">✏️ Editar</button><button class="ibtn d" onclick="askDel(\'mat\','+i+')">🗑️ Excluir</button></div></div>';}document.getElementById('matList').innerHTML=h;}
+
+// ══════════ DELETE ══════════
+function askDel(type,idx){delType=type;delIdx=idx;var lb=type==='doc'?tc(docs[idx].name):mats[idx].name;document.getElementById('delMsg').textContent='Excluir "'+lb+'"? Não pode ser desfeito.';document.getElementById('delOv').classList.add('on');}
+function closeDelOv(){document.getElementById('delOv').classList.remove('on');}
+function confirmDel(){if(delType==='doc')docs.splice(delIdx,1);else{mats.splice(delIdx,1);if(activeMat>=mats.length)activeMat=-1;renderMats();renderInsights();}persist();closeDelOv();}
+
+// ══════════ CONTAS ══════════
 function renderContas(){
   var cdMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.conta||'Sem conta';if(!cdMap[c])cdMap[c]=[];cdMap[c].push(d);}
   var contas=CONTAS_DEF.slice();
@@ -24,4 +1235,1241 @@ function renderContas(){
     if(sv==='investimento')return budInvestimentoConta(b.conta)-budInvestimentoConta(a.conta);
     if(sv==='ritmo')return calcRitmoConta(db.ytd,db.mat)-calcRitmoConta(da.ytd,da.mat);
     return db.scoreTotal-da.scoreTotal;
+  });priCol={'Prioridade Máxima':'r1','Prioridade Alta':'r2','Prioridade Média':'r3','Monitoramento':'rn'};
+  var html='';
+  for(var idx=0;idx<contas.length;idx++){
+    var ct=contas[idx];
+    var cd=getContaData(ct);
+    var ext=cExtra[ct.conta]||{};
+    var barreira=ext.barreira||'',barreiraNota=ext.barreiraNota||'',flags=ext.flags||{};
+    var cdocs=cdMap[ct.conta]||[];
+    var pA=0,pB=0,pC=0;
+    for(var k=0;k<cdocs.length;k++){if(cdocs[k].pot==='A')pA++;else if(cdocs[k].pot==='B')pB++;else pC++;}
+    var rc=priCol[ct.prioridade]||'rn';
+    var rk=idx<3?['🥇','🥈','🥉'][idx]:'#'+(idx+1);
+    var deltaSign=cd.flagScore>0?'+':cd.flagScore<0?'':'';
+    var deltaCls=cd.flagScore>0?'pos':cd.flagScore<0?'neg':'zero';
+
+    // Barras de auditoria
+    var barsHtml='<div class="sbars">'+bar('Tamanho',cd.tam)+bar('Momento',cd.mom)+bar('Pot.estrat.',cd.pot)+bar('Espaço',cd.esp)+'</div>';
+
+    // Marcadores globais
+    var flagKeys=Object.keys(CONTA_FLAGS);
+    var cmkPos='',cmkNeg='';
+    for(var fi=0;fi<flagKeys.length;fi++){
+      var fk=flagKeys[fi],fd=CONTA_FLAGS[fk],isSel=!!flags[fk];
+      var cls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
+      var chip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+escJ(ct.conta)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      if(fd.type==='pos')cmkPos+=chip;else cmkNeg+=chip;
+    }
+    // Marcadores personalizados desta conta
+    var customFlags=ext.customFlags||[];
+    var cmkCustom='';
+    for(var ci2=0;ci2<customFlags.length;ci2++){
+      var cf=customFlags[ci2],cfSel=!!cf.active;
+      var cfCls='cmk-chip '+(cf.pts>=0?'pos':'neg')+(cfSel?' sel':'');
+      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+escJ(ct.conta)+'\','+ci2+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+escJ(ct.conta)+'\','+ci2+')" title="Remover">×</button>';
+    }
+    var flagTotal=cd.flagScore;
+    var cmkHtml='<div class="cmk-wrap" onclick="event.stopPropagation()">'+
+      '<div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-pts '+(flagTotal>=0?'pos':'neg')+'">'+(flagTotal>0?'+':'')+flagTotal+' pts</span></div>'+
+      '<div class="cmk-section pos">Positivos</div><div class="cmk-chips">'+cmkPos+'</div>'+
+      '<div class="cmk-section neg">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div>'+
+      (cmkCustom?'<div class="cmk-section" style="color:#6d28d9;">Personalizados</div><div class="cmk-chips" style="align-items:center;">'+cmkCustom+'</div>':'')+
+      '<div class="cmk-add-row">'+
+        '<input class="cmk-add-input" id="cflabel_'+idx+'" placeholder="Nome do marcador" onclick="event.stopPropagation()">'+
+        '<input class="cmk-add-pts" id="cfpts_'+idx+'" type="number" placeholder="pts" onclick="event.stopPropagation()">'+
+        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+escJ(ct.conta)+'\','+idx+')">+ Add</button>'+
+      '</div>'+
+    '</div>';
+
+    // Barreiras (fixas + personalizadas)
+    var customBarreiras=ext.customBarreiras||[];
+    var todasBarreiras=BARREIRAS.concat(customBarreiras);
+    var barrSel=ext.barreiraSel||[];  
+    var bchips='';
+    for(var bi=0;bi<todasBarreiras.length;bi++){
+      var bv=todasBarreiras[bi],bSel=barrSel.indexOf(bv)>=0;
+      var isCustom=bi>=BARREIRAS.length;
+      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+escJ(ct.conta)+'\',\''+escJ(bv)+'\')">'+esc(bv)+'</button>'+
+        (isCustom?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+escJ(ct.conta)+'\',\''+escJ(bv)+'\')" title="Remover">×</button>':'');
+    }
+    var barrHtml='<div class="barr-wrap" onclick="event.stopPropagation()">'+
+      '<div class="barr-lbl">Barreiras principais <span style="font-size:10px;color:#aaa;font-weight:400;">(selecione todas que se aplicam)</span></div>'+
+      '<div class="barr-chips">'+bchips+'</div>'+
+      '<div class="cmk-add-row">'+
+        '<input class="cmk-add-input" id="bclabel_'+idx+'" placeholder="Nova barreira personalizada" onclick="event.stopPropagation()">'+
+        '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomBarreira(\''+escJ(ct.conta)+'\','+idx+')">+ Add</button>'+
+      '</div>'+
+      '<input type="text" placeholder="Nota livre..." value="'+esc(barreiraNota)+'" style="width:100%;padding:8px 12px;border-radius:9px;border:1px solid #ddd;font-size:13px;margin-top:8px;background:#f9f9f9;font-family:-apple-system,sans-serif;outline:none;" onclick="event.stopPropagation()" oninput="setBarreiraNota(\''+escJ(ct.conta)+'\',this.value)">'+
+    '</div>';
+
+    // Médicos — ordenação dinâmica + deep-link
+    var sortedCdocs=cdocs.slice().sort(function(a,b){return calcScore(b)-calcScore(a);});
+    var docRows=buildContaDocRows(sortedCdocs,idx);
+
+    html+='<div class="ccard" id="cc'+idx+'">'+
+      '<div class="ccard-hd" onclick="toggleCc('+idx+')">'+
+        '<div class="crank '+rc+'">'+rk+'</div>'+
+        '<div class="ccard-main">'+
+          '<div class="ccard-name">'+esc(ct.conta)+'</div>'+
+          '<div class="ccard-sub">MAT '+cd.mat+' · YTD '+cd.ytd+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+'</div>'+
+        '</div>'+
+        '<div class="ccard-right">'+
+          (cd.flagScore!==0?'<div class="cscore-delta '+deltaCls+'">'+deltaSign+cd.flagScore+'</div>':'')+
+          '<div class="cscore-box">'+
+            '<div class="cscore-audit">'+cd.scoreAudit+'</div>'+
+            '<div class="cscore-total">'+cd.scoreTotal+'</div>'+
+            '<div class="cscore-lbl">total</div>'+
+          '</div>'+
+        '</div>'+
+        '<button class="cchev">▼</button>'+
+      '</div>'+
+      '<div class="ccard-body">'+
+        '<div class="cinfo-row" onclick="event.stopPropagation()">'+
+          '<span><b>Tamanho:</b> '+cd.tam+'/3</span>'+
+          '<span><b>Momento:</b> '+cd.mom+'/3</span>'+
+          '<span><b>Pot.Estrat.:</b> '+cd.pot+'/3</span>'+
+          '<span><b>Espaço:</b> '+cd.esp+'/3</span>'+
+          '<button class="ibtn" style="margin-left:auto" onclick="event.stopPropagation();openAuditModal(\''+escJ(ct.conta)+'\','+idx+')">✏️ Editar auditoria</button>'+
+        '</div>'+
+        barsHtml+cmkHtml+barrHtml+
+        '<div class="cdoc-list">'+
+          '<div style="display:flex;align-items:center;margin-bottom:6px;">'+
+            '<div class="cdoc-title" style="margin-bottom:0;">Médicos ('+cdocs.length+')</div>'+
+            '<select class="cdoc-sort" onclick="event.stopPropagation()" onchange="sortContaDocs(this,'+idx+')">'+
+              '<option value="score">↓ Score</option>'+
+              '<option value="pot">Potencial</option>'+
+              '<option value="nome">A–Z</option>'+
+            '</select>'+
+          '</div>'+
+          '<div id="cdoc-rows-'+idx+'">'+docRows+'</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+  document.getElementById('contaList').innerHTML=html;
+}
+
+// Monta linhas de médicos de uma conta com deep-link
+function buildContaDocRows(docsArr,contaIdx){
+  var html='';
+  for(var i=0;i<docsArr.length;i++){
+    var dd=docsArr[i],dsc=calcScore(dd),dsl=scoreLabel(dsc);
+    var realIdx=docs.indexOf(dd);
+    html+=
+      '<div class="cdoc-row">'+
+        '<span class="badge b'+dd.pot+'">'+dd.pot+'</span>'+
+        '<button class="doc-link" onclick="event.stopPropagation();navigateToDoc('+realIdx+')">'+esc(tc(dd.name))+'</button>'+
+        '<span class="sc-badge '+dsl.cls+'" style="font-size:10px;flex-shrink:0">'+dsc+'pts</span>'+
+      '</div>';
+  }
+  return html;
+}
+
+// Reordena médicos de um card de conta sem re-render global
+function sortContaDocs(sel,contaIdx){
+  var key=sel.value,PO={A:0,B:1,C:2};
+  var container=document.getElementById('cdoc-rows-'+contaIdx);
+  if(!container)return;
+  var conta=container.closest('.ccard').querySelector('.ccard-name').textContent.trim();
+  var cdocs=docs.filter(function(d){return(d.conta||'Sem conta')===conta;});
+  cdocs.sort(function(a,b){
+    if(key==='pot'){var p=(PO[a.pot]||0)-(PO[b.pot]||0);return p!==0?p:calcScore(b)-calcScore(a);}
+    if(key==='nome')return a.name.localeCompare(b.name);
+    return calcScore(b)-calcScore(a);
   });
+  container.innerHTML=buildContaDocRows(cdocs,contaIdx);
+}
+
+function toggleContaFlag(conta,key){
+  if(!cExtra[conta])cExtra[conta]={};if(!cExtra[conta].flags)cExtra[conta].flags={};
+  cExtra[conta].flags[key]=!cExtra[conta].flags[key];
+  persistLocal();renderContaInPlace(conta);
+}
+
+// Custom flags por conta
+function addCustomFlag(conta,idx){
+  var labelEl=document.getElementById('cflabel_'+idx);
+  var ptsEl=document.getElementById('cfpts_'+idx);
+  if(!labelEl||!ptsEl)return;
+  var label=labelEl.value.trim();
+  var pts=parseInt(ptsEl.value)||0;
+  if(!label){alert('Informe o nome do marcador.');return;}
+  if(!cExtra[conta])cExtra[conta]={};
+  if(!cExtra[conta].customFlags)cExtra[conta].customFlags=[];
+  cExtra[conta].customFlags.push({label:label,pts:pts,active:true});
+  labelEl.value='';ptsEl.value='';
+  persistLocal();renderContaInPlace(conta);
+}
+function toggleCustomFlag(conta,ci){
+  if(!cExtra[conta]||!cExtra[conta].customFlags)return;
+  cExtra[conta].customFlags[ci].active=!cExtra[conta].customFlags[ci].active;
+  persistLocal();renderContaInPlace(conta);
+}
+function deleteCustomFlag(conta,ci){
+  if(!cExtra[conta]||!cExtra[conta].customFlags)return;
+  cExtra[conta].customFlags.splice(ci,1);
+  persistLocal();renderContaInPlace(conta);
+}
+
+// Barreiras — múltipla seleção + personalizadas por conta
+function toggleBarreira(conta,val){
+  if(!cExtra[conta])cExtra[conta]={};
+  if(!cExtra[conta].barreiraSel)cExtra[conta].barreiraSel=[];
+  var idx=cExtra[conta].barreiraSel.indexOf(val);
+  if(idx>=0)cExtra[conta].barreiraSel.splice(idx,1);
+  else cExtra[conta].barreiraSel.push(val);
+  persistLocal();renderContaInPlace(conta);
+}
+function addCustomBarreira(conta,idx){
+  var el=document.getElementById('bclabel_'+idx);
+  if(!el)return;
+  var val=el.value.trim();
+  if(!val){alert('Informe a barreira.');return;}
+  if(!cExtra[conta])cExtra[conta]={};
+  if(!cExtra[conta].customBarreiras)cExtra[conta].customBarreiras=[];
+  if(cExtra[conta].customBarreiras.indexOf(val)<0)cExtra[conta].customBarreiras.push(val);
+  if(!cExtra[conta].barreiraSel)cExtra[conta].barreiraSel=[];
+  if(cExtra[conta].barreiraSel.indexOf(val)<0)cExtra[conta].barreiraSel.push(val);
+  el.value='';
+  persistLocal();renderContaInPlace(conta);
+}
+function deleteCustomBarreira(conta,val){
+  if(!cExtra[conta])return;
+  if(cExtra[conta].customBarreiras){var i=cExtra[conta].customBarreiras.indexOf(val);if(i>=0)cExtra[conta].customBarreiras.splice(i,1);}
+  if(cExtra[conta].barreiraSel){var i=cExtra[conta].barreiraSel.indexOf(val);if(i>=0)cExtra[conta].barreiraSel.splice(i,1);}
+  persistLocal();renderContaInPlace(conta);
+}
+function setBarreiraNota(conta,val){
+  if(!cExtra[conta])cExtra[conta]={};cExtra[conta].barreiraNota=val;
+  persistLocal(); 
+}
+
+function renderContaInPlace(contaNome){
+  var cards=document.querySelectorAll('[id^="cc"]');
+  for(var ci=0;ci<cards.length;ci++){
+    var nameEl=cards[ci].querySelector('.ccard-name');
+    if(!nameEl||nameEl.textContent.trim()!==contaNome)continue;
+    var bodyEl=cards[ci].querySelector('.ccard-body');
+    if(!bodyEl)continue;
+    var ext=cExtra[contaNome]||{};
+    var flags=ext.flags||{};
+    var flagKeys=Object.keys(CONTA_FLAGS);
+    var cmkPos='',cmkNeg='';
+    var cardIdx=parseInt(cards[ci].id.replace('cc',''));
+    for(var fi=0;fi<flagKeys.length;fi++){
+      var fk=flagKeys[fi],fd=CONTA_FLAGS[fk],isSel=!!flags[fk];
+      var cls='cmk-chip '+(fd.type==='pos'?'pos':'neg')+(isSel?' sel':'');
+      cmkChip='<button class="'+cls+'" onclick="event.stopPropagation();toggleContaFlag(\''+escJ(contaNome)+'\',\''+fk+'\')">'+(fd.pts>0?'+':'')+fd.pts+' '+fd.label+'</button>';
+      if(fd.type==='pos')cmkPos+=cmkChip;else cmkNeg+=cmkChip;
+    }
+    var customFlags=ext.customFlags||[];
+    var cmkCustom='';
+    for(var fi=0;fi<customFlags.length;fi++){
+      var cf=customFlags[fi],cfSel=!!cf.active;
+      var cfCls='cmk-chip '+(cf.pts>=0?'pos':'neg')+(cfSel?' sel':'');
+      cmkCustom+='<button class="'+cfCls+'" onclick="event.stopPropagation();toggleCustomFlag(\''+escJ(contaNome)+'\','+fi+')">'+(cf.pts>0?'+':'')+cf.pts+' '+esc(cf.label)+'</button>'+
+        '<button class="cmk-del" onclick="event.stopPropagation();deleteCustomFlag(\''+escJ(contaNome)+'\','+fi+')" title="Remover">×</button>';
+    }
+    var flagTotal=calcContaFlagScore(ext);
+    var cmkWrap=bodyEl.querySelector('.cmk-wrap');
+    if(cmkWrap){
+      cmkWrap.innerHTML=
+        '<div class="cmk-hd"><span class="cmk-title">Marcadores de contexto</span><span class="cmk-pts '+(flagTotal>=0?'pos':'neg')+'">'+(flagTotal>0?'+':'')+flagTotal+' pts</span></div>'+
+        '<div class="cmk-section pos">Positivos</div><div class="cmk-chips">'+cmkPos+'</div>'+
+        '<div class="cmk-section neg">Negativos</div><div class="cmk-chips">'+cmkNeg+'</div>'+
+        (cmkCustom?'<div class="cmk-section" style="color:#6d28d9;">Personalizados</div><div class="cmk-chips" style="align-items:center;">'+cmkCustom+'</div>':'')+
+        '<div class="cmk-add-row">'+
+          '<input class="cmk-add-input" id="cflabel_'+cardIdx+'" placeholder="Nome do marcador" onclick="event.stopPropagation()">'+
+          '<input class="cmk-add-pts" id="cfpts_'+cardIdx+'" type="number" placeholder="pts" onclick="event.stopPropagation()">'+
+          '<button class="cmk-add-btn" onclick="event.stopPropagation();addCustomFlag(\''+escJ(contaNome)+'\','+cardIdx+')">+ Add</button>'+
+        '</div>';
+    }
+    var customBarreiras=ext.customBarreiras||[];
+    var todasBarreiras=BARREIRAS.concat(customBarreiras);
+    var barrSel=ext.barreiraSel||[];
+    var bchips='';
+    for(var bi=0;bi<todasBarreiras.length;bi++){
+      var bv=todasBarreiras[bi],bSel=barrSel.indexOf(bv)>=0,isCustomB=bi>=BARREIRAS.length;
+      bchips+='<button class="bchip'+(bSel?' sel':'')+'" onclick="event.stopPropagation();toggleBarreira(\''+escJ(contaNome)+'\',\''+escJ(bv)+'\')">'+esc(bv)+'</button>'+
+        (isCustomB?'<button class="cmk-del" onclick="event.stopPropagation();deleteCustomBarreira(\''+escJ(contaNome)+'\',\''+escJ(bv)+'\')" title="Remover">×</button>':'');
+    }
+    var barrChipsEl=bodyEl.querySelector('.barr-chips');
+    if(barrChipsEl)barrChipsEl.innerHTML=bchips;
+    var cdBase=null;for(var _ci=0;_ci<CONTAS_DEF.length;_ci++){if(CONTAS_DEF[_ci].conta===contaNome){cdBase=CONTAS_DEF[_ci];break;}}
+    if(!cdBase)cdBase={conta:contaNome,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0};
+    var cd=getContaData(cdBase);
+    var scoreAuditEl=cards[ci].querySelector('.cscore-audit');
+    var scoreTotalEl=cards[ci].querySelector('.cscore-total');
+    if(scoreAuditEl)scoreAuditEl.textContent=cd.scoreAudit;
+    if(scoreTotalEl)scoreTotalEl.textContent=cd.scoreTotal;
+    break;
+  }
+}
+
+// ══════════ MODAL AUDITORIA (por conta) ══════════
+function openAuditModal(contaNome,idx){
+  auditContaNome=contaNome;
+  document.getElementById('auditTitle').textContent='Editar auditoria';
+  var ct=null;
+  for(var i=0;i<CONTAS_DEF.length;i++){if(CONTAS_DEF[i].conta===contaNome){ct=CONTAS_DEF[i];break;}}
+  if(!ct)ct={scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,mat:0,ytd:0};
+  var ext=cExtra[contaNome]||{},ad=ext.auditData||{};
+  document.getElementById('at_tam').value=ad.scoreTam!=null?ad.scoreTam:ct.scoreTam;
+  document.getElementById('at_mom').value=ad.scoreMom!=null?ad.scoreMom:ct.scoreMom;
+  document.getElementById('at_pot').value=ad.scorePot!=null?ad.scorePot:ct.scorePot;
+  document.getElementById('at_esp').value=ad.scoreEsp!=null?ad.scoreEsp:ct.scoreEsp;
+  document.getElementById('at_mat').value=ad.mat!=null?ad.mat:ct.mat;
+  document.getElementById('at_ytd').value=ad.ytd!=null?ad.ytd:ct.ytd;
+  document.getElementById('auditTitle').textContent='✏️ '+contaNome;
+  updateAuditPreview();
+  document.getElementById('auditOv').classList.add('on');
+}
+function closeAuditModal(){document.getElementById('auditOv').classList.remove('on');}
+function updateAuditPreview(){
+  var tam=parseInt(document.getElementById('at_tam').value)||0;
+  var mom=parseInt(document.getElementById('at_mom').value)||0;
+  var pot=parseInt(document.getElementById('at_pot').value)||0;
+  var esp=parseInt(document.getElementById('at_esp').value)||0;
+  var total=tam+mom+pot+esp;
+  var ext=cExtra[auditContaNome]||{};
+  var flagSc=calcContaFlagScore(ext);
+  document.getElementById('auditPreview').innerHTML='Score auditoria: <b>'+total+'</b> · Marcadores: <b>'+(flagSc>=0?'+':'')+flagSc+'</b> · <b>Total: '+(total+flagSc)+'</b>';
+}
+function saveAuditModal(){
+  if(!cExtra[auditContaNome])cExtra[auditContaNome]={};
+  cExtra[auditContaNome].auditData={
+    scoreTam:document.getElementById('at_tam').value,
+    scoreMom:document.getElementById('at_mom').value,
+    scorePot:document.getElementById('at_pot').value,
+    scoreEsp:document.getElementById('at_esp').value,
+    mat:document.getElementById('at_mat').value,
+    ytd:document.getElementById('at_ytd').value
+  };
+  persist();closeAuditModal();
+}
+
+// ══════════ MODAL CSV AUDITORIA ══════════
+function openCsvAuditModal(){
+  document.getElementById('csvPaste').value='';
+  document.getElementById('csvResult').style.display='none';
+  document.getElementById('csvResult').innerHTML='';
+  document.getElementById('csvApplyBtn').style.display='none';
+  var newEl=document.getElementById('csvNewContas');
+  if(newEl){newEl.innerHTML='';newEl.style.display='none';}
+  csvParsedData=[];
+  csvNewContasPending=[];
+  document.getElementById('csvAuditOv').classList.add('on');
+}
+function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.remove('on');}
+
+function loadCsvFile(evt){
+  var file=evt.target.files&&evt.target.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(){document.getElementById('csvPaste').value=String(r.result||'');};
+  r.readAsText(file,'UTF-8');
+  evt.target.value='';
+}
+
+function parseCsvLine(line){
+  var sep=line.indexOf(';')>=0?';':'\t';
+  return line.split(sep).map(function(c){return c.trim().replace(/^"|"$/g,'').trim();});
+}
+
+function processCsvAudit(){
+  var raw=document.getElementById('csvPaste').value.trim();
+  if(!raw){alert('Cole os dados primeiro.');return;}
+  var lines=raw.split(/\r?\n/).filter(function(l){return l.trim();});
+  if(lines.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
+
+  var header=parseCsvLine(lines[0]).map(function(h){return h.toLowerCase().replace(/[^a-záàãâéêíóõôúç.\s]/gi,'').trim();});
+  var iConta=header.findIndex(function(h){return h.indexOf('conta')>=0;});
+  var iMat=header.findIndex(function(h){return h.indexOf('mat')>=0&&h.indexOf('evol')<0&&h.indexOf('atu')>=0||h==='mat'||h==='mat atu'||h==='mat (atu)'||h==='mat atu.';});
+  var iYtd=header.findIndex(function(h){return h.indexOf('ytd')>=0&&h.indexOf('evol')<0;});
+  var iTam=header.findIndex(function(h){return h.indexOf('tamanho')>=0||h.indexOf('tam')>=0;});
+  var iMom=header.findIndex(function(h){return h.indexOf('momento')>=0||h.indexOf('mom')>=0;});
+  var iPot=header.findIndex(function(h){return h.indexOf('pot')>=0&&h.indexOf('estrat')>=0||h==='pot'||h==='pot.estrat'||h==='pot.estrat.';});
+  var iEsp=header.findIndex(function(h){return h.indexOf('espa')>=0||h.indexOf('esp')>=0||h.indexOf('captura')>=0;});
+
+  if(iConta<0)iConta=0;
+  if(iMat<0)iMat=1;
+  if(iYtd<0)iYtd=2;
+
+  var results=[],parsed=[];
+  var allContas=CONTAS_DEF.map(function(c){return c.conta.toLowerCase();});
+
+  for(var li=1;li<lines.length;li++){
+    var cols=parseCsvLine(lines[li]);
+    if(!cols[iConta])continue;
+    var contaRaw=cols[iConta];
+    var mat=parseFloat(String(cols[iMat]||'').replace(',','.'));
+    var ytd=parseFloat(String(cols[iYtd]||'').replace(',','.'));
+
+    var matchNome='';
+    var allContaNomes=CONTAS_DEF.map(function(c){return c.conta;});
+    for(var ci=0;ci<allContaNomes.length;ci++){
+      if(allContaNomes[ci].toLowerCase()===contaRaw.toLowerCase()||(contaRaw.length>4&&allContaNomes[ci].toLowerCase().indexOf(contaRaw.toLowerCase())>=0)||(contaRaw.length>4&&contaRaw.toLowerCase().indexOf(allContaNomes[ci].toLowerCase().substring(0,8))>=0)){matchNome=allContaNomes[ci];break;}
+    }
+
+    var row={contaRaw:contaRaw,conta:matchNome,mat:isNaN(mat)?null:mat,ytd:isNaN(ytd)?null:ytd};
+    if(iTam>=0&&cols[iTam])row.scoreTam=parseInt(cols[iTam])||null;
+    if(iMom>=0&&cols[iMom])row.scoreMom=parseInt(cols[iMom])||null;
+    if(iPot>=0&&cols[iPot])row.scorePot=parseInt(cols[iPot])||null;
+    if(iEsp>=0&&cols[iEsp])row.scoreEsp=parseInt(cols[iEsp])||null;
+    parsed.push(row);
+
+    var status=matchNome?'<span class="ok">✓ '+contaRaw+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+contaRaw+'"</span>';
+    results.push(status);
+  }
+
+  csvParsedData=parsed;
+  var found=parsed.filter(function(r){return r.conta;}).length;
+  var notFound=parsed.filter(function(r){return !r.conta;});
+  csvNewContasPending=notFound;
+
+  var resultEl=document.getElementById('csvResult');
+  resultEl.style.display='block';
+  resultEl.innerHTML='<b>'+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
+  document.getElementById('csvApplyBtn').style.display=(found>0||notFound.length>0)?'':'none';
+
+  // Exibe contas novas com checkbox
+  var newEl=document.getElementById('csvNewContas');
+  if(newEl&&notFound.length>0){
+    var h='<div style="margin-top:8px;padding:10px 12px;background:#ede9fe;border-radius:10px;">'+
+      '<div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:8px;">🆕 '+notFound.length+' conta(s) nova(s) na auditoria — incluir?</div>';
+    for(var ni=0;ni<notFound.length;ni++){
+      var nr=notFound[ni];
+      h+='<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 0;border-bottom:1px solid #ddd8fe;font-size:13px;">'+
+        '<input type="checkbox" data-idx="'+ni+'" checked style="width:16px;height:16px;cursor:pointer;accent-color:#6d28d9;">'+
+        '<span><b>'+esc(nr.contaRaw)+'</b>'+
+          (nr.mat!=null?' · MAT '+nr.mat:'')+
+          (nr.ytd!=null?' · YTD '+nr.ytd:'')+
+          ' <span style="font-size:10px;color:#888;">(prioridade: Monitoramento)</span>'+
+        '</span>'+
+      '</label>';
+    }
+    h+='</div>';
+    newEl.innerHTML=h;
+    newEl.style.display='block';
+  } else if(newEl){
+    newEl.innerHTML='';
+    newEl.style.display='none';
+  }
+}
+
+function applyCsvAudit(){
+  var updated=0;
+
+  // 1. Atualiza contas já conhecidas
+  for(var i=0;i<csvParsedData.length;i++){
+    var row=csvParsedData[i];
+    if(!row.conta)continue;
+    if(!cExtra[row.conta])cExtra[row.conta]={};
+    if(!cExtra[row.conta].auditData)cExtra[row.conta].auditData={};
+    var ad=cExtra[row.conta].auditData;
+    if(row.mat!=null)ad.mat=row.mat;
+    if(row.ytd!=null)ad.ytd=row.ytd;
+    if(row.scoreTam!=null)ad.scoreTam=row.scoreTam;
+    if(row.scoreMom!=null)ad.scoreMom=row.scoreMom;
+    if(row.scorePot!=null)ad.scorePot=row.scorePot;
+    if(row.scoreEsp!=null)ad.scoreEsp=row.scoreEsp;
+    updated++;
+  }
+
+  // 2. Cria contas novas marcadas pelo usuário
+  var newEl=document.getElementById('csvNewContas');
+  if(newEl){
+    var checks=newEl.querySelectorAll('input[type=checkbox]:checked');
+    for(var j=0;j<checks.length;j++){
+      var idx=parseInt(checks[j].dataset.idx);
+      var nr=csvNewContasPending[idx];
+      if(!nr)continue;
+      // Evita duplicata
+      var jaExiste=false;
+      for(var k=0;k<CONTAS_DEF.length;k++){if(CONTAS_DEF[k].conta===nr.contaRaw){jaExiste=true;break;}}
+      if(jaExiste)continue;
+      var tam=nr.scoreTam||1,mom=nr.scoreMom||1,pot2=nr.scorePot||1,esp=nr.scoreEsp||1;
+      CONTAS_DEF.push({
+        conta:nr.contaRaw,
+        scoreTam:tam,scoreMom:mom,scorePot:pot2,scoreEsp:esp,
+        scoreTotal:tam+mom+pot2+esp,
+        mat:nr.mat||0,ytd:nr.ytd||0,
+        prioridade:'Monitoramento'
+      });
+      if(!cExtra[nr.contaRaw])cExtra[nr.contaRaw]={};
+      cExtra[nr.contaRaw].auditData={
+        scoreTam:tam,scoreMom:mom,scorePot:pot2,scoreEsp:esp,
+        mat:nr.mat||0,ytd:nr.ytd||0
+      };
+      updated++;
+    }
+  }
+
+  persist();
+  closeCsvAuditModal();
+  renderContas();
+  alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!');
+}
+
+// ══════════ CIDADES ══════════
+function renderCities(){
+  var cityMap={};
+  for(var i=0;i<docs.length;i++){var d=docs[i],c=d.city||'Sem cidade';if(!cityMap[c])cityMap[c]=[];cityMap[c].push(d);}
+  var cities=Object.keys(cityMap).map(function(c){return{city:c,docs:cityMap[c]};});
+  cities.sort(function(a,b){return b.docs.length-a.docs.length;});
+  var icons={'CAMPINAS':'🏙️','CAMPO GRANDE':'🌿','SOROCABA':'⚙️','BAURU':'🌾','VARGINHA':'☕','DOURADOS':'🌻','PIRACICABA':'🏭','BRAGANÇA PAULISTA':'🏔️','JUNDIAÍ':'🍇','LIMEIRA':'🍊','POÇOS DE CALDAS':'♨️','MARILIA':'🌾','SALTO':'💧','JAU':'🎨','SÃO JOÃO DA BOA VISTA':'🌄','LAVRAS':'🌿','MOGI MIRIM':'🏘️','MOGI GUAÇU':'🌳','RIO CLARO':'💧','SAO CARLOS':'🎓','ITAJUBÁ':'⛰️','BOTUCATU':'🏥','AMERICANA':'🏭','INDAIATUBA':'🏘️','ARARAS':'🌾','TRÊS CORAÇÕES':'❤️'};
+  var html='';
+  for(var ci=0;ci<cities.length;ci++){
+    var ct=cities[ci],cdocs=ct.docs,pA=0,pB=0,pC=0,totalSc=0;
+    for(var di=0;di<cdocs.length;di++){var d=cdocs[di],sc=calcScore(d);if(d.pot==='A')pA++;else if(d.pot==='B')pB++;else pC++;totalSc+=sc;}
+    var avgSc=cdocs.length?(totalSc/cdocs.length).toFixed(1):0;
+    var icon=icons[ct.city]||'📍';
+    var sd=cdocs.slice().sort(function(a,b){return calcScore(b)-calcScore(a);});
+    var dr=buildCityDocRows(sd);
+    html+=
+      '<div class="citycard" id="cy'+ci+'">'+
+        '<div class="citycard-hd" onclick="toggleCity('+ci+')">'+
+          '<div class="city-ico">'+icon+'</div>'+
+          '<div class="city-main">'+
+            '<div class="city-nm">'+esc(tc(ct.city))+'</div>'+
+            '<div class="city-sb">Score médio: '+avgSc+' · A:'+pA+' B:'+pB+' C:'+pC+'</div>'+
+          '</div>'+
+          '<div class="city-cnt">'+cdocs.length+'</div>'+
+          '<button class="city-chev">▼</button>'+
+        '</div>'+
+        '<div class="citycard-body">'+
+          '<div class="city-pot">'+
+            '<span class="cpot pcA">A: '+pA+'</span>'+
+            '<span class="cpot pcB">B: '+pB+'</span>'+
+            '<span class="cpot pcC">C: '+pC+'</span>'+
+            '<select class="cdoc-sort" style="margin-left:auto" onclick="event.stopPropagation()" onchange="sortCityDocs(this,'+ci+')">'+
+              '<option value="score">↓ Score</option>'+
+              '<option value="pot">Potencial</option>'+
+              '<option value="nome">A–Z</option>'+
+            '</select>'+
+          '</div>'+
+          '<div class="city-docs" id="city-rows-'+ci+'">'+dr+'</div>'+
+        '</div>'+
+      '</div>';
+  }
+  document.getElementById('cityList').innerHTML=html;
+}
+
+// Monta linhas de médicos de uma cidade com deep-link
+function buildCityDocRows(docsArr){
+  var html='';
+  for(var i=0;i<docsArr.length;i++){
+    var d=docsArr[i],sc=calcScore(d),sl=scoreLabel(sc);
+    var realIdx=docs.indexOf(d);
+    html+=
+      '<div class="city-doc-item">'+
+        '<span class="badge b'+d.pot+'">'+d.pot+'</span>'+
+        '<button class="doc-link" onclick="navigateToDoc('+realIdx+')">'+esc(tc(d.name))+'</button>'+
+        (d.phone?'<span style="font-size:10px;color:#888;flex-shrink:0">'+esc(d.phone)+'</span>':'<span style="font-size:10px;color:#dc2626;flex-shrink:0">sem nº</span>')+
+        '<span class="sc-badge '+sl.cls+'" style="font-size:10px;flex-shrink:0">'+sc+'</span>'+
+      '</div>';
+  }
+  return html;
+}
+
+// Reordena médicos de um card de cidade sem re-render global
+function sortCityDocs(sel,cityIdx){
+  var key=sel.value,PO={A:0,B:1,C:2};
+  var container=document.getElementById('city-rows-'+cityIdx);
+  if(!container)return;
+  var cityName=container.closest('.citycard').querySelector('.city-nm').textContent.trim().toUpperCase();
+  var cdocs=docs.filter(function(d){return(d.city||'Sem cidade').toUpperCase()===cityName;});
+  cdocs.sort(function(a,b){
+    if(key==='pot'){var p=(PO[a.pot]||0)-(PO[b.pot]||0);return p!==0?p:calcScore(b)-calcScore(a);}
+    if(key==='nome')return a.name.localeCompare(b.name);
+    return calcScore(b)-calcScore(a);
+  });
+  container.innerHTML=buildCityDocRows(cdocs);
+}
+
+function toggleCity(i){var el=document.getElementById('cy'+i);if(el)el.classList.toggle('open');}
+
+// ══════════ INSIGHTS ══════════
+function renderInsights(){
+  // 1. Filtra a lista de médicos com base nos botões de Potencial selecionados (A, B, C)
+  var fDocs = docs.filter(function(d){ return potF[d.pot]; });
+  
+  var total = fDocs.length, withPhone = 0;
+  
+  // 2. Conta envios (Total, WA e E-mail) APENAS para a base filtrada
+  var totalWa = 0, totalEmail = 0;
+  fDocs.forEach(function(d){
+    for(var i=0; i<mats.length; i++){
+      if(sent[sk(d.name,i)]) totalWa++;
+      if(sentEmail[sk(d.name,i)+'__e']) totalEmail++;
+    }
+  });
+  var totalSent = totalWa + totalEmail;
+
+  for(var i=0; i<fDocs.length; i++){ if(fDocs[i].phone) withPhone++; }
+
+  // 3. Calcula cobertura única e por canal na base filtrada
+  var uniqueSent=0, uniqueWa=0, uniqueEm=0;
+  fDocs.forEach(function(d){
+    var hitWa=false, hitEm=false;
+    for(var i=0; i<mats.length; i++){
+      if(sent[sk(d.name,i)]) hitWa=true;
+      if(sentEmail[sk(d.name,i)+'__e']) hitEm=true;
+    }
+    if(hitWa) uniqueWa++;
+    if(hitEm) uniqueEm++;
+    if(hitWa || hitEm) uniqueSent++;
+  });
+  
+  var cov = total ? Math.round(uniqueSent/total*100) : 0;
+  var covWa = total ? Math.round(uniqueWa/total*100) : 0;
+  var covEm = total ? Math.round(uniqueEm/total*100) : 0;
+  
+  // Proporção de envios
+  var pctWaEnvios = totalSent ? Math.round((totalWa/totalSent)*100) : 0;
+  var pctEmEnvios = totalSent ? Math.round((totalEmail/totalSent)*100) : 0;
+
+  var hiPri=0; for(var i=0; i<fDocs.length; i++){ if(calcScore(fDocs[i])>=5) hiPri++; }
+
+  // 4. Quebra por material na base filtrada
+  var byMat=mats.map(function(m,i){
+    var cWa=0, cEm=0, cUniq=0;
+    fDocs.forEach(function(d){
+      var hWa=!!sent[sk(d.name,i)];
+      var hEm=!!sentEmail[sk(d.name,i)+'__e'];
+      if(hWa) cWa++;
+      if(hEm) cEm++;
+      if(hWa || hEm) cUniq++;
+    });
+    return {name:m.name, cWa:cWa, cEm:cEm, c:cUniq, pct:total?Math.round(cUniq/total*100):0};
+  }).sort(function(a,b){return b.c-a.c;});
+
+  var byCity={}; fDocs.forEach(function(d){if(d.city)byCity[d.city]=(byCity[d.city]||0)+1;});
+  var topCities=Object.keys(byCity).map(function(c){return[c,byCity[c]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+
+  // 5. Top Médicos na base filtrada
+  var topDocs=fDocs.map(function(d){
+    var c=0, cW=0, cE=0;
+    for(var i=0; i<mats.length; i++){
+      if(sent[sk(d.name,i)]) cW++;
+      if(sentEmail[sk(d.name,i)+'__e']) cE++;
+    }
+    c = cW + cE;
+    return{name:d.name,pot:d.pot,c:c, cW:cW, cE:cE};
+  }).filter(function(d){return d.c>0;}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
+
+  // HTML dos botões de filtro
+  var btnA = '<button class="pc pcA '+(potF['A']?'':'dim')+'" id="ipcA" onclick="togglePot(\'A\')">● A</button>';
+  var btnB = '<button class="pc pcB '+(potF['B']?'':'dim')+'" id="ipcB" onclick="togglePot(\'B\')">● B</button>';
+  var btnC = '<button class="pc pcC '+(potF['C']?'':'dim')+'" id="ipcC" onclick="togglePot(\'C\')">● C</button>';
+  var filterHtml = '<div class="pot-row" style="padding:0 0 12px 0;">' + btnA + btnB + btnC + '<span style="font-size:11px; color:#888; margin-left:auto; align-self:center;">Filtrar análise</span></div>';
+
+  document.getElementById('insDiv').innerHTML=
+    filterHtml + // Insere os filtros no topo
+    '<div class="mgrid">' +
+      '<div class="metric m1"><span class="ml">Médicos (Filtro)</span><span class="mv">'+total+'</span></div>' +
+      '<div class="metric m2"><span class="ml">Envios (Totais)</span><span class="mv">'+totalSent+'</span><span style="font-size:10px;opacity:0.8;display:block;margin-top:2px;">WA: '+totalWa+' | E-mail: '+totalEmail+'</span></div>' +
+      '<div class="metric m3"><span class="ml">Cobertura (Docs)</span><span class="mv">'+cov+'%</span></div>' +
+      '<div class="metric m4"><span class="ml">⚡ Alta pri.</span><span class="mv">'+hiPri+'</span></div>' +
+    '</div>'+
+    
+    '<div class="icard" style="border-left: 4px solid #6d28d9;">' +
+      '<h3 style="margin-bottom:12px;">⚖️ Distribuição de Canais</h3>' +
+      
+      '<div style="margin-bottom:10px;">' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#16a34a;">' +
+          '<span>WhatsApp ('+totalWa+' envios)</span>' +
+          '<span>'+pctWaEnvios+'%</span>' +
+        '</div>' +
+        '<div style="height:8px; border-radius:4px; background:#f0fdf4; overflow:hidden;">' +
+          '<div style="width:'+pctWaEnvios+'%; background:#22c55e; height:100%;"></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="margin-bottom:14px;">' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#6d28d9;">' +
+          '<span>E-mail ('+totalEmail+' envios)</span>' +
+          '<span>'+pctEmEnvios+'%</span>' +
+        '</div>' +
+        '<div style="height:8px; border-radius:4px; background:#f5f3ff; overflow:hidden;">' +
+          '<div style="width:'+pctEmEnvios+'%; background:#6d28d9; height:100%;"></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="display:flex; gap:10px; font-size:12px; color:#555;">' +
+        '<div style="flex:1; background:#fafafa; padding:8px; border-radius:8px; text-align:center;"><b>'+uniqueWa+'</b> méd. cobertos WA<br><span style="font-size:10px">('+covWa+'% da base)</span></div>' +
+        '<div style="flex:1; background:#fafafa; padding:8px; border-radius:8px; text-align:center;"><b>'+uniqueEm+'</b> méd. cobertos E-mail<br><span style="font-size:10px">('+covEm+'% da base)</span></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="icard"><h3>📊 Cobertura por material</h3>'+
+    byMat.map(function(m){
+      var cls=m.pct>=50?'pg':m.pct>=20?'po':'pr';
+      return '<div class="irow" style="align-items:flex-start;flex-direction:column;gap:4px;">' +
+               '<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">' +
+                 '<span style="font-weight:600">'+esc(m.name)+'</span>' +
+                 '<span class="pill '+cls+'">'+m.c+' méd. ('+m.pct+'%)</span>' +
+               '</div>' +
+               '<div style="width:100%;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#888;">' +
+                 '<span>WA: <b>'+m.cWa+'</b> envios · E-mail: <b>'+m.cEm+'</b> envios</span>' +
+                 '<div class="prog" style="width:80px;"><div class="pf" style="width:'+m.pct+'%"></div></div>' +
+               '</div>' +
+             '</div>';
+    }).join('')+'</div>'+
+    '<div class="icard"><h3>🗺️ Top cidades</h3>'+topCities.map(function(c){return'<div class="irow"><span>'+esc(tc(c[0]))+'</span><span class="pill pb">'+c[1]+'</span></div>';}).join('')+'</div>'+
+    '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
+    (topDocs.length?'<div class="icard"><h3>🏆 Médicos com mais envios</h3>'+topDocs.map(function(d){return'<div class="irow" style="flex-direction:column; align-items:flex-start; gap:4px;"><div style="width:100%; display:flex; justify-content:space-between;"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+' envios</span></div><div style="font-size:10px; color:#888;">WA: '+d.cW+' · E-mail: '+d.cE+'</div></div>';}).join('')+'</div>':'')+
+    '<div class="sec-title">💡 Dicas</div>'+
+    '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer edição feita no celular ou computador aparece automaticamente em todos os devices via Firebase.</div>'+
+    '<div class="tip"><b>📊 Atualizar auditoria</b>Na aba Contas, clique em "📊 Importar auditoria" para colar o CSV do Excel e atualizar MAT, YTD e scores de todas as contas de uma vez. Ou expanda um card e clique em "✏️ Editar auditoria" para editar individualmente.</div>'+
+    '<div class="tip"><b>🏦 Score de contas</b>O número cinza é o score da auditoria. O roxo maior é o total somando os marcadores de contexto. O badge verde/vermelho mostra o delta dos marcadores.</div>'+
+    '<div class="tip"><b>🎯 Score médico</b>A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
+    '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>'+
+    renderDecisaoHTML();
+}
+
+// ══════════ PAINÉIS DE DECISÃO ══════════
+function renderDecisaoHTML(){
+  var html='<div class="sec-title">🎯 Painéis de Decisão</div>';
+
+  // ── PAINEL 1: Cruzamento Investimento × Resultado por Conta ──
+  var contasComDados=[];
+  var allContas=CONTAS_DEF.slice();
+  // Inclui contas extras que não estão no DEF
+  var cdMap={};
+  for(var i=0;i<docs.length;i++){var c=docs[i].conta||'Sem conta';if(!cdMap[c])cdMap[c]=1;}
+  for(var cn in cdMap){var f=false;for(var j=0;j<allContas.length;j++){if(allContas[j].conta===cn){f=true;break;}}if(!f)allContas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
+
+  for(var i=0;i<allContas.length;i++){
+    var ct=allContas[i];
+    var cd=getContaData(ct);
+    var inv=budInvestimentoConta(ct.conta);
+    var ritmo=calcRitmoConta(cd.ytd,cd.mat);
+    contasComDados.push({conta:ct.conta,ytd:cd.ytd,mat:cd.mat,score:cd.scoreTotal,inv:inv,ritmo:ritmo});
+  }
+  contasComDados=contasComDados.filter(function(c){return c.mat>0||c.inv>0||c.ytd>0;});
+  contasComDados.sort(function(a,b){return b.inv-a.inv;});
+
+  var maxInv=contasComDados.reduce(function(m,c){return Math.max(m,c.inv);},0);
+  var maxMat=contasComDados.reduce(function(m,c){return Math.max(m,c.mat);},0);
+  var totalInv=contasComDados.reduce(function(s,c){return s+c.inv;},0);
+
+  if(contasComDados.length){
+    var rows='';
+    contasComDados.forEach(function(c){
+      var invPct=maxInv?Math.round(c.inv/maxInv*100):0;
+      var matPct=maxMat?Math.round(c.mat/maxMat*100):0;
+      // Sinal: investimento alto + YTD baixo = alerta
+      var sig='';
+      if(c.inv>0&&c.ytd===0)sig='<span class="signal sig-warn">⚠️ Sem YTD</span>';
+      else if(c.ritmo>=120)sig='<span class="signal sig-up">🚀 +'+c.ritmo+'%</span>';
+      else if(c.ritmo>=80)sig='<span class="signal sig-ok">✓ '+c.ritmo+'%</span>';
+      else if(c.ritmo>0&&c.ritmo<60)sig='<span class="signal sig-down">↓ '+c.ritmo+'%</span>';
+      else if(c.ritmo===0&&c.mat>0)sig='<span class="signal sig-neu">0%</span>';
+      rows+='<div class="dec-row">'+
+        '<div class="dec-name" title="'+esc(c.conta)+'">'+esc(c.conta)+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:2px;width:70px;flex-shrink:0;">'+
+          '<div style="display:flex;align-items:center;gap:3px;">'+
+            '<div class="dec-bar-wrap" style="width:60px;"><div class="dec-bar-fill" style="width:'+invPct+'%;background:#6d28d9;"></div></div>'+
+            '<span style="font-size:9px;color:#888;width:8px;">R$</span>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:3px;">'+
+            '<div class="dec-bar-wrap" style="width:60px;"><div class="dec-bar-fill" style="width:'+matPct+'%;background:#22c55e;"></div></div>'+
+            '<span style="font-size:9px;color:#888;width:8px;">M</span>'+
+          '</div>'+
+        '</div>'+
+        '<div class="dec-val">'+fmtBRL(c.inv)+'</div>'+
+        sig+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>💰 Investimento × Resultado por Conta</h3>'+
+      '<div class="sub">🟣 Investimento budget · 🟢 MAT · Ritmo = YTD atual vs esperado no período</div>'+
+      '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
+        '<div class="roi-box"><div class="rv" style="color:#6d28d9;">'+fmtBRL(totalInv)+'</div><div class="rl">Total investido</div></div>'+
+        '<div class="roi-box"><div class="rv" style="color:#22c55e;">'+contasComDados.filter(function(c){return c.ytd>0;}).length+'</div><div class="rl">Contas com YTD</div></div>'+
+        '<div class="roi-box"><div class="rv" style="color:#dc2626;">'+contasComDados.filter(function(c){return c.inv>0&&c.ytd===0;}).length+'</div><div class="rl">Inv. sem retorno</div></div>'+
+      '</div>'+
+      rows+
+    '</div>';
+  }
+
+  // ── PAINEL 2: Score de Retorno por Médico ──
+  var topDocsBud=[];
+  for(var i=0;i<docs.length;i++){
+    var d=docs[i];
+    var inv=(budget.items||[]).filter(function(it){return it.docName===d.name;}).reduce(function(s,it){return s+(it.val||0);},0);
+    var nMat=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])nMat++;}
+    var nEmail=0;for(var mi=0;mi<mats.length;mi++){if(sentEmail[sk(d.name,mi)+'__e'])nEmail++;}
+    var sc=calcScore(d);
+    var envios=nMat+nEmail;
+    // Score de retorno: só entra se tiver algum dado de investimento ou envio
+    if(inv>0||envios>0){
+      var retScore=0;
+      if(sc>=5)retScore+=3;else if(sc>=2)retScore+=1;
+      if(envios>=4)retScore+=3;else if(envios>=2)retScore+=1;
+      if(inv===0)retScore+=1; // baixo custo
+      else if(inv<500)retScore+=2;
+      topDocsBud.push({name:d.name,pot:d.pot,sc:sc,inv:inv,envios:envios,ret:retScore});
+    }
+  }
+  if(topDocsBud.length){
+    // Ordena por: alto score + baixo investimento = oportunidade; alto investimento + baixo envio = alerta
+    topDocsBud.sort(function(a,b){return b.ret-a.ret||b.sc-a.sc;});
+    var rows2='';
+    // Top 8 oportunidades (alto retorno, baixo custo)
+    var oportun=topDocsBud.filter(function(d){return d.sc>=5&&d.inv<500;}).slice(0,5);
+    // Alertas (alto investimento, baixo envio)
+    var alertas=topDocsBud.filter(function(d){return d.inv>=500&&d.envios<2;}).slice(0,5);
+    if(oportun.length){
+      rows2+='<div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.4px;margin:6px 0 4px;">🚀 Oportunidades — alta prioridade, baixo custo</div>';
+      oportun.forEach(function(d){
+        rows2+='<div class="dec-row">'+
+          '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+          '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+          '<span class="signal sig-up">Score '+d.sc+'</span>'+
+          '<div class="dec-val">'+fmtBRL(d.inv)+'</div>'+
+        '</div>';
+      });
+    }
+    if(alertas.length){
+      rows2+='<div style="font-size:11px;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:.4px;margin:10px 0 4px;">⚠️ Revisar — investimento alto, poucos envios</div>';
+      alertas.forEach(function(d){
+        rows2+='<div class="dec-row">'+
+          '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+          '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+          '<span class="signal sig-warn">'+d.envios+'/'+mats.length+' envios</span>'+
+          '<div class="dec-val">'+fmtBRL(d.inv)+'</div>'+
+        '</div>';
+      });
+    }
+    if(rows2)html+='<div class="dec-card"><h3>👤 Score de Retorno por Médico</h3><div class="sub">Médicos com maior potencial vs custo de investimento. Oportunidades e alertas.</div>'+rows2+'</div>';
+  }
+
+  // ── PAINEL 3: Mapa de Concentração ──
+  var contasConc=[];
+  var totalBudAll=(budget.items||[]).reduce(function(s,it){return s+(it.val||0);},0);
+  var allContasConc=CONTAS_DEF.slice();
+  for(var cn2 in cdMap){var f2=false;for(var j=0;j<allContasConc.length;j++){if(allContasConc[j].conta===cn2){f2=true;break;}}if(!f2)allContasConc.push({conta:cn2,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
+
+  var totalMat=allContasConc.reduce(function(s,ct){return s+getContaData(ct).mat;},0);
+  var totalYtdAll=allContasConc.reduce(function(s,ct){return s+getContaData(ct).ytd;},0);
+
+  for(var i=0;i<allContasConc.length;i++){
+    var ct2=allContasConc[i];
+    var cd2=getContaData(ct2);
+    var inv2=budInvestimentoConta(ct2.conta);
+    if(cd2.mat>0||inv2>0){
+      contasConc.push({
+        conta:ct2.conta,
+        pctBud:totalBudAll?Math.round(inv2/totalBudAll*100):0,
+        pctMat:totalMat?Math.round(cd2.mat/totalMat*100):0,
+        pctYtd:totalYtdAll?Math.round(cd2.ytd/totalYtdAll*100):0,
+        scoreTotal:cd2.scoreTotal,
+        mat:cd2.mat, ytd:cd2.ytd, inv:inv2
+      });
+    }
+  }
+  contasConc.sort(function(a,b){return b.pctMat-a.pctMat;}).slice(0,10);
+  if(contasConc.length){
+    var rows3='<div style="display:flex;gap:12px;margin-bottom:8px;font-size:10px;font-weight:700;color:#888;">'+
+      '<span>🟣 % Budget</span><span>🟢 % MAT</span><span>🔵 Score</span>'+
+    '</div>';
+    contasConc.slice(0,10).forEach(function(c){
+      var gap=c.pctBud-c.pctMat; // positivo = investindo mais que o potencial indica
+      var gapSig=gap>15?'<span class="signal sig-warn">↑ +'+gap+'% bud</span>':
+                 gap<-15?'<span class="signal sig-up">↓ sub-inv.</span>':'';
+      rows3+='<div class="conc-row">'+
+        '<div class="dec-name">'+esc(c.conta)+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:2px;width:90px;flex-shrink:0;">'+
+          '<div style="display:flex;align-items:center;gap:2px;"><div style="width:'+Math.min(c.pctBud*1.5,90)+'px;height:5px;border-radius:3px;background:#6d28d9;"></div><span style="font-size:9px;color:#888;">'+c.pctBud+'%</span></div>'+
+          '<div style="display:flex;align-items:center;gap:2px;"><div style="width:'+Math.min(c.pctMat*1.5,90)+'px;height:5px;border-radius:3px;background:#22c55e;"></div><span style="font-size:9px;color:#888;">'+c.pctMat+'%</span></div>'+
+        '</div>'+
+        (gapSig||'<span class="signal sig-neu">Score '+c.scoreTotal+'</span>')+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>🗺️ Mapa de Concentração</h3>'+
+      '<div class="sub">Compara onde está seu budget vs onde está o potencial (MAT). Sub-investida = oportunidade.</div>'+
+      rows3+
+    '</div>';
+  }
+
+  return html;
+}
+// ══════════ AGENDA DE ATENDIMENTO ══════════
+var DAY_LABELS={MON:'Seg',TUE:'Ter',WED:'Qua',THU:'Qui',FRI:'Sex'};
+var DAY_KEYS=['MON','TUE','WED','THU','FRI'];
+var DAY_STATES=['','M','T','DT','Ag'];
+
+function getDayLabel(v){
+  if(!v||v==='')return'—';
+  if(v==='M')return'Manhã';
+  if(v==='T')return'Tarde';
+  if(v==='DT')return'Dia\nTodo';
+  if(v==='Ag')return'Ag.';
+  return v;
+}
+function getDayCls(v){
+  if(!v||v==='')return'off';
+  if(v==='M')return'manha';
+  if(v==='T')return'tarde';
+  if(v==='DT')return'dia-todo';
+  if(v==='Ag')return'ag';
+  return'off';
+}
+
+function buildAgendaHtml(docName,docIdx){
+  var csvDef=SCHEDULE_DEF[docName]||null;
+  var saved=docAgenda[docName]||{};
+  var days={};
+  DAY_KEYS.forEach(function(k){
+    if(saved[k]!==undefined)days[k]=saved[k];
+    else if(csvDef&&csvDef.days&&csvDef.days[k])days[k]=csvDef.days[k];
+    else days[k]='';
+  });
+  var obs=(saved.obs!==undefined)?saved.obs:(csvDef&&csvDef.obs?csvDef.obs:'');
+  var dj=escJ(docName);
+
+  var daysHtml='';
+  DAY_KEYS.forEach(function(k){
+    var v=days[k];
+    var lbl=getDayLabel(v);
+    var cls=getDayCls(v);
+    daysHtml+=
+      '<div class="aday">'+
+        '<div class="aday-lbl">'+DAY_LABELS[k]+'</div>'+
+        '<button class="aday-btn '+cls+'" onclick="event.stopPropagation();cycleDay(\''+dj+'\',\''+k+'\',this)" title="'+esc(lbl)+'">'+
+          esc(lbl)+
+        '</button>'+
+      '</div>';
+  });
+
+  var obsHtml=obs?'<div class="agenda-obs">📝 '+esc(obs)+'</div>':'';
+
+  return '<div class="agenda-wrap">'+
+    '<div class="agenda-title">'+
+      '📅 Agenda de atendimento'+
+      '<button style="font-size:10px;background:none;border:1px solid #ddd;border-radius:6px;padding:2px 7px;color:#888;cursor:pointer;" onclick="event.stopPropagation();editAgendaObs(\''+dj+'\','+docIdx+')">✏️ obs</button>'+
+    '</div>'+
+    '<div class="agenda-days">'+daysHtml+'</div>'+
+    '<div class="agenda-legend">'+
+      '<span class="ag-leg manha">M = Manhã</span>'+
+      '<span class="ag-leg tarde">T = Tarde</span>'+
+      '<span class="ag-leg dia-todo">DT = Dia Todo</span>'+
+      '<span class="ag-leg ag">Ag = Agendado</span>'+
+    '</div>'+
+    obsHtml+
+  '</div>';
+}
+
+function cycleDay(docName,dayKey,btn){
+  if(!docAgenda[docName])docAgenda[docName]={};
+  var cur=docAgenda[docName][dayKey];
+  if(cur===undefined){
+    var csvDef=SCHEDULE_DEF[docName];
+    cur=(csvDef&&csvDef.days&&csvDef.days[dayKey])?csvDef.days[dayKey]:'';
+  }
+  var idx=DAY_STATES.indexOf(cur);
+  var next=DAY_STATES[(idx+1)%DAY_STATES.length];
+  docAgenda[docName][dayKey]=next;
+  var lbl=getDayLabel(next);
+  var cls=getDayCls(next);
+  btn.textContent=lbl;
+  btn.className='aday-btn '+cls;
+  btn.title=lbl;
+  persistLocal();
+}
+
+function editAgendaObs(docName,docIdx){
+  var cur=(docAgenda[docName]&&docAgenda[docName].obs!==undefined)
+    ?docAgenda[docName].obs
+    :(SCHEDULE_DEF[docName]?SCHEDULE_DEF[docName].obs||'':'');
+  var newObs=prompt('Observação de agenda:',cur);
+  if(newObs===null)return;
+  if(!docAgenda[docName])docAgenda[docName]={};
+  docAgenda[docName].obs=newObs;
+  var card=document.getElementById('dc'+docIdx);
+  if(card){
+    var obsEl=card.querySelector('.agenda-obs');
+    if(newObs){
+      if(obsEl){obsEl.textContent='📝 '+newObs;}
+      else{var wrap=card.querySelector('.agenda-wrap');if(wrap){var d=document.createElement('div');d.className='agenda-obs';d.textContent='📝 '+newObs;wrap.appendChild(d);}}
+    } else {
+      if(obsEl)obsEl.remove();
+    }
+  }
+  persistLocal();
+}
+
+// ══════════ EXPORT / IMPORT ══════════
+function exportJSON(){var p={version:2,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,cExtra:cExtra};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
+function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara exp.');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');if(f.daraLover)m.push('Dara Lover');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
+function importJSON(evt){var file=evt.target.files&&evt.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(String(r.result||'{}'));if(!p||!Array.isArray(p.docs)||!Array.isArray(p.mats))throw new Error();mats=p.mats;docs=p.docs;sent=p.sent||{};cExtra=p.cExtra||{};persist();alert('Importado ✅ — sincronizando em todos os devices...');}catch(e){alert('Arquivo inválido.');}evt.target.value='';};r.readAsText(file);}
+
+// ══════════ BUDGET ══════════
+var CAT_COLORS=['#6d28d9','#059669','#d97706','#dc2626','#2563eb','#7c3aed','#0891b2','#be123c'];
+function catColor(idx){return CAT_COLORS[idx%CAT_COLORS.length];}
+function fmtBRL(v){return'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtDateBR(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function budTotalGasto(){return(budget.items||[]).reduce(function(s,it){return s+(it.val||0);},0);}
+function budTotalCat(catId){return(budget.items||[]).filter(function(it){return it.catId===catId;}).reduce(function(s,it){return s+(it.val||0);},0);}
+
+function setBudSort(v){budFilter.sort=v;renderBudgetList();}
+function setBudCatFilter(v){budFilter.cat=v;renderBudgetList();}
+function setBudQ(v){budFilter.q=v.toLowerCase();renderBudgetList();}
+
+function renderBudget(){
+  var cats=budget.cats||BUD_CATS_DEF;
+  // Rebuild cat filter dropdown
+  var catFil=document.getElementById('budCatFil');
+  if(catFil){
+    var opts='<option value="">Todas as categorias</option>';
+    for(var i=0;i<cats.length;i++){opts+='<option value="'+cats[i].id+'">'+cats[i].icon+' '+cats[i].name+'</option>';}
+    catFil.innerHTML=opts;
+    if(budFilter.cat)catFil.value=budFilter.cat;
+  }
+  var sortSel=document.getElementById('budSortSel');
+  if(sortSel)sortSel.value=budFilter.sort;
+  var srchEl=document.getElementById('budSrch');
+  if(srchEl&&document.activeElement!==srchEl)srchEl.value=budFilter.q?budFilter.q:'';
+
+  var verba=budget.verba||VERBA_DEF;
+  var gasto=budTotalGasto();
+  var resta=verba-gasto;
+  var pct=verba?Math.min(100,Math.round(gasto/verba*100)):0;
+  var alertaCor=pct>=90?'#fef2f2':pct>=70?'#fffbeb':'rgba(255,255,255,.18)';
+  document.getElementById('budHero').innerHTML=
+    '<div class="bud-hero">'+
+      '<div class="bud-hero-top">'+
+        '<div>'+
+          '<div class="bud-hero-label">Verba do território</div>'+
+          '<div class="bud-hero-val">'+fmtBRL(resta)+'</div>'+
+          '<div class="bud-hero-sub">restam de '+fmtBRL(verba)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">'+
+          '<div class="bud-badge">'+
+            '<div class="bud-badge-label">Gasto</div>'+
+            '<div class="bud-badge-val">'+fmtBRL(gasto)+'</div>'+
+          '</div>'+
+          '<button style="background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;" onclick="openBudVerbaModal()">✏️ Editar verba</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="bud-bar-wrap"><div class="bud-bar-fill" style="width:'+pct+'%;background:'+(pct>=90?'#fca5a5':pct>=70?'#fcd34d':'#fff')+'"></div></div>'+
+      '<div class="bud-bar-pct">'+pct+'% utilizado</div>'+
+    '</div>';
+
+  var cats=budget.cats||BUD_CATS_DEF;
+  var catsHtml='';
+  for(var i=0;i<cats.length;i++){
+    var cat=cats[i];
+    var total=budTotalCat(cat.id);
+    var count=(budget.items||[]).filter(function(it){return it.catId===cat.id;}).length;
+    var col=catColor(i);
+    catsHtml+='<div class="bud-cat">'+
+      '<div class="bud-cat-top">'+
+        '<span class="bud-cat-name"><span class="cat-dot" style="background:'+col+'"></span>'+esc(cat.name)+'</span>'+
+        '<span class="bud-cat-count">'+count+' lanç.</span>'+
+      '</div>'+
+      '<div class="bud-cat-val">'+fmtBRL(total)+'</div>'+
+      '<div class="bud-cat-sub">'+(verba?Math.round(total/verba*100):0)+'% da verba</div>'+
+    '</div>';
+  }
+  catsHtml+='<div class="bud-add-cat" onclick="openBudCatModal()"><span style="font-size:20px">+</span> Nova categoria</div>';
+  document.getElementById('budCats').innerHTML=catsHtml;
+
+  renderBudgetList();
+}
+
+function renderBudgetList(){
+  var cats=budget.cats||BUD_CATS_DEF;
+  var items=(budget.items||[]).slice();
+  // Filter by category
+  if(budFilter.cat)items=items.filter(function(it){return it.catId===budFilter.cat;});
+  // Filter by search query
+  if(budFilter.q){items=items.filter(function(it){
+    var q=budFilter.q;
+    return (it.docName||'').toLowerCase().indexOf(q)>=0||(it.desc||'').toLowerCase().indexOf(q)>=0;
+  });}
+  // Sort
+  var s=budFilter.sort||'date_desc';
+  items.sort(function(a,b){
+    if(s==='date_desc')return (b.date||'').localeCompare(a.date||'');
+    if(s==='date_asc')return (a.date||'').localeCompare(b.date||'');
+    if(s==='val_desc')return (b.val||0)-(a.val||0);
+    if(s==='val_asc')return (a.val||0)-(b.val||0);
+    if(s==='cat'){var ca=a.catId||'',cb=b.catId||'';return ca.localeCompare(cb)||((b.val||0)-(a.val||0));}
+    if(s==='doc'){var da=(a.docName||'').toLowerCase(),db=(b.docName||'').toLowerCase();return da.localeCompare(db);}
+    return 0;
+  });
+  if(!items.length){document.getElementById('budList').innerHTML='<div class="bud-empty">Nenhum lançamento'+(budFilter.cat||budFilter.q?' com esses filtros':' ainda')+'.<br>'+(budFilter.cat||budFilter.q?'Limpe os filtros ou ':'')+'Toque + para adicionar.</div>';return;}
+  var html='';
+  for(var j=0;j<items.length;j++){
+    var it=items[j];
+    var cat=null;for(var k=0;k<cats.length;k++){if(cats[k].id===it.catId){cat=cats[k];break;}}
+    var catName=cat?cat.name:it.catId;
+    var catIcon=cat?cat.icon:'💰';
+    var catIdx=cats.indexOf(cat);
+    var col=catColor(catIdx>=0?catIdx:0);
+    var sub=catName+(it.docName?' · '+tc(it.docName):'')+(it.date?' · '+fmtDateBR(it.date):'');
+    html+='<div class="bud-item">'+
+      '<div class="bud-item-icon" style="background:'+col+'22;color:'+col+'">'+catIcon+'</div>'+
+      '<div class="bud-item-info">'+
+        '<div class="bud-item-desc">'+esc(it.desc||catName)+'</div>'+
+        '<div class="bud-item-sub">'+esc(sub)+'</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+
+        '<div class="bud-item-val">'+fmtBRL(it.val)+'</div>'+
+        '<div class="bud-item-acts">'+
+          '<button class="ibtn" onclick="openBudModal(\''+it.id+'\')">✏️</button>'+
+          '<button class="ibtn d" onclick="deleteBud(\''+it.id+'\')">🗑️</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+  document.getElementById('budList').innerHTML=html;
+}
+
+// Modal lançamento
+function openBudModal(idx){
+  editBudIdx=idx;
+  document.getElementById('budMT').textContent=idx===-1?'Novo lançamento':'Editar lançamento';
+  var cats=budget.cats||BUD_CATS_DEF;
+  var catOpts='';
+  for(var i=0;i<cats.length;i++){catOpts+='<option value="'+esc(cats[i].id)+'">'+cats[i].icon+' '+esc(cats[i].name)+'</option>';}
+  catOpts+='<option value="__nova__">+ Nova categoria...</option>';
+  document.getElementById('bCat').innerHTML=catOpts;
+  var docOpts='<option value="">— nenhum —</option>';
+  var sortedDocs=docs.slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+  for(var i=0;i<sortedDocs.length;i++){docOpts+='<option value="'+esc(sortedDocs[i].name)+'">'+esc(tc(sortedDocs[i].name))+'</option>';}
+  document.getElementById('bDoc').innerHTML=docOpts;
+  
+  // Support both index and id-based lookup
+  if(typeof idx === 'string'){idx=(budget.items||[]).findIndex(function(x){return x.id===idx;});}
+  if(idx>=0){
+    var it=budget.items[idx];
+    document.getElementById('bCat').value=it.catId||'';
+    document.getElementById('bDoc').value=it.docName||'';
+    document.getElementById('bDesc').value=it.desc||'';
+    document.getElementById('bDate').value=it.date||'';
+    document.getElementById('bVal').value=it.val ? it.val.toString().replace('.', ',') : '';
+  } else {
+    document.getElementById('bCat').value=cats.length?cats[0].id:'';
+    document.getElementById('bDoc').value='';
+    document.getElementById('bDesc').value='';
+    document.getElementById('bDate').value=new Date().toISOString().slice(0,10);
+    document.getElementById('bVal').value='';
+  }
+  onBudCatChange();
+  document.getElementById('budOv').classList.add('on');
+}
+function closeBudModal(){document.getElementById('budOv').classList.remove('on');}
+function onBudCatChange(){
+  var v=document.getElementById('bCat').value;
+  document.getElementById('bNewCatWrap').style.display=v==='__nova__'?'block':'none';
+  var cats=budget.cats||BUD_CATS_DEF;
+  var cat=null;for(var i=0;i<cats.length;i++){if(cats[i].id===v){cat=cats[i];break;}}
+  // Mostrar médico para refeição e qualquer categoria com padrão de HCP
+  var isRef=v==='refeicao'||(cat&&cat.name&&(cat.name.toLowerCase().indexOf('refei')>=0||cat.name.toLowerCase().indexOf('jantar')>=0||cat.name.toLowerCase().indexOf('almo')>=0||cat.name.toLowerCase().indexOf('hcp')>=0));
+  document.getElementById('bDocWrap').style.display=isRef?'block':'none';
+}
+function saveBud(){
+  var catId=document.getElementById('bCat').value;
+  if(catId==='__nova__'){
+    var nn=document.getElementById('bNewCat').value.trim();
+    if(!nn){alert('Informe o nome da nova categoria.');return;}
+    var newId='cat_'+Date.now();
+    if(!budget.cats)budget.cats=BUD_CATS_DEF.slice();
+    budget.cats.push({id:newId,name:nn,icon:pickedIcon||'💰'});
+    catId=newId;
+    document.getElementById('bCat').value=catId;
+  }
+  if(!catId||catId==='__nova__'){alert('Selecione uma categoria válida.');return;}
+  var valStr = document.getElementById('bVal').value;
+  if (valStr.indexOf('.') >= 0 && valStr.indexOf(',') >= 0) {
+    valStr = valStr.replace(/\./g, '');
+  }
+  valStr = valStr.replace(',', '.');
+  var val = parseFloat(valStr) || 0;
+  
+  if(!val){alert('Informe o valor.');return;}
+  
+  var it={
+    id:editBudIdx>=0?(budget.items[editBudIdx].id):('b'+Date.now()),
+    catId:catId,
+    docName:document.getElementById('bDoc').value||'',
+    desc:document.getElementById('bDesc').value.trim(),
+    date:document.getElementById('bDate').value,
+    val:val
+  };
+  if(!budget.items)budget.items=[];
+  if(editBudIdx>=0)budget.items[editBudIdx]=it;else budget.items.push(it);
+  persist();closeBudModal();renderBudget();
+  // Feedback visual
+  var dot=document.getElementById('syncDot');
+  if(dot){dot.className='sync-dot ok';document.getElementById('syncTxt').textContent='Lançamento salvo ✓';}
+  setTimeout(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));},2000);
+}
+function deleteBud(itemId){
+  if(!confirm('Excluir este lançamento?'))return;
+  var idx=(budget.items||[]).findIndex(function(x){return x.id===itemId;});
+  if(idx<0)return;
+  budget.items.splice(idx,1);
+  persist();renderBudget();
+}
+
+// Modal nova categoria
+function openBudCatModal(){pickedIcon='🍽️';document.getElementById('bcName').value='';document.getElementById('budCatOv').classList.add('on');}
+function closeBudCatModal(){document.getElementById('budCatOv').classList.remove('on');}
+function pickIcon(btn){pickedIcon=btn.dataset.icon;var bs=document.querySelectorAll('#bcIconPicker .bchip');for(var i=0;i<bs.length;i++)bs[i].classList.remove('sel');btn.classList.add('sel');}
+function saveBudCat(){
+  var nm=document.getElementById('bcName').value.trim();
+  if(!nm){alert('Informe o nome da categoria.');return;}
+  if(!budget.cats)budget.cats=BUD_CATS_DEF.slice();
+  budget.cats.push({id:'cat_'+Date.now(),name:nm,icon:pickedIcon||'💰'});
+  persist();closeBudCatModal();
+  if(document.getElementById('budOv').classList.contains('on'))openBudModal(editBudIdx);
+  else renderBudget();
+}
+
+// ── Export Budget CSV ──
+function exportBudCSV(){
+  var cats=budget.cats||BUD_CATS_DEF;
+  var hd=['Data','Categoria','Descrição','Médico','Valor (R$)'];
+  var rows=[hd.join(';')];
+  var items=(budget.items||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+  items.forEach(function(it){
+    var cat=null;for(var k=0;k<cats.length;k++){if(cats[k].id===it.catId){cat=cats[k];break;}}
+    var catName=cat?cat.name:it.catId;
+    rows.push([
+      fmtDateBR(it.date||''),
+      catName,
+      it.desc||'',
+      it.docName?tc(it.docName):'',
+      String(it.val||0).replace('.',',')
+    ].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));
+  });
+  // Totalizador
+  rows.push('');
+  rows.push(['"Total gasto"','','','','"'+String(budTotalGasto().toFixed(2)).replace('.',',')+'"'].join(';'));
+  rows.push(['"Verba total"','','','','"'+String((budget.verba||VERBA_DEF).toFixed(2)).replace('.',',')+'"'].join(';'));
+  rows.push(['"Saldo restante"','','','','"'+String(((budget.verba||VERBA_DEF)-budTotalGasto()).toFixed(2)).replace('.',',')+'"'].join(';'));
+  var csv='\uFEFF'+rows.join('\n');
+  var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='budget-sarclisa-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
+}
+
+// Modal editar verba
+function openBudVerbaModal(){document.getElementById('bVerba').value=budget.verba||VERBA_DEF;document.getElementById('budVerbaOv').classList.add('on');}
+function closeBudVerbaModal(){document.getElementById('budVerbaOv').classList.remove('on');}
+function saveBudVerba(){var v=parseFloat(document.getElementById('bVerba').value)||VERBA_DEF;budget.verba=v;persist();closeBudVerbaModal();renderBudget();}
+
+
+</script>
+</body>’
+</html>
