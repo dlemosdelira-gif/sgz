@@ -1682,24 +1682,23 @@ function parseCsvLine(line){
 function fuzzyMatchConta(contaRaw){
   var allContaNomes=CONTAS_DEF.map(function(c){return c.conta;});
   var raw=contaRaw.toLowerCase();
-  // Exact match
+  // 1. Exact match
   for(var i=0;i<allContaNomes.length;i++){if(allContaNomes[i].toLowerCase()===raw)return allContaNomes[i];}
-  // Conta name is contained in raw (legal name includes short name)
+  // 2. Nome curto contido inteiro dentro da razão social (ex: "UNIMED Campinas" dentro de "UNIMED CAMPINAS COOPERATIVA...")
   for(var i=0;i<allContaNomes.length;i++){
     var n=allContaNomes[i].toLowerCase();
-    if(raw.length>4&&raw.indexOf(n)>=0)return allContaNomes[i];
+    if(n.length>5&&raw.indexOf(n)>=0)return allContaNomes[i];
   }
-  // Raw starts with first 8 chars of conta name
-  for(var i=0;i<allContaNomes.length;i++){
-    var n=allContaNomes[i].toLowerCase();
-    if(raw.length>4&&raw.indexOf(n.substring(0,Math.min(8,n.length)))>=0)return allContaNomes[i];
-  }
-  // Word overlap: count how many significant words from conta name appear in raw
-  var best='',bestScore=0;
+  // 3. Word overlap rigoroso: TODAS as palavras significativas (>3 chars) do nome curto precisam estar na razão social.
+  //    Isso evita falsos positivos como "INSTITUTO DO RADIUM DE CAMPINAS" virar "UNIMED Campinas" só porque tem "campinas".
+  var best='',bestLen=0;
   for(var i=0;i<allContaNomes.length;i++){
     var words=allContaNomes[i].toLowerCase().split(/\s+/).filter(function(w){return w.length>3;});
-    var sc=0;for(var j=0;j<words.length;j++){if(raw.indexOf(words[j])>=0)sc++;}
-    if(sc>0&&sc>=words.length-1&&sc>bestScore){bestScore=sc;best=allContaNomes[i];}
+    if(!words.length)continue;
+    var allMatch=true;
+    for(var j=0;j<words.length;j++){if(raw.indexOf(words[j])<0){allMatch=false;break;}}
+    // Em caso de empate, prefere o nome curto mais específico (mais palavras = mais restritivo)
+    if(allMatch&&words.length>bestLen){bestLen=words.length;best=allContaNomes[i];}
   }
   return best;
 }
