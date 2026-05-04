@@ -1241,6 +1241,35 @@ function closeDelOv(){document.getElementById('delOv').classList.remove('on');}
 function confirmDel(){if(delType==='doc')docs.splice(delIdx,1);else{mats.splice(delIdx,1);if(activeMat>=mats.length)activeMat=-1;renderMats();renderInsights();}persist();closeDelOv();}
 
 // ══════════ CONTAS ══════════
+function fmtGrowth(ant,atu){
+  if(!ant||!atu)return '';
+  var pct=Math.round((atu-ant)/ant*100);
+  return '<span style="font-size:10px;font-weight:700;color:'+(pct>=0?'#16a34a':'#dc2626')+';margin-left:4px;">'+(pct>=0?'+':'')+pct+'%</span>';
+}
+function prodBarHtml(label,color,data){
+  if(!data)return '';
+  var matAtu=data.matAtu||0,matAnt=data.matAnt||0,ytdAtu=data.ytdAtu||0,ytdAnt=data.ytdAnt||0;
+  var maxVal=Math.max(matAtu,matAnt,1);
+  var pctAtu=Math.round(matAtu/maxVal*100);
+  return '<div style="margin-bottom:6px;">'+
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">'+
+      '<span style="width:70px;font-size:11px;font-weight:700;color:'+color+';">'+label+'</span>'+
+      '<span style="font-size:11px;color:#555;">MAT '+matAtu.toLocaleString('pt-BR')+fmtGrowth(matAnt,matAtu)+'</span>'+
+      '<span style="font-size:11px;color:#888;margin-left:8px;">YTD '+ytdAtu.toLocaleString('pt-BR')+fmtGrowth(ytdAnt,ytdAtu)+'</span>'+
+    '</div>'+
+    '<div style="display:flex;height:6px;border-radius:4px;overflow:hidden;background:#f0f0f0;">'+
+      '<div style="width:'+pctAtu+'%;background:'+color+';border-radius:4px;transition:width .3s;"></div>'+
+    '</div>'+
+  '</div>';
+}
+function buildProdHtml(ad){
+  if(!ad||(!ad.sarclisa&&!ad.dalinvi))return '';
+  return '<div style="background:#f8f8ff;border:1px solid #e0e7ff;border-radius:10px;padding:10px 12px;margin:6px 0;">'+
+    '<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;">📦 Auditoria de Mercado (caixas)</div>'+
+    prodBarHtml('Sarclisa','#7c3aed',ad.sarclisa)+
+    prodBarHtml('Dalinvi IV','#0891b2',ad.dalinvi)+
+  '</div>';
+}
 function renderContas(){
   var cdMap={};for(var i=0;i<docs.length;i++){var d=docs[i],c=d.conta||'Sem conta';if(!cdMap[c])cdMap[c]=[];cdMap[c].push(d);}
   var contas=CONTAS_DEF.slice();
@@ -1294,36 +1323,8 @@ function renderContas(){
     var barsHtml='<div class="sbars">'+bar('Tamanho',cd.tam)+bar('Momento',cd.mom)+bar('Pot.estrat.',cd.pot)+bar('Espaço',cd.esp)+'</div>';
 
     // Produto MAT/YTD bars (novo formato IMS)
-    var prodHtml='';
     var ad=ext.auditData||{};
-    function fmtGrowth(ant,atu){
-      if(!ant||!atu)return '';
-      var pct=Math.round((atu-ant)/ant*100);
-      return '<span style="font-size:10px;font-weight:700;color:'+(pct>=0?'#16a34a':'#dc2626')+';margin-left:4px;">'+(pct>=0?'+':'')+pct+'%</span>';
-    }
-    function prodBar(label,color,data){
-      if(!data)return '';
-      var maxVal=Math.max(data.matAtu||0,data.matAnt||0,1);
-      var pctAtu=Math.round((data.matAtu||0)/maxVal*100);
-      var pctAnt=Math.round((data.matAnt||0)/maxVal*100);
-      return '<div style="margin-bottom:6px;">'+
-        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">'+
-          '<span style="width:70px;font-size:11px;font-weight:700;color:'+color+';">'+label+'</span>'+
-          '<span style="font-size:11px;color:#555;">MAT '+((data.matAtu||0).toLocaleString('pt-BR'))+fmtGrowth(data.matAnt,data.matAtu)+'</span>'+
-          '<span style="font-size:11px;color:#888;margin-left:8px;">YTD '+((data.ytdAtu||0).toLocaleString('pt-BR'))+fmtGrowth(data.ytdAnt,data.ytdAtu)+'</span>'+
-        '</div>'+
-        '<div style="display:flex;gap:2px;height:6px;border-radius:4px;overflow:hidden;background:#f0f0f0;">'+
-          '<div style="width:'+pctAtu+'%;background:'+color+';border-radius:4px;transition:width .3s;"></div>'+
-        '</div>'+
-      '</div>';
-    }
-    if(ad.sarclisa||ad.dalinvi){
-      prodHtml='<div style="background:#f8f8ff;border:1px solid #e0e7ff;border-radius:10px;padding:10px 12px;margin:6px 0;">'+
-        '<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;">📦 Auditoria de Mercado (caixas)</div>'+
-        prodBar('Sarclisa','#7c3aed',ad.sarclisa)+
-        prodBar('Dalinvi IV','#0891b2',ad.dalinvi)+
-      '</div>';
-    }
+    var prodHtml=buildProdHtml(ad);
 
     // Marcadores globais
     var flagKeys=Object.keys(CONTA_FLAGS);
