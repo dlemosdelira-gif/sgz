@@ -617,9 +617,11 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <div class="mhd"><h2>📊 Importar auditoria</h2><button onclick="closeCsvAuditModal()">×</button></div>
     <div class="csv-info">
       Cole os dados direto do Excel — ou importe um arquivo CSV.<br>
-      <strong>Formato esperado (com cabeçalho):</strong>
-      <code>Conta;MAT;YTD;Tamanho;Momento;Pot.Estrat.;Espaco</code>
-      As colunas Tamanho, Momento, Pot.Estrat. e Espaço são <strong>opcionais</strong> — se omitidas, só MAT e YTD são atualizados.
+      <strong>Formato 1 — Clássico (separado por ponto e vírgula):</strong><br>
+      <code>Conta;MAT;YTD;Tamanho;Momento;Pot.Estrat.;Espaco</code><br>
+      <strong>Formato 2 — Multi-produto IMS (separado por tab):</strong><br>
+      <code>Marca&#9;Cidade&#9;Razão Social&#9;YTD ANT&#9;YTD ATU&#9;MAT ANT&#9;MAT ATU</code><br>
+      No formato 2, linhas de Sarclisa e Dalinvi IV são identificadas automaticamente pela coluna <b>Marca</b>.
     </div>
     <div class="field">
       <label>Cole o CSV aqui</label>
@@ -1291,6 +1293,38 @@ function renderContas(){
     // Barras de auditoria
     var barsHtml='<div class="sbars">'+bar('Tamanho',cd.tam)+bar('Momento',cd.mom)+bar('Pot.estrat.',cd.pot)+bar('Espaço',cd.esp)+'</div>';
 
+    // Produto MAT/YTD bars (novo formato IMS)
+    var prodHtml='';
+    var ad=ext.auditData||{};
+    function fmtGrowth(ant,atu){
+      if(!ant||!atu)return '';
+      var pct=Math.round((atu-ant)/ant*100);
+      return '<span style="font-size:10px;font-weight:700;color:'+(pct>=0?'#16a34a':'#dc2626')+';margin-left:4px;">'+(pct>=0?'+':'')+pct+'%</span>';
+    }
+    function prodBar(label,color,data){
+      if(!data)return '';
+      var maxVal=Math.max(data.matAtu||0,data.matAnt||0,1);
+      var pctAtu=Math.round((data.matAtu||0)/maxVal*100);
+      var pctAnt=Math.round((data.matAnt||0)/maxVal*100);
+      return '<div style="margin-bottom:6px;">'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">'+
+          '<span style="width:70px;font-size:11px;font-weight:700;color:'+color+';">'+label+'</span>'+
+          '<span style="font-size:11px;color:#555;">MAT '+((data.matAtu||0).toLocaleString('pt-BR'))+fmtGrowth(data.matAnt,data.matAtu)+'</span>'+
+          '<span style="font-size:11px;color:#888;margin-left:8px;">YTD '+((data.ytdAtu||0).toLocaleString('pt-BR'))+fmtGrowth(data.ytdAnt,data.ytdAtu)+'</span>'+
+        '</div>'+
+        '<div style="display:flex;gap:2px;height:6px;border-radius:4px;overflow:hidden;background:#f0f0f0;">'+
+          '<div style="width:'+pctAtu+'%;background:'+color+';border-radius:4px;transition:width .3s;"></div>'+
+        '</div>'+
+      '</div>';
+    }
+    if(ad.sarclisa||ad.dalinvi){
+      prodHtml='<div style="background:#f8f8ff;border:1px solid #e0e7ff;border-radius:10px;padding:10px 12px;margin:6px 0;">'+
+        '<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;">📦 Auditoria de Mercado (caixas)</div>'+
+        prodBar('Sarclisa','#7c3aed',ad.sarclisa)+
+        prodBar('Dalinvi IV','#0891b2',ad.dalinvi)+
+      '</div>';
+    }
+
     // Marcadores globais
     var flagKeys=Object.keys(CONTA_FLAGS);
     var cmkPos='',cmkNeg='';
@@ -1372,7 +1406,7 @@ function renderContas(){
           '<span><b>Espaço:</b> '+cd.esp+'/3</span>'+
           '<button class="ibtn" style="margin-left:auto" onclick="event.stopPropagation();openAuditModal(\''+escJ(ct.conta)+'\','+idx+')">✏️ Editar auditoria</button>'+
         '</div>'+
-        barsHtml+cmkHtml+barrHtml+
+        barsHtml+prodHtml+cmkHtml+barrHtml+
         '<div class="cdoc-list">'+
           '<div style="display:flex;align-items:center;margin-bottom:6px;">'+
             '<div class="cdoc-title" style="margin-bottom:0;">Médicos ('+cdocs.length+')</div>'+
@@ -1616,6 +1650,33 @@ function parseCsvLine(line){
   return line.split(sep).map(function(c){return c.trim().replace(/^"|"$/g,'').trim();});
 }
 
+function fuzzyMatchConta(contaRaw){
+  var allContaNomes=CONTAS_DEF.map(function(c){return c.conta;});
+  var raw=contaRaw.toLowerCase();
+  // Exact match
+  for(var i=0;i<allContaNomes.length;i++){if(allContaNomes[i].toLowerCase()===raw)return allContaNomes[i];}
+  // Conta name is contained in raw (legal name includes short name)
+  for(var i=0;i<allContaNomes.length;i++){
+    var n=allContaNomes[i].toLowerCase();
+    if(raw.length>4&&raw.indexOf(n)>=0)return allContaNomes[i];
+  }
+  // Raw starts with first 8 chars of conta name
+  for(var i=0;i<allContaNomes.length;i++){
+    var n=allContaNomes[i].toLowerCase();
+    if(raw.length>4&&raw.indexOf(n.substring(0,Math.min(8,n.length)))>=0)return allContaNomes[i];
+  }
+  // Word overlap: count how many significant words from conta name appear in raw
+  var best='',bestScore=0;
+  for(var i=0;i<allContaNomes.length;i++){
+    var words=allContaNomes[i].toLowerCase().split(/\s+/).filter(function(w){return w.length>3;});
+    var sc=0;for(var j=0;j<words.length;j++){if(raw.indexOf(words[j])>=0)sc++;}
+    if(sc>0&&sc>=words.length-1&&sc>bestScore){bestScore=sc;best=allContaNomes[i];}
+  }
+  return best;
+}
+
+function parsePtNum(s){return parseFloat(String(s||'').replace(/\./g,'').replace(',','.'));}
+
 function processCsvAudit(){
   var raw=document.getElementById('csvPaste').value.trim();
   if(!raw){alert('Cole os dados primeiro.');return;}
@@ -1623,43 +1684,82 @@ function processCsvAudit(){
   if(lines.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
 
   var header=parseCsvLine(lines[0]).map(function(h){return h.toLowerCase().replace(/[^a-záàãâéêíóõôúç.\s]/gi,'').trim();});
-  var iConta=header.findIndex(function(h){return h.indexOf('conta')>=0;});
-  var iMat=header.findIndex(function(h){return h.indexOf('mat')>=0&&h.indexOf('evol')<0&&h.indexOf('atu')>=0||h==='mat'||h==='mat atu'||h==='mat (atu)'||h==='mat atu.';});
-  var iYtd=header.findIndex(function(h){return h.indexOf('ytd')>=0&&h.indexOf('evol')<0;});
-  var iTam=header.findIndex(function(h){return h.indexOf('tamanho')>=0||h.indexOf('tam')>=0;});
-  var iMom=header.findIndex(function(h){return h.indexOf('momento')>=0||h.indexOf('mom')>=0;});
-  var iPot=header.findIndex(function(h){return h.indexOf('pot')>=0&&h.indexOf('estrat')>=0||h==='pot'||h==='pot.estrat'||h==='pot.estrat.';});
-  var iEsp=header.findIndex(function(h){return h.indexOf('espa')>=0||h.indexOf('esp')>=0||h.indexOf('captura')>=0;});
-
-  if(iConta<0)iConta=0;
-  if(iMat<0)iMat=1;
-  if(iYtd<0)iYtd=2;
+  var iMarca=header.findIndex(function(h){return h==='marca'||h.indexOf('marca')===0;});
+  var isNewFormat=iMarca>=0;
 
   var results=[],parsed=[];
-  var allContas=CONTAS_DEF.map(function(c){return c.conta.toLowerCase();});
 
-  for(var li=1;li<lines.length;li++){
-    var cols=parseCsvLine(lines[li]);
-    if(!cols[iConta])continue;
-    var contaRaw=cols[iConta];
-    var mat=parseFloat(String(cols[iMat]||'').replace(',','.'));
-    var ytd=parseFloat(String(cols[iYtd]||'').replace(',','.'));
+  if(isNewFormat){
+    // New multi-product format: Marca | Cidade | Razão Social | YTD ANT | YTD ATU | MAT ANT | MAT ATU
+    var iRazao=header.findIndex(function(h){return h.indexOf('raz')>=0||h.indexOf('social')>=0||h.indexOf('conta')>=0;});
+    var iYtdAnt=header.findIndex(function(h){return h.indexOf('ytd')>=0&&h.indexOf('ant')>=0;});
+    var iYtdAtu=header.findIndex(function(h){return h.indexOf('ytd')>=0&&h.indexOf('atu')>=0;});
+    var iMatAnt=header.findIndex(function(h){return h.indexOf('mat')>=0&&h.indexOf('ant')>=0;});
+    var iMatAtu=header.findIndex(function(h){return h.indexOf('mat')>=0&&h.indexOf('atu')>=0;});
+    if(iRazao<0)iRazao=2;
+    if(iYtdAnt<0)iYtdAnt=3;if(iYtdAtu<0)iYtdAtu=4;if(iMatAnt<0)iMatAnt=5;if(iMatAtu<0)iMatAtu=6;
 
-    var matchNome='';
-    var allContaNomes=CONTAS_DEF.map(function(c){return c.conta;});
-    for(var ci=0;ci<allContaNomes.length;ci++){
-      if(allContaNomes[ci].toLowerCase()===contaRaw.toLowerCase()||(contaRaw.length>4&&allContaNomes[ci].toLowerCase().indexOf(contaRaw.toLowerCase())>=0)||(contaRaw.length>4&&contaRaw.toLowerCase().indexOf(allContaNomes[ci].toLowerCase().substring(0,8))>=0)){matchNome=allContaNomes[ci];break;}
+    // Aggregate by razão social + marca (multiple cities)
+    var agg={};
+    for(var li=1;li<lines.length;li++){
+      var cols=parseCsvLine(lines[li]);
+      if(!cols[iRazao])continue;
+      var razao=cols[iRazao].trim();
+      var marca=(cols[iMarca]||'').trim().toLowerCase();
+      var key=razao+'|||'+marca;
+      if(!agg[key])agg[key]={razao:razao,marca:marca,ytdAnt:0,ytdAtu:0,matAnt:0,matAtu:0};
+      agg[key].ytdAnt+=parsePtNum(cols[iYtdAnt])||0;
+      agg[key].ytdAtu+=parsePtNum(cols[iYtdAtu])||0;
+      agg[key].matAnt+=parsePtNum(cols[iMatAnt])||0;
+      agg[key].matAtu+=parsePtNum(cols[iMatAtu])||0;
     }
 
-    var row={contaRaw:contaRaw,conta:matchNome,mat:isNaN(mat)?null:mat,ytd:isNaN(ytd)?null:ytd};
-    if(iTam>=0&&cols[iTam])row.scoreTam=parseInt(cols[iTam])||null;
-    if(iMom>=0&&cols[iMom])row.scoreMom=parseInt(cols[iMom])||null;
-    if(iPot>=0&&cols[iPot])row.scorePot=parseInt(cols[iPot])||null;
-    if(iEsp>=0&&cols[iEsp])row.scoreEsp=parseInt(cols[iEsp])||null;
-    parsed.push(row);
+    // Group by razão social across brands
+    var byRazao={};
+    for(var k in agg){
+      var a=agg[k];
+      if(!byRazao[a.razao])byRazao[a.razao]={razao:a.razao,products:{}};
+      var prodKey=a.marca.indexOf('sarclisa')>=0?'sarclisa':a.marca.indexOf('dalinvi')>=0||a.marca.indexOf('isatuximab')>=0?'dalinvi':a.marca;
+      byRazao[a.razao].products[prodKey]={matAnt:Math.round(a.matAnt),matAtu:Math.round(a.matAtu),ytdAnt:Math.round(a.ytdAnt),ytdAtu:Math.round(a.ytdAtu)};
+    }
 
-    var status=matchNome?'<span class="ok">✓ '+contaRaw+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+contaRaw+'"</span>';
-    results.push(status);
+    for(var razao in byRazao){
+      var entry=byRazao[razao];
+      var matchNome=fuzzyMatchConta(razao);
+      var row={contaRaw:razao,conta:matchNome,isNewFormat:true,products:entry.products};
+      // Primary MAT/YTD = Sarclisa if available
+      if(entry.products.sarclisa){row.mat=entry.products.sarclisa.matAtu;row.ytd=entry.products.sarclisa.ytdAtu;}
+      parsed.push(row);
+      var status=matchNome?'<span class="ok">✓ '+esc(razao)+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+esc(razao)+'"</span>';
+      results.push(status);
+    }
+  } else {
+    // Classic format: Conta;MAT;YTD;Tamanho;Momento;Pot.Estrat.;Espaco
+    var iConta=header.findIndex(function(h){return h.indexOf('conta')>=0;});
+    var iMat=header.findIndex(function(h){return h.indexOf('mat')>=0&&h.indexOf('evol')<0&&h.indexOf('atu')>=0||h==='mat'||h==='mat atu'||h==='mat (atu)'||h==='mat atu.';});
+    var iYtd=header.findIndex(function(h){return h.indexOf('ytd')>=0&&h.indexOf('evol')<0;});
+    var iTam=header.findIndex(function(h){return h.indexOf('tamanho')>=0||h.indexOf('tam')>=0;});
+    var iMom=header.findIndex(function(h){return h.indexOf('momento')>=0||h.indexOf('mom')>=0;});
+    var iPot=header.findIndex(function(h){return h.indexOf('pot')>=0&&h.indexOf('estrat')>=0||h==='pot'||h==='pot.estrat'||h==='pot.estrat.';});
+    var iEsp=header.findIndex(function(h){return h.indexOf('espa')>=0||h.indexOf('esp')>=0||h.indexOf('captura')>=0;});
+    if(iConta<0)iConta=0;if(iMat<0)iMat=1;if(iYtd<0)iYtd=2;
+
+    for(var li=1;li<lines.length;li++){
+      var cols=parseCsvLine(lines[li]);
+      if(!cols[iConta])continue;
+      var contaRaw=cols[iConta];
+      var mat=parseFloat(String(cols[iMat]||'').replace(',','.'));
+      var ytd=parseFloat(String(cols[iYtd]||'').replace(',','.'));
+      var matchNome=fuzzyMatchConta(contaRaw);
+      var row={contaRaw:contaRaw,conta:matchNome,mat:isNaN(mat)?null:mat,ytd:isNaN(ytd)?null:ytd};
+      if(iTam>=0&&cols[iTam])row.scoreTam=parseInt(cols[iTam])||null;
+      if(iMom>=0&&cols[iMom])row.scoreMom=parseInt(cols[iMom])||null;
+      if(iPot>=0&&cols[iPot])row.scorePot=parseInt(cols[iPot])||null;
+      if(iEsp>=0&&cols[iEsp])row.scoreEsp=parseInt(cols[iEsp])||null;
+      parsed.push(row);
+      var status=matchNome?'<span class="ok">✓ '+contaRaw+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+contaRaw+'"</span>';
+      results.push(status);
+    }
   }
 
   csvParsedData=parsed;
@@ -1713,6 +1813,10 @@ function applyCsvAudit(){
     if(row.scoreMom!=null)ad.scoreMom=row.scoreMom;
     if(row.scorePot!=null)ad.scorePot=row.scorePot;
     if(row.scoreEsp!=null)ad.scoreEsp=row.scoreEsp;
+    if(row.products){
+      if(row.products.sarclisa)ad.sarclisa=row.products.sarclisa;
+      if(row.products.dalinvi)ad.dalinvi=row.products.dalinvi;
+    }
     updated++;
   }
 
