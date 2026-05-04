@@ -1259,17 +1259,34 @@ function fmtGrowth(ant,atu){
 }
 function prodBarHtml(label,color,data){
   if(!data)return '';
-  var matAtu=data.matAtu||0,matAnt=data.matAnt||0,ytdAtu=data.ytdAtu||0,ytdAnt=data.ytdAnt||0;
+  var matAtu=Math.round(data.matAtu||0),matAnt=Math.round(data.matAnt||0);
+  var ytdAtu=Math.round(data.ytdAtu||0),ytdAnt=Math.round(data.ytdAnt||0);
   var maxVal=Math.max(matAtu,matAnt,1);
   var pctAtu=Math.round(matAtu/maxVal*100);
-  return '<div style="margin-bottom:6px;">'+
-    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">'+
-      '<span style="width:70px;font-size:11px;font-weight:700;color:'+color+';">'+label+'</span>'+
-      '<span style="font-size:11px;color:#555;">MAT '+matAtu.toLocaleString('pt-BR')+fmtGrowth(matAnt,matAtu)+'</span>'+
-      '<span style="font-size:11px;color:#888;margin-left:8px;">YTD '+ytdAtu.toLocaleString('pt-BR')+fmtGrowth(ytdAnt,ytdAtu)+'</span>'+
+  var pctAnt=Math.round(matAnt/maxVal*100);
+  function growthTag(ant,atu){
+    if(!ant&&!atu)return '<span style="font-size:10px;color:#bbb;">—</span>';
+    if(!ant)return '<span style="font-size:10px;font-weight:700;color:#16a34a;">novo</span>';
+    var pct=Math.round((atu-ant)/ant*100);
+    var col=pct>0?'#16a34a':pct<0?'#dc2626':'#888';
+    return '<span style="font-size:10px;font-weight:700;color:'+col+';">'+(pct>0?'↑':pct<0?'↓':'=')+Math.abs(pct)+'%</span>';
+  }
+  return '<div style="margin-bottom:8px;">'+
+    '<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">'+
+      '<span style="width:72px;font-size:11px;font-weight:700;color:'+color+';flex-shrink:0;">'+label+'</span>'+
+      '<span style="font-size:11px;flex:1;">'+
+        '<b>MAT</b> <span style="color:#888;">'+matAnt.toLocaleString('pt-BR')+'</span>'+
+        ' → <span style="font-weight:700;">'+matAtu.toLocaleString('pt-BR')+'</span> '+
+        growthTag(matAnt,matAtu)+
+        '<span style="margin-left:10px;color:#bbb;">|</span> '+
+        '<b>YTD</b> <span style="color:#888;">'+ytdAnt.toLocaleString('pt-BR')+'</span>'+
+        ' → <span style="font-weight:700;">'+ytdAtu.toLocaleString('pt-BR')+'</span> '+
+        growthTag(ytdAnt,ytdAtu)+
+      '</span>'+
     '</div>'+
-    '<div style="display:flex;height:6px;border-radius:4px;overflow:hidden;background:#f0f0f0;">'+
-      '<div style="width:'+pctAtu+'%;background:'+color+';border-radius:4px;transition:width .3s;"></div>'+
+    '<div style="position:relative;height:6px;border-radius:4px;background:#f0f0f0;overflow:hidden;">'+
+      '<div style="position:absolute;left:0;top:0;width:'+pctAnt+'%;height:100%;background:#ddd;border-radius:4px;"></div>'+
+      '<div style="position:absolute;left:0;top:0;width:'+pctAtu+'%;height:100%;background:'+color+';border-radius:4px;opacity:.85;"></div>'+
     '</div>'+
   '</div>';
 }
