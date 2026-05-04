@@ -296,6 +296,11 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .dec-card .sub{font-size:11px;color:#888;margin-bottom:10px;}
 .dec-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f2f2f7;font-size:12px;}
 .dec-row:last-child{border-bottom:none;}
+.dec-more{margin-top:4px;}
+.dec-more summary{cursor:pointer;font-size:11px;font-weight:700;color:#6d28d9;padding:7px 0;border-top:1px dashed #e5e0fa;list-style:none;text-align:center;}
+.dec-more summary::-webkit-details-marker{display:none;}
+.dec-more summary:before{content:'▾ ';}
+.dec-more[open] summary:before{content:'▴ ';}
 .dec-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
 .dec-bar-wrap{width:70px;height:6px;background:#f2f2f7;border-radius:3px;overflow:hidden;flex-shrink:0;}
 .dec-bar-fill{height:100%;border-radius:3px;}
@@ -2145,16 +2150,18 @@ function renderRadar(){
   }
   if(engDocs.length){
     engDocs.sort(function(a,b){return a.custo-b.custo;}); // mais barato = mais eficiente
-    var rowsEng='';
-    engDocs.slice(0,8).forEach(function(d){
+    var rowsEng='',rowsEngMore='';
+    engDocs.forEach(function(d,idx){
       var cor=d.custo<50?'#065f46':d.custo<200?'#92400e':'#b91c1c';
-      rowsEng+='<div class="dec-row">'+
+      var row='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
         '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         '<span style="font-size:10px;color:#888;flex-shrink:0;">'+d.toques+' toques</span>'+
         '<div style="font-size:11px;font-weight:700;flex-shrink:0;min-width:56px;text-align:right;color:'+cor+';">R$'+d.custo.toFixed(0)+'/toque</div>'+
       '</div>';
+      if(idx<8)rowsEng+=row;else rowsEngMore+=row;
     });
+    if(rowsEngMore)rowsEng+='<details class="dec-more"><summary>Ver todos ('+engDocs.length+')</summary>'+rowsEngMore+'</details>';
     html+='<div class="dec-card">'+
       '<h3>🎯 Eficiência de Engajamento</h3>'+
       '<div class="sub">R$ investido ÷ número de toques (WA + e-mail + congresso). Menor custo por toque = mais eficiente.</div>'+
@@ -2249,18 +2256,20 @@ function renderDecisaoHTML(){
 
   // ✅ BEM APLICADO
   if(bemAplicado.length){
-    var r1='';
-    bemAplicado.slice(0,6).forEach(function(d){
+    var r1='',r1More='';
+    bemAplicado.forEach(function(d,idx){
       var tags='';
       if(d.inv>0)tags+='<span class="signal sig-ok">'+fmtBRL(d.inv)+'</span> ';
       if(d.congInt>0)tags+='<span class="signal sig-ok">🏆 Cong.'+d.congInt+'</span> ';
       if(d.envios>0)tags+='<span class="signal sig-ok">📨 '+d.envios+'</span>';
-      r1+='<div class="dec-row">'+
+      var row='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
         '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         tags+
       '</div>';
+      if(idx<6)r1+=row;else r1More+=row;
     });
+    if(r1More)r1+='<details class="dec-more"><summary>Ver todos ('+bemAplicado.length+')</summary>'+r1More+'</details>';
     html+='<div class="dec-card">'+
       '<h3>✅ Bem atendidos</h3>'+
       '<div class="sub">Médicos de alta prioridade que estão recebendo atenção (investimento, congresso ou envios).</div>'+
@@ -2269,14 +2278,16 @@ function renderDecisaoHTML(){
 
   // 🚀 ESQUECIDOS
   if(esquecidos.length){
-    var r2='';
-    esquecidos.slice(0,6).forEach(function(d){
-      r2+='<div class="dec-row">'+
+    var r2='',r2More='';
+    esquecidos.forEach(function(d,idx){
+      var row='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
         '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         '<span class="signal sig-warn">Score '+d.sc+' — sem ação</span>'+
       '</div>';
+      if(idx<6)r2+=row;else r2More+=row;
     });
+    if(r2More)r2+='<details class="dec-more"><summary>Ver todos ('+esquecidos.length+')</summary>'+r2More+'</details>';
     html+='<div class="dec-card">'+
       '<h3>🚀 Oportunidades sem ação</h3>'+
       '<div class="sub">Alta prioridade mas ainda sem investimento, congresso ou envio de material. Considere agir.</div>'+
@@ -2285,17 +2296,19 @@ function renderDecisaoHTML(){
 
   // ⚠️ REVER
   if(rever.length){
-    var r3='';
-    rever.forEach(function(d){
+    var r3='',r3More='';
+    rever.forEach(function(d,idx){
       var tags='';
       if(d.inv>0)tags+='<span class="signal sig-down">'+fmtBRL(d.inv)+'</span> ';
       if(d.congInt>0)tags+='<span class="signal sig-down">🏆 Cong.'+d.congInt+'</span>';
-      r3+='<div class="dec-row">'+
+      var row='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
         '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         tags+
       '</div>';
+      if(idx<6)r3+=row;else r3More+=row;
     });
+    if(r3More)r3+='<details class="dec-more"><summary>Ver todos ('+rever.length+')</summary>'+r3More+'</details>';
     html+='<div class="dec-card">'+
       '<h3>⚠️ Investimento a revisar</h3>'+
       '<div class="sub">Baixa prioridade (C, score &lt;3) mas com investimento ou congresso registrado. Vale revisar.</div>'+
