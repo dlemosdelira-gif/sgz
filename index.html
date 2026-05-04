@@ -1962,10 +1962,12 @@ function renderInsights(){
 
 // ══════════ PAINÉIS DE DECISÃO ══════════
 function renderDecisaoHTML(){
-  var html='<div class="sec-title">🎯 Painéis de Decisão</div>';
+  var html='<div class="sec-title">🎯 Radar de Alinhamento</div>';
 
-  // ── PAINEL: Score de Retorno por Médico ──
-  var topDocsBud=[];
+  // Para cada médico: calcula investimento, envios, score e congresso
+  var lista=[];
+  var totalInv=0;
+  var invEmAltaPrio=0;
   for(var i=0;i<docs.length;i++){
     var d=docs[i];
     var inv=(budget.items||[]).filter(function(it){return it.docName===d.name;}).reduce(function(s,it){return s+(it.val||0);},0);
@@ -1973,47 +1975,100 @@ function renderDecisaoHTML(){
     var nEmail=0;for(var mi=0;mi<mats.length;mi++){if(sentEmail[sk(d.name,mi)+'__e'])nEmail++;}
     var sc=calcScore(d);
     var envios=nMat+nEmail;
-    var congIntensidade=budCongressoIntensidadeMedico(d.name);
-    if(inv>0||envios>0){
-      var retScore=0;
-      if(sc>=5)retScore+=3;else if(sc>=2)retScore+=1;
-      if(envios>=4)retScore+=3;else if(envios>=2)retScore+=1;
-      if(inv===0)retScore+=1;
-      else if(inv<500)retScore+=2;
-      if(congIntensidade>=3)retScore+=2;
-      else if(congIntensidade>=1)retScore+=1;
-      topDocsBud.push({name:d.name,pot:d.pot,sc:sc,inv:inv,envios:envios,ret:retScore,congIntensidade:congIntensidade});
-    }
+    var congInt=budCongressoIntensidadeMedico(d.name);
+    var altaPrio=(d.pot==='A'||sc>=5);
+    totalInv+=inv;
+    if(altaPrio)invEmAltaPrio+=inv;
+    lista.push({name:d.name,pot:d.pot,sc:sc,inv:inv,envios:envios,congInt:congInt,altaPrio:altaPrio});
   }
-  if(topDocsBud.length){
-    topDocsBud.sort(function(a,b){return b.ret-a.ret||b.sc-a.sc;});
-    var rows2='';
-    var oportun=topDocsBud.filter(function(d){return d.sc>=5&&d.inv<500&&d.congIntensidade<2;}).slice(0,5);
-    var alertas=topDocsBud.filter(function(d){return d.inv>=500&&d.envios<2;}).slice(0,5);
-    if(oportun.length){
-      rows2+='<div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.4px;margin:6px 0 4px;">🚀 Oportunidades — alta prioridade, baixo custo</div>';
-      oportun.forEach(function(d){
-        rows2+='<div class="dec-row">'+
-          '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
-          '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
-          '<span class="signal sig-up">Score '+d.sc+'</span>'+
-          '<div class="dec-val">'+fmtBRL(d.inv)+'</div>'+
-        '</div>';
-      });
-    }
-    if(alertas.length){
-      rows2+='<div style="font-size:11px;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:.4px;margin:10px 0 4px;">⚠️ Revisar — investimento alto, poucos envios</div>';
-      alertas.forEach(function(d){
-        var intLabel=d.congIntensidade?(' · 🏆 Int.'+d.congIntensidade):'';
-        rows2+='<div class="dec-row">'+
-          '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
-          '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
-          '<span class="signal sig-warn">'+d.envios+'/'+mats.length+' envios'+intLabel+'</span>'+
-          '<div class="dec-val">'+fmtBRL(d.inv)+'</div>'+
-        '</div>';
-      });
-    }
-    if(rows2)html+='<div class="dec-card"><h3>👤 Score de Retorno por Médico</h3><div class="sub">Score = potencial clínico + envios + custo + intensidade de congresso. Oportunidades (🚀) e alertas (⚠️).</div>'+rows2+'</div>';
+
+  // Três grupos:
+  // ✅ BEM APLICADO: alta prioridade (pot A ou score ≥5) E tem investimento ou congresso ou ≥2 envios
+  // 🚀 OPORTUNIDADE ESQUECIDA: alta prioridade, mas zero investimento e zero congresso e <2 envios
+  // ⚠️ REVER: tem investimento/congresso mas baixa prioridade (pot C e score <3)
+  var bemAplicado=lista.filter(function(d){return d.altaPrio&&(d.inv>0||d.congInt>0||d.envios>=2);});
+  var esquecidos=lista.filter(function(d){return d.altaPrio&&d.inv===0&&d.congInt===0&&d.envios<2;});
+  var rever=lista.filter(function(d){return !d.altaPrio&&d.pot==='C'&&d.sc<3&&(d.inv>0||d.congInt>0);});
+
+  bemAplicado.sort(function(a,b){return b.sc-a.sc;});
+  esquecidos.sort(function(a,b){return b.sc-a.sc;});
+  rever.sort(function(a,b){return b.inv-a.inv;});
+
+  // Resumo no topo
+  var pctAlinha=totalInv>0?Math.round(invEmAltaPrio/totalInv*100):0;
+  var corPct=pctAlinha>=70?'#065f46':pctAlinha>=40?'#92400e':'#b91c1c';
+  html+='<div class="dec-card" style="margin-bottom:10px;">'+
+    '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'+
+      '<div style="flex:1;min-width:120px;">'+
+        '<div style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;">Budget em alta prioridade</div>'+
+        '<div style="font-size:32px;font-weight:700;color:'+corPct+';">'+pctAlinha+'%</div>'+
+        '<div style="font-size:11px;color:#888;">'+fmtBRL(invEmAltaPrio)+' de '+fmtBRL(totalInv)+' investidos</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">'+
+        '<div><span style="font-size:16px;">✅</span> <b>'+bemAplicado.length+'</b> médicos bem atendidos</div>'+
+        '<div><span style="font-size:16px;">🚀</span> <b>'+esquecidos.length+'</b> oportunidades sem ação</div>'+
+        '<div><span style="font-size:16px;">⚠️</span> <b>'+rever.length+'</b> investimento a revisar</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+
+  // ✅ BEM APLICADO
+  if(bemAplicado.length){
+    var r1='';
+    bemAplicado.slice(0,6).forEach(function(d){
+      var tags='';
+      if(d.inv>0)tags+='<span class="signal sig-ok">'+fmtBRL(d.inv)+'</span> ';
+      if(d.congInt>0)tags+='<span class="signal sig-ok">🏆 Cong.'+d.congInt+'</span> ';
+      if(d.envios>0)tags+='<span class="signal sig-ok">📨 '+d.envios+'</span>';
+      r1+='<div class="dec-row">'+
+        '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        tags+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>✅ Bem atendidos</h3>'+
+      '<div class="sub">Médicos de alta prioridade que estão recebendo atenção (investimento, congresso ou envios).</div>'+
+      r1+'</div>';
+  }
+
+  // 🚀 ESQUECIDOS
+  if(esquecidos.length){
+    var r2='';
+    esquecidos.slice(0,6).forEach(function(d){
+      r2+='<div class="dec-row">'+
+        '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        '<span class="signal sig-warn">Score '+d.sc+' — sem ação</span>'+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>🚀 Oportunidades sem ação</h3>'+
+      '<div class="sub">Alta prioridade mas ainda sem investimento, congresso ou envio de material. Considere agir.</div>'+
+      r2+'</div>';
+  }
+
+  // ⚠️ REVER
+  if(rever.length){
+    var r3='';
+    rever.forEach(function(d){
+      var tags='';
+      if(d.inv>0)tags+='<span class="signal sig-down">'+fmtBRL(d.inv)+'</span> ';
+      if(d.congInt>0)tags+='<span class="signal sig-down">🏆 Cong.'+d.congInt+'</span>';
+      r3+='<div class="dec-row">'+
+        '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        tags+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>⚠️ Investimento a revisar</h3>'+
+      '<div class="sub">Baixa prioridade (C, score &lt;3) mas com investimento ou congresso registrado. Vale revisar.</div>'+
+      r3+'</div>';
+  }
+
+  if(!bemAplicado.length&&!esquecidos.length&&!rever.length){
+    html+='<div class="dec-card"><div class="sub" style="text-align:center;padding:20px;">Registre lançamentos de budget ou envios de material para ver o radar aparecer aqui.</div></div>';
   }
 
   return html;
@@ -2312,13 +2367,13 @@ function onBudCatChange(){
   document.getElementById('bNewCatWrap').style.display=v==='__nova__'?'block':'none';
   var cats=budget.cats||BUD_CATS_DEF;
   var cat=null;for(var i=0;i<cats.length;i++){if(cats[i].id===v){cat=cats[i];break;}}
-  // Mostrar médico para refeição e qualquer categoria com padrão de HCP
-  var isRef=v==='refeicao'||(cat&&cat.name&&(cat.name.toLowerCase().indexOf('refei')>=0||cat.name.toLowerCase().indexOf('jantar')>=0||cat.name.toLowerCase().indexOf('almo')>=0||cat.name.toLowerCase().indexOf('hcp')>=0));
-  document.getElementById('bDocWrap').style.display=isRef?'block':'none';
   // Mostrar evento/intensidade apenas para congressos
   var isCongresso=v==='congresso'||(cat&&cat.name&&cat.name.toLowerCase().indexOf('congresso')>=0);
   document.getElementById('bEventoWrap').style.display=isCongresso?'block':'none';
   document.getElementById('bIntensidadeWrap').style.display=isCongresso?'block':'none';
+  // Mostrar médico para refeição, congresso e qualquer categoria com padrão de HCP
+  var isRef=isCongresso||v==='refeicao'||(cat&&cat.name&&(cat.name.toLowerCase().indexOf('refei')>=0||cat.name.toLowerCase().indexOf('jantar')>=0||cat.name.toLowerCase().indexOf('almo')>=0||cat.name.toLowerCase().indexOf('hcp')>=0));
+  document.getElementById('bDocWrap').style.display=isRef?'block':'none';
 }
 function saveBud(){
   var catId=document.getElementById('bCat').value;
