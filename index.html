@@ -1354,6 +1354,15 @@ function renderContas(){
     var ad=ext.auditData||{};
     var prodHtml=buildProdHtml(ad);
 
+    // Badge de mercado para o header colapsado (MAT ATU de cada produto)
+    var mktBadge='';
+    if(ad.sarclisa||ad.dalinvi){
+      mktBadge=' · 📦';
+      if(ad.sarclisa)mktBadge+=' <span style="color:#7c3aed;font-weight:700;">S:'+Math.round(ad.sarclisa.matAtu||0)+'</span>';
+      if(ad.sarclisa&&ad.dalinvi)mktBadge+='<span style="color:#bbb;"> + </span>';
+      if(ad.dalinvi)mktBadge+='<span style="color:#0891b2;font-weight:700;">D:'+Math.round(ad.dalinvi.matAtu||0)+'</span>';
+    }
+
     // Marcadores globais
     var flagKeys=Object.keys(CONTA_FLAGS);
     var cmkPos='',cmkNeg='';
@@ -1415,7 +1424,7 @@ function renderContas(){
         '<div class="crank '+rc+'">'+rk+'</div>'+
         '<div class="ccard-main">'+
           '<div class="ccard-name">'+esc(ct.conta)+'</div>'+
-          '<div class="ccard-sub">MAT '+cd.mat+' · YTD '+cd.ytd+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+'</div>'+
+          '<div class="ccard-sub">MAT '+cd.mat+' · YTD '+cd.ytd+' · '+cdocs.length+' méd · A:'+pA+' B:'+pB+' C:'+pC+mktBadge+'</div>'+
         '</div>'+
         '<div class="ccard-right">'+
           (cd.flagScore!==0?'<div class="cscore-delta '+deltaCls+'">'+deltaSign+cd.flagScore+'</div>':'')+
@@ -1679,25 +1688,28 @@ function parseCsvLine(line){
   return line.split(sep).map(function(c){return c.trim().replace(/^"|"$/g,'').trim();});
 }
 
+function stripAccents(s){
+  return s.normalize?s.normalize('NFD').replace(/[̀-ͯ]/g,''):s
+    .replace(/[áàãâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[íìîï]/g,'i')
+    .replace(/[óòõôö]/g,'o').replace(/[úùûü]/g,'u').replace(/ç/g,'c').replace(/ñ/g,'n');
+}
 function fuzzyMatchConta(contaRaw){
   var allContaNomes=CONTAS_DEF.map(function(c){return c.conta;});
-  var raw=contaRaw.toLowerCase();
-  // 1. Exact match
-  for(var i=0;i<allContaNomes.length;i++){if(allContaNomes[i].toLowerCase()===raw)return allContaNomes[i];}
-  // 2. Nome curto contido inteiro dentro da razão social (ex: "UNIMED Campinas" dentro de "UNIMED CAMPINAS COOPERATIVA...")
+  var raw=stripAccents(contaRaw.toLowerCase());
+  // 1. Exact match (sem acentos)
+  for(var i=0;i<allContaNomes.length;i++){if(stripAccents(allContaNomes[i].toLowerCase())===raw)return allContaNomes[i];}
+  // 2. Nome curto contido inteiro dentro da razão social
   for(var i=0;i<allContaNomes.length;i++){
-    var n=allContaNomes[i].toLowerCase();
+    var n=stripAccents(allContaNomes[i].toLowerCase());
     if(n.length>5&&raw.indexOf(n)>=0)return allContaNomes[i];
   }
   // 3. Word overlap rigoroso: TODAS as palavras significativas (>3 chars) do nome curto precisam estar na razão social.
-  //    Isso evita falsos positivos como "INSTITUTO DO RADIUM DE CAMPINAS" virar "UNIMED Campinas" só porque tem "campinas".
   var best='',bestLen=0;
   for(var i=0;i<allContaNomes.length;i++){
-    var words=allContaNomes[i].toLowerCase().split(/\s+/).filter(function(w){return w.length>3;});
+    var words=stripAccents(allContaNomes[i].toLowerCase()).split(/\s+/).filter(function(w){return w.length>3;});
     if(!words.length)continue;
     var allMatch=true;
     for(var j=0;j<words.length;j++){if(raw.indexOf(words[j])<0){allMatch=false;break;}}
-    // Em caso de empate, prefere o nome curto mais específico (mais palavras = mais restritivo)
     if(allMatch&&words.length>bestLen){bestLen=words.length;best=allContaNomes[i];}
   }
   return best;
