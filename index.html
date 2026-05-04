@@ -721,7 +721,7 @@ function initListener(){
       docs=data.docs||DOCS_DEF;
       sent=data.sent||{};
       sentEmail=data.sentEmail||{};
-      cExtra=data.cExtra||{};
+      cExtra=fbDecodeCExtra(data.cExtra||{});
       docAgenda=data.docAgenda||{};
       if(data.budget)budget=data.budget;
     }
@@ -771,10 +771,16 @@ firebase.auth().onAuthStateChanged(function(user){
   }
 });
 
+// Firebase rejeita chaves com . # $ / [ ] — codificamos com %HEX (reversível)
+function fbEncodeKey(k){return k.replace(/[.#$\/\[\]%]/g,function(c){return '%'+c.charCodeAt(0).toString(16).toUpperCase();});}
+function fbDecodeKey(k){try{return decodeURIComponent(k);}catch(e){return k;}}
+function fbEncodeCExtra(ce){var out={};for(var k in ce){out[fbEncodeKey(k)]=ce[k];}return out;}
+function fbDecodeCExtra(ce){var out={};for(var k in ce){out[fbDecodeKey(k)]=ce[k];}return out;}
+
 function persist(){
   setSync('syncing','Salvando...');
-  // update() faz merge — nunca apaga campos que não estão sendo alterados
-  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda}).catch(function(){setSync('err','Erro ao salvar');});
+  // Firebase não aceita chaves com . # $ / [ ] — codificamos antes de salvar
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:fbEncodeCExtra(cExtra),budget:budget,docAgenda:docAgenda}).catch(function(e){setSync('err','Erro ao salvar');console.error('persist error:',e);});
   try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
 }
 
@@ -830,7 +836,7 @@ function persistLocal(){
   _skipNextRender=true;
   try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
   setSync('syncing','Salvando...');
-  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda})
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:fbEncodeCExtra(cExtra),budget:budget,docAgenda:docAgenda})
     .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
     .catch(function(){setSync('err','Erro ao salvar');_skipNextRender=false;});
 }
