@@ -322,7 +322,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 <div class="tabs">
   <button class="tab-btn on" id="t0" onclick="goTab(0)">👨‍⚕️ Médicos</button>
   <button class="tab-btn" id="t1" onclick="goTab(1)">🏆 Contas</button>
-  <button class="tab-btn" id="t2" onclick="goTab(2)">🗺️ Cidades</button>
+  <button class="tab-btn" id="t2" onclick="goTab(2)">🎯 Radar</button>
   <button class="tab-btn" id="t4" onclick="goTab(4)">💰 Budget</button>
   <button class="tab-btn" id="t3" onclick="goTab(3)">📊 Insights</button>
 </div>
@@ -382,9 +382,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <div class="pwrap">
     <div class="phd">
       <h2>Ranking de Contas</h2>
-      <div style="display:flex;gap:6px;">
-        <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Importar auditoria</button>
-        <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova conta</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="ctrl-btn" onclick="openCityModal()">🗺️ Cidades</button>
+        <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Auditoria</button>
+        <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova</button>
       </div>
     </div>
     <input class="conta-srch" id="contaSrch" type="search" placeholder="🔍 Buscar conta..." oninput="renderContas()" autocomplete="off" spellcheck="false">
@@ -411,7 +412,14 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 </div>
 
 <div class="page" id="p2">
-  <div class="pwrap"><div class="phd"><h2>Clusters por Cidade</h2></div><div id="cityList"></div></div>
+  <div class="pwrap"><div id="radarDiv"></div></div>
+</div>
+
+<div class="ov" id="cityOv">
+  <div class="modal" style="max-height:85vh;">
+    <div class="mhd"><h2>🗺️ Clusters por Cidade</h2><button onclick="document.getElementById('cityOv').classList.remove('on')">×</button></div>
+    <div id="cityList"></div>
+  </div>
 </div>
 
 <div class="page" id="p3">
@@ -864,7 +872,7 @@ function goTab(n){
     if(pg)pg.classList.toggle('on',i===n);
   }
   if(n===1)renderContas();
-  if(n===2)renderCities();
+  if(n===2)renderRadar();
   if(n===3){ renderInsights(); renderMats(); }
   if(n===4)renderBudget();
 }
@@ -1950,14 +1958,124 @@ function renderInsights(){
     }).join('')+'</div>'+
     '<div class="icard"><h3>🗺️ Top cidades</h3>'+topCities.map(function(c){return'<div class="irow"><span>'+esc(tc(c[0]))+'</span><span class="pill pb">'+c[1]+'</span></div>';}).join('')+'</div>'+
     '<div class="icard"><h3>📱 Contatos</h3><div class="irow"><span>Com WhatsApp</span><span class="pill pg">'+withPhone+'</span></div><div class="irow"><span>Sem número</span><span class="pill '+(total-withPhone>0?'pr':'pg')+'">'+(total-withPhone)+'</span></div></div>'+
-    (topDocs.length?'<div class="icard"><h3>🏆 Médicos com mais envios</h3>'+topDocs.map(function(d){return'<div class="irow" style="flex-direction:column; align-items:flex-start; gap:4px;"><div style="width:100%; display:flex; justify-content:space-between;"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+' envios</span></div><div style="font-size:10px; color:#888;">WA: '+d.cW+' · E-mail: '+d.cE+'</div></div>';}).join('')+'</div>':'')+
-    '<div class="sec-title">💡 Dicas</div>'+
-    '<div class="tip"><b>🔄 Sincronização em tempo real</b>Qualquer edição feita no celular ou computador aparece automaticamente em todos os devices via Firebase.</div>'+
-    '<div class="tip"><b>📊 Atualizar auditoria</b>Na aba Contas, clique em "📊 Importar auditoria" para colar o CSV do Excel e atualizar MAT, YTD e scores de todas as contas de uma vez. Ou expanda um card e clique em "✏️ Editar auditoria" para editar individualmente.</div>'+
-    '<div class="tip"><b>🏦 Score de contas</b>O número cinza é o score da auditoria. O roxo maior é o total somando os marcadores de contexto. O badge verde/vermelho mostra o delta dos marcadores.</div>'+
-    '<div class="tip"><b>🎯 Score médico</b>A (+3), Acesso (+3), Sarclisa (+2), Dara exp. (+1), Guideline (+1) | Sem acesso (−2), SC/SQ (−2), Dara Lover (−2), Concorrência (−1).</div>'+
-    '<div class="tip"><b>📌 Instalar no iPhone</b>Safari → Compartilhar → "Adicionar à Tela de Início". Abre em tela cheia como app nativo.</div>'+
-    renderDecisaoHTML();
+    (topDocs.length?'<div class="icard"><h3>🏆 Médicos com mais envios</h3>'+topDocs.map(function(d){return'<div class="irow" style="flex-direction:column; align-items:flex-start; gap:4px;"><div style="width:100%; display:flex; justify-content:space-between;"><span><span class="badge b'+d.pot+'">'+d.pot+'</span>'+esc(tc(d.name))+'</span><span class="pill pg">'+d.c+' envios</span></div><div style="font-size:10px; color:#888;">WA: '+d.cW+' · E-mail: '+d.cE+'</div></div>';}).join('')+'</div>':'');
+}
+
+// ══════════ CIDADES MODAL ══════════
+function openCityModal(){
+  renderCities();
+  document.getElementById('cityOv').classList.add('on');
+}
+
+// ══════════ RADAR DE DECISÃO ══════════
+function renderRadar(){
+  var html='';
+
+  // ── BLOCO 1: Radar de Alinhamento ──
+  html+=renderDecisaoHTML();
+
+  // ── BLOCO 2: ROI por Conta (R$ investido / MAT) ──
+  var roiContas=[];
+  var allContas=CONTAS_DEF.slice();
+  for(var cn in cExtra){var f=false;for(var j=0;j<allContas.length;j++){if(allContas[j].conta===cn){f=true;break;}}if(!f)allContas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
+  for(var i=0;i<allContas.length;i++){
+    var ct=allContas[i];
+    var cd=getContaData(ct);
+    var inv=budInvestimentoConta(ct.conta);
+    if(inv>0&&cd.mat>0){
+      var roiVal=inv/cd.mat; // R$ por caixa MAT
+      var ritmo=calcRitmoConta(cd.ytd,cd.mat);
+      roiContas.push({conta:ct.conta,inv:inv,mat:cd.mat,ytd:cd.ytd,roi:roiVal,ritmo:ritmo,score:cd.scoreTotal});
+    }
+  }
+  if(roiContas.length){
+    roiContas.sort(function(a,b){return a.roi-b.roi;}); // menor custo por caixa = melhor
+    var maxRoi=roiContas.reduce(function(m,c){return Math.max(m,c.roi);},0);
+    var rowsRoi='';
+    roiContas.forEach(function(c){
+      var pct=maxRoi?Math.round(c.roi/maxRoi*100):0;
+      var cor=c.roi<5?'#065f46':c.roi<20?'#92400e':'#b91c1c';
+      var ritmoSig=c.ritmo>=80?'<span class="signal sig-ok">'+c.ritmo+'%</span>':
+                   c.ritmo>=50?'<span class="signal sig-warn">'+c.ritmo+'%</span>':
+                   c.ritmo>0?'<span class="signal sig-down">'+c.ritmo+'%</span>':'<span class="signal sig-neu">—</span>';
+      rowsRoi+='<div class="dec-row">'+
+        '<div class="dec-name">'+esc(c.conta)+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:1px;width:60px;flex-shrink:0;">'+
+          '<div style="height:5px;border-radius:3px;background:#f2f2f7;overflow:hidden;"><div style="width:'+pct+'%;height:100%;border-radius:3px;background:'+cor+';"></div></div>'+
+        '</div>'+
+        '<div style="font-size:11px;font-weight:700;flex-shrink:0;min-width:52px;text-align:right;color:'+cor+';">R$'+c.roi.toFixed(1)+'/cx</div>'+
+        ritmoSig+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>💸 ROI por Conta — custo por caixa MAT</h3>'+
+      '<div class="sub">R$ investido ÷ caixas MAT da conta. Menor = melhor retorno. Ritmo = YTD atual vs esperado.</div>'+
+      rowsRoi+'</div>';
+  }
+
+  // ── BLOCO 3: Custo por engajamento (R$/toque em médicos) ──
+  var engDocs=[];
+  for(var i=0;i<docs.length;i++){
+    var d=docs[i];
+    var inv=(budget.items||[]).filter(function(it){return it.docName===d.name;}).reduce(function(s,it){return s+(it.val||0);},0);
+    var nMat=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])nMat++;}
+    var nEmail=0;for(var mi=0;mi<mats.length;mi++){if(sentEmail[sk(d.name,mi)+'__e'])nEmail++;}
+    var congInt=budCongressoIntensidadeMedico(d.name);
+    var toques=nMat+nEmail+(congInt>0?2:0); // congresso vale 2 toques
+    if(inv>0&&toques>0){
+      engDocs.push({name:d.name,pot:d.pot,inv:inv,toques:toques,custo:inv/toques,sc:calcScore(d)});
+    }
+  }
+  if(engDocs.length){
+    engDocs.sort(function(a,b){return a.custo-b.custo;}); // mais barato = mais eficiente
+    var rowsEng='';
+    engDocs.slice(0,8).forEach(function(d){
+      var cor=d.custo<50?'#065f46':d.custo<200?'#92400e':'#b91c1c';
+      rowsEng+='<div class="dec-row">'+
+        '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
+        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        '<span style="font-size:10px;color:#888;flex-shrink:0;">'+d.toques+' toques</span>'+
+        '<div style="font-size:11px;font-weight:700;flex-shrink:0;min-width:56px;text-align:right;color:'+cor+';">R$'+d.custo.toFixed(0)+'/toque</div>'+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>🎯 Eficiência de Engajamento</h3>'+
+      '<div class="sub">R$ investido ÷ número de toques (WA + e-mail + congresso). Menor custo por toque = mais eficiente.</div>'+
+      rowsEng+'</div>';
+  }
+
+  // ── BLOCO 4: Potencial inexplorado por conta ──
+  var potencial=[];
+  for(var i=0;i<allContas.length;i++){
+    var ct2=allContas[i];
+    var cd2=getContaData(ct2);
+    var inv2=budInvestimentoConta(ct2.conta);
+    var ritmo2=calcRitmoConta(cd2.ytd,cd2.mat);
+    // Alto MAT, ritmo baixo e pouco ou nenhum investimento = oportunidade
+    if(cd2.mat>=30&&ritmo2<60&&inv2<500){
+      var gap=Math.max(0,Math.round(cd2.mat*0.8)-cd2.ytd); // estimativa do potencial não capturado
+      potencial.push({conta:ct2.conta,mat:cd2.mat,ytd:cd2.ytd,inv:inv2,ritmo:ritmo2,gap:gap,score:cd2.scoreTotal});
+    }
+  }
+  if(potencial.length){
+    potencial.sort(function(a,b){return b.mat-a.mat;});
+    var rowsPot='';
+    potencial.slice(0,6).forEach(function(c){
+      rowsPot+='<div class="dec-row">'+
+        '<div class="dec-name">'+esc(c.conta)+'</div>'+
+        '<span class="signal sig-warn">Ritmo '+c.ritmo+'%</span>'+
+        '<div style="font-size:11px;color:#888;flex-shrink:0;">MAT '+c.mat+' · YTD '+c.ytd+'</div>'+
+        (c.inv>0?'<div style="font-size:11px;font-weight:700;color:#6d28d9;flex-shrink:0;">'+fmtBRL(c.inv)+'</div>':'<div style="font-size:10px;color:#ccc;flex-shrink:0;">sem inv.</div>')+
+      '</div>';
+    });
+    html+='<div class="dec-card">'+
+      '<h3>🔍 Potencial Inexplorado</h3>'+
+      '<div class="sub">Contas com MAT alto (≥30 cx), ritmo &lt;60% e pouco investimento. São as maiores oportunidades de crescimento.</div>'+
+      rowsPot+'</div>';
+  }
+
+  if(!html)html='<div class="dec-card"><div class="sub" style="text-align:center;padding:20px;">Registre médicos, lançamentos de budget e envios de material para ver o radar.</div></div>';
+  document.getElementById('radarDiv').innerHTML=html;
 }
 
 // ══════════ PAINÉIS DE DECISÃO ══════════
