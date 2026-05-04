@@ -7,10 +7,10 @@
 <title>Gestão de Território</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:16px;}
-.tabs{display:flex;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:100;}
-.tab-btn{flex:1;padding:11px 2px 9px;font-size:11px;font-weight:700;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;}
-.tab-btn.on{color:#6d28d9;border-bottom-color:#6d28d9;}
+body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:16px;padding-bottom:64px;}
+.tabs{display:flex;background:#fff;border-top:1px solid #ddd;position:fixed;bottom:0;left:0;right:0;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);padding-bottom:env(safe-area-inset-bottom);}
+.tab-btn{flex:1;padding:9px 2px 11px;font-size:11px;font-weight:700;color:#888;border:none;background:none;cursor:pointer;border-top:2px solid transparent;}
+.tab-btn.on{color:#6d28d9;border-top-color:#6d28d9;}
 .page{display:none;}.page.on{display:block;}
 .sync-bar{display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:11px;color:#888;background:#f9f9f9;border-bottom:1px solid #eee;}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;}
@@ -1799,7 +1799,9 @@ function processCsvAudit(){
 }
 
 function applyCsvAudit(){
-  var updated=0;
+  try{
+    if(!csvParsedData||!csvParsedData.length){alert('⚠️ Nenhum dado para aplicar. Cole o CSV e clique em "Processar" primeiro.');return;}
+    var updated=0;
 
   // 1. Atualiza contas já conhecidas
   for(var i=0;i<csvParsedData.length;i++){
@@ -1850,10 +1852,14 @@ function applyCsvAudit(){
     }
   }
 
-  persist();
-  closeCsvAuditModal();
-  renderContas();
-  alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!');
+    persist();
+    closeCsvAuditModal();
+    renderContas();
+    alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!');
+  }catch(e){
+    alert('❌ Erro ao aplicar:\n'+(e&&e.message?e.message:e)+'\n\n'+(e&&e.stack?e.stack.substring(0,300):''));
+    console.error('applyCsvAudit error:',e);
+  }
 }
 
 // ══════════ CIDADES ══════════
@@ -2128,7 +2134,7 @@ function renderRadar(){
     var congInt=budCongressoIntensidadeMedico(d.name);
     var toques=nMat+nEmail+(congInt>0?2:0); // congresso vale 2 toques
     if(inv>0&&toques>0){
-      engDocs.push({name:d.name,pot:d.pot,inv:inv,toques:toques,custo:inv/toques,sc:calcScore(d)});
+      engDocs.push({name:d.name,pot:d.pot,inv:inv,toques:toques,custo:inv/toques,sc:calcScore(d),docIdx:i});
     }
   }
   if(engDocs.length){
@@ -2138,7 +2144,7 @@ function renderRadar(){
       var cor=d.custo<50?'#065f46':d.custo<200?'#92400e':'#b91c1c';
       rowsEng+='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
-        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         '<span style="font-size:10px;color:#888;flex-shrink:0;">'+d.toques+' toques</span>'+
         '<div style="font-size:11px;font-weight:700;flex-shrink:0;min-width:56px;text-align:right;color:'+cor+';">R$'+d.custo.toFixed(0)+'/toque</div>'+
       '</div>';
@@ -2202,7 +2208,7 @@ function renderDecisaoHTML(){
     var altaPrio=(d.pot==='A'||sc>=5);
     totalInv+=inv;
     if(altaPrio)invEmAltaPrio+=inv;
-    lista.push({name:d.name,pot:d.pot,sc:sc,inv:inv,envios:envios,congInt:congInt,altaPrio:altaPrio});
+    lista.push({name:d.name,pot:d.pot,sc:sc,inv:inv,envios:envios,congInt:congInt,altaPrio:altaPrio,docIdx:i});
   }
 
   // Três grupos:
@@ -2245,7 +2251,7 @@ function renderDecisaoHTML(){
       if(d.envios>0)tags+='<span class="signal sig-ok">📨 '+d.envios+'</span>';
       r1+='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
-        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         tags+
       '</div>';
     });
@@ -2261,7 +2267,7 @@ function renderDecisaoHTML(){
     esquecidos.slice(0,6).forEach(function(d){
       r2+='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
-        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         '<span class="signal sig-warn">Score '+d.sc+' — sem ação</span>'+
       '</div>';
     });
@@ -2280,7 +2286,7 @@ function renderDecisaoHTML(){
       if(d.congInt>0)tags+='<span class="signal sig-down">🏆 Cong.'+d.congInt+'</span>';
       r3+='<div class="dec-row">'+
         '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
-        '<div class="dec-name">'+esc(tc(d.name))+'</div>'+
+        '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
         tags+
       '</div>';
     });
