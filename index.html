@@ -728,17 +728,28 @@ function initListener(){
       docAgenda=data.docAgenda||{};
       if(data.budget)budget=data.budget;
       // Mescla cExtra do Firebase com o localStorage para nunca perder auditData
-      // (localStorage é atualizado sincronamente por persist() antes do Firebase confirmar)
       var fbCExtra=fbDecodeCExtra(data.cExtra||{});
       var lsCExtra={};
       try{var v=localStorage.getItem('s5c');if(v)lsCExtra=JSON.parse(v);}catch(e){}
-      // Começa com Firebase (fonte de verdade), depois adiciona/completa com localStorage
       cExtra=fbCExtra;
+      // Para cada conta no localStorage: se Firebase está sem algum campo de auditoria, recupera do localStorage
       for(var ck in lsCExtra){
-        if(!cExtra[ck])cExtra[ck]={};
-        // Se Firebase não tem auditData mas localStorage tem, usa localStorage
-        if(lsCExtra[ck].auditData&&(!cExtra[ck].auditData||!cExtra[ck].auditData.sarclisa&&!cExtra[ck].auditData.dalinvi)){
-          cExtra[ck].auditData=lsCExtra[ck].auditData;
+        if(!cExtra[ck])cExtra[ck]=lsCExtra[ck];
+        else{
+          var lsAd=lsCExtra[ck].auditData;
+          if(lsAd){
+            if(!cExtra[ck].auditData)cExtra[ck].auditData={};
+            var ad=cExtra[ck].auditData;
+            if(lsAd.sarclisa&&!ad.sarclisa)ad.sarclisa=lsAd.sarclisa;
+            if(lsAd.dalinvi&&!ad.dalinvi)ad.dalinvi=lsAd.dalinvi;
+            if(lsAd.darzalex&&!ad.darzalex)ad.darzalex=lsAd.darzalex;
+            if(lsAd.mat!=null&&ad.mat==null)ad.mat=lsAd.mat;
+            if(lsAd.ytd!=null&&ad.ytd==null)ad.ytd=lsAd.ytd;
+            if(lsAd.scoreTam!=null&&ad.scoreTam==null)ad.scoreTam=lsAd.scoreTam;
+            if(lsAd.scoreMom!=null&&ad.scoreMom==null)ad.scoreMom=lsAd.scoreMom;
+            if(lsAd.scorePot!=null&&ad.scorePot==null)ad.scorePot=lsAd.scorePot;
+            if(lsAd.scoreEsp!=null&&ad.scoreEsp==null)ad.scoreEsp=lsAd.scoreEsp;
+          }
         }
       }
     }
@@ -797,10 +808,17 @@ function fbDecodeCExtra(ce){var out={};for(var k in ce){out[fbDecodeKey(k)]=ce[k
 function persist(){
   _skipNextRender=true;
   setSync('syncing','Salvando...');
+  // Cada setItem em try independente — quota exceeded em UM não impede os outros
+  try{localStorage.setItem('s5m',JSON.stringify(mats));}catch(e){console.warn('LS s5m:',e);}
+  try{localStorage.setItem('s5d',JSON.stringify(docs));}catch(e){console.warn('LS s5d:',e);}
+  try{localStorage.setItem('s5s',JSON.stringify(sent));}catch(e){console.warn('LS s5s:',e);}
+  try{localStorage.setItem('s5se',JSON.stringify(sentEmail));}catch(e){console.warn('LS s5se:',e);}
+  try{localStorage.setItem('s5ag',JSON.stringify(docAgenda));}catch(e){console.warn('LS s5ag:',e);}
+  try{localStorage.setItem('s5c',JSON.stringify(cExtra));}catch(e){console.warn('LS s5c:',e);alert('⚠️ Não foi possível salvar localmente (quota excedida). Limpe o cache.');}
+  try{localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){console.warn('LS s5b:',e);}
   dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:fbEncodeCExtra(cExtra),budget:budget,docAgenda:docAgenda})
     .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
-    .catch(function(e){_skipNextRender=false;setSync('err','Erro ao salvar');console.error('persist error:',e);});
-  try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
+    .catch(function(e){_skipNextRender=false;setSync('err','Erro ao salvar');console.error('persist FB error:',e);alert('⚠️ Erro ao sincronizar com servidor:\n\n'+(e&&e.message?e.message:e)+'\n\nDados salvos localmente apenas neste dispositivo.');});
 }
 
 // ══════════ SCORES ══════════
@@ -1305,11 +1323,12 @@ function prodBarHtml(label,color,data){
   '</div>';
 }
 function buildProdHtml(ad){
-  if(!ad||(!ad.sarclisa&&!ad.dalinvi))return '';
+  if(!ad||(!ad.sarclisa&&!ad.dalinvi&&!ad.darzalex))return '';
   return '<div style="background:#f8f8ff;border:1px solid #e0e7ff;border-radius:10px;padding:10px 12px;margin:6px 0;">'+
     '<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;">📦 Auditoria de Mercado (caixas)</div>'+
     prodBarHtml('Sarclisa','#7c3aed',ad.sarclisa)+
     prodBarHtml('Dalinvi IV','#0891b2',ad.dalinvi)+
+    prodBarHtml('Darzalex','#dc2626',ad.darzalex)+
   '</div>';
 }
 function renderContas(){
@@ -1370,11 +1389,12 @@ function renderContas(){
 
     // Badge de mercado para o header colapsado (MAT ATU de cada produto)
     var mktBadge='';
-    if(ad.sarclisa||ad.dalinvi){
-      mktBadge=' · 📦';
-      if(ad.sarclisa)mktBadge+=' <span style="color:#7c3aed;font-weight:700;">S:'+Math.round(ad.sarclisa.matAtu||0)+'</span>';
-      if(ad.sarclisa&&ad.dalinvi)mktBadge+='<span style="color:#bbb;"> + </span>';
-      if(ad.dalinvi)mktBadge+='<span style="color:#0891b2;font-weight:700;">D:'+Math.round(ad.dalinvi.matAtu||0)+'</span>';
+    if(ad.sarclisa||ad.dalinvi||ad.darzalex){
+      var parts=[];
+      if(ad.sarclisa)parts.push('<span style="color:#7c3aed;font-weight:700;">Sar '+Math.round(ad.sarclisa.matAtu||0)+'</span>');
+      if(ad.dalinvi)parts.push('<span style="color:#0891b2;font-weight:700;">Dal '+Math.round(ad.dalinvi.matAtu||0)+'</span>');
+      if(ad.darzalex)parts.push('<span style="color:#dc2626;font-weight:700;">Dar '+Math.round(ad.darzalex.matAtu||0)+'</span>');
+      mktBadge=' · 📦 '+parts.join('<span style="color:#bbb;"> | </span>');
     }
 
     // Marcadores globais
@@ -1773,7 +1793,10 @@ function processCsvAudit(){
     for(var k in agg){
       var a=agg[k];
       if(!byRazao[a.razao])byRazao[a.razao]={razao:a.razao,products:{}};
-      var prodKey=a.marca.indexOf('sarclisa')>=0?'sarclisa':a.marca.indexOf('dalinvi')>=0||a.marca.indexOf('isatuximab')>=0?'dalinvi':a.marca;
+      var prodKey=a.marca.indexOf('sarclisa')>=0?'sarclisa':
+                  a.marca.indexOf('dalinvi')>=0||a.marca.indexOf('isatuximab')>=0?'dalinvi':
+                  a.marca.indexOf('darzalex')>=0||a.marca.indexOf('dara')>=0||a.marca.indexOf('daratu')>=0?'darzalex':
+                  a.marca;
       byRazao[a.razao].products[prodKey]={matAnt:Math.round(a.matAnt),matAtu:Math.round(a.matAtu),ytdAnt:Math.round(a.ytdAnt),ytdAtu:Math.round(a.ytdAtu)};
     }
 
@@ -1872,6 +1895,7 @@ function applyCsvAudit(){
     if(row.products){
       if(row.products.sarclisa)ad.sarclisa=row.products.sarclisa;
       if(row.products.dalinvi)ad.dalinvi=row.products.dalinvi;
+      if(row.products.darzalex)ad.darzalex=row.products.darzalex;
     }
     updated++;
   }
