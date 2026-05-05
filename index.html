@@ -1142,8 +1142,8 @@ function toggleMats(i){
   ml.style.display=open?'block':'none';
   if(mc)mc.style.transform=open?'rotate(180deg)':'';
 }
-function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();}
-function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();
+function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();renderDocs();}
+function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();renderDocs();
 }
 function toggleEmailSent(di,mi){
   var nm=docs[parseInt(di)].name;
@@ -1151,6 +1151,7 @@ function toggleEmailSent(di,mi){
   if(sentEmail[k])delete sentEmail[k];
   else sentEmail[k]=new Date().toISOString();
   persist();
+  renderDocs();
 }
 function editEmailDate(di, mi) {
   var nm = docs[parseInt(di)].name;
