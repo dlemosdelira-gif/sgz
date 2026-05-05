@@ -727,30 +727,12 @@ function initListener(){
       sentEmail=data.sentEmail||{};
       docAgenda=data.docAgenda||{};
       if(data.budget)budget=data.budget;
-      // Mescla cExtra do Firebase com o localStorage para nunca perder auditData
-      var fbCExtra=fbDecodeCExtra(data.cExtra||{});
-      var lsCExtra={};
-      try{var v=localStorage.getItem('s5c');if(v)lsCExtra=JSON.parse(v);}catch(e){}
-      cExtra=fbCExtra;
-      // Para cada conta no localStorage: se Firebase está sem algum campo de auditoria, recupera do localStorage
-      for(var ck in lsCExtra){
-        if(!cExtra[ck])cExtra[ck]=lsCExtra[ck];
-        else{
-          var lsAd=lsCExtra[ck].auditData;
-          if(lsAd){
-            if(!cExtra[ck].auditData)cExtra[ck].auditData={};
-            var ad=cExtra[ck].auditData;
-            if(lsAd.sarclisa&&!ad.sarclisa)ad.sarclisa=lsAd.sarclisa;
-            if(lsAd.dalinvi&&!ad.dalinvi)ad.dalinvi=lsAd.dalinvi;
-            if(lsAd.darzalex&&!ad.darzalex)ad.darzalex=lsAd.darzalex;
-            if(lsAd.mat!=null&&ad.mat==null)ad.mat=lsAd.mat;
-            if(lsAd.ytd!=null&&ad.ytd==null)ad.ytd=lsAd.ytd;
-            if(lsAd.scoreTam!=null&&ad.scoreTam==null)ad.scoreTam=lsAd.scoreTam;
-            if(lsAd.scoreMom!=null&&ad.scoreMom==null)ad.scoreMom=lsAd.scoreMom;
-            if(lsAd.scorePot!=null&&ad.scorePot==null)ad.scorePot=lsAd.scorePot;
-            if(lsAd.scoreEsp!=null&&ad.scoreEsp==null)ad.scoreEsp=lsAd.scoreEsp;
-          }
-        }
+      cExtra=fbDecodeCExtra(data.cExtra||{});
+      // Mescla auditStore (nó isolado) no cExtra — auditStore nunca é sobrescrito por persist() normal
+      var auditStore=fbDecodeCExtra(data.auditStore||{});
+      for(var ck in auditStore){
+        if(!cExtra[ck])cExtra[ck]={};
+        cExtra[ck].auditData=auditStore[ck];
       }
     }
     // SE data===null: banco vazio ou auth ainda pendente.
@@ -1930,6 +1912,16 @@ function applyCsvAudit(){
   }
 
     persist();
+    // Grava auditData em nó dedicado — isolado do cExtra para nunca ser sobrescrito por outros persist()
+    var auditPayload={};
+    for(var ak in cExtra){
+      if(cExtra[ak]&&cExtra[ak].auditData){
+        auditPayload[fbEncodeKey(ak)]=cExtra[ak].auditData;
+      }
+    }
+    dbRef.child('auditStore').set(auditPayload)
+      .then(function(){console.log('auditStore salvo com sucesso');})
+      .catch(function(e){console.error('auditStore save error:',e);alert('⚠️ Erro ao salvar auditStore:\n'+(e&&e.message?e.message:e));});
     closeCsvAuditModal();
     renderContas();
     alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!');
