@@ -721,14 +721,26 @@ function initListener(){
     if(_skipNextRender){_skipNextRender=false;return;}
     var data=snap.val();
     if(data){
-      // Carrega APENAS o que veio do banco — nunca sobrescreve com defaults
       mats=data.mats||MATS_DEF;
       docs=data.docs||DOCS_DEF;
       sent=data.sent||{};
       sentEmail=data.sentEmail||{};
-      cExtra=fbDecodeCExtra(data.cExtra||{});
       docAgenda=data.docAgenda||{};
       if(data.budget)budget=data.budget;
+      // Mescla cExtra do Firebase com o localStorage para nunca perder auditData
+      // (localStorage é atualizado sincronamente por persist() antes do Firebase confirmar)
+      var fbCExtra=fbDecodeCExtra(data.cExtra||{});
+      var lsCExtra={};
+      try{var v=localStorage.getItem('s5c');if(v)lsCExtra=JSON.parse(v);}catch(e){}
+      // Começa com Firebase (fonte de verdade), depois adiciona/completa com localStorage
+      cExtra=fbCExtra;
+      for(var ck in lsCExtra){
+        if(!cExtra[ck])cExtra[ck]={};
+        // Se Firebase não tem auditData mas localStorage tem, usa localStorage
+        if(lsCExtra[ck].auditData&&(!cExtra[ck].auditData||!cExtra[ck].auditData.sarclisa&&!cExtra[ck].auditData.dalinvi)){
+          cExtra[ck].auditData=lsCExtra[ck].auditData;
+        }
+      }
     }
     // SE data===null: banco vazio ou auth ainda pendente.
     // NÃO gravamos nada — apenas usamos localStorage como fallback.
@@ -783,9 +795,11 @@ function fbEncodeCExtra(ce){var out={};for(var k in ce){out[fbEncodeKey(k)]=ce[k
 function fbDecodeCExtra(ce){var out={};for(var k in ce){out[fbDecodeKey(k)]=ce[k];}return out;}
 
 function persist(){
+  _skipNextRender=true;
   setSync('syncing','Salvando...');
-  // Firebase não aceita chaves com . # $ / [ ] — codificamos antes de salvar
-  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:fbEncodeCExtra(cExtra),budget:budget,docAgenda:docAgenda}).catch(function(e){setSync('err','Erro ao salvar');console.error('persist error:',e);});
+  dbRef.update({mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:fbEncodeCExtra(cExtra),budget:budget,docAgenda:docAgenda})
+    .then(function(){setSync('ok','Sincronizado · '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));})
+    .catch(function(e){_skipNextRender=false;setSync('err','Erro ao salvar');console.error('persist error:',e);});
   try{localStorage.setItem('s5m',JSON.stringify(mats));localStorage.setItem('s5d',JSON.stringify(docs));localStorage.setItem('s5s',JSON.stringify(sent));localStorage.setItem('s5se',JSON.stringify(sentEmail));localStorage.setItem('s5ag',JSON.stringify(docAgenda));localStorage.setItem('s5c',JSON.stringify(cExtra));localStorage.setItem('s5b',JSON.stringify(budget));}catch(e){}
 }
 
