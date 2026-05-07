@@ -74,7 +74,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .ebtn.done{background:#22c55e;border-color:#22c55e;color:#fff;}
 .mrow{display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid #f9f9f9;flex-wrap:wrap;}
 .nophone{font-size:12px;color:#dc2626;background:#fee2e2;padding:6px 10px;border-radius:8px;flex-shrink:0;}
-.fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
+.fab{position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
 .pwrap{padding:12px 12px 90px;}
 .phd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;}
 .phd h2{font-size:17px;font-weight:700;}
@@ -253,7 +253,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .bud-item-sub{font-size:12px;color:#888;margin-top:2px;}
 .bud-item-val{font-size:16px;font-weight:700;color:#dc2626;flex-shrink:0;}
 .bud-item-acts{display:flex;gap:5px;flex-shrink:0;}
-.bud-fab{position:fixed;bottom:22px;right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
+.bud-fab{position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));right:16px;width:52px;height:52px;border-radius:50%;background:#6d28d9;color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(109,40,217,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
 .bud-empty{text-align:center;padding:30px 20px;color:#888;font-size:14px;}
 .cat-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;flex-shrink:0;}
 
@@ -651,6 +651,32 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <div class="mhd"><h2>Confirmar</h2><button onclick="closeDelOv()">×</button></div>
     <p id="delMsg" style="font-size:14px;color:#333;margin-bottom:20px;line-height:1.5;"></p>
     <div class="brow"><button class="bcanc" onclick="closeDelOv()">Cancelar</button><button class="bdel" onclick="confirmDel()">Excluir</button></div>
+  </div>
+</div>
+
+<div class="ov" id="newContaOv">
+  <div class="modal">
+    <div class="mhd"><h2>🏥 Nova Conta</h2><button onclick="closeNewContaModal()">×</button></div>
+    <div class="field"><label>Nome da conta *</label><input id="nc_nome" type="text" placeholder="Ex: UNIMED Campinas" autocomplete="off"></div>
+    <div class="field"><label>Cidade</label><input id="nc_cidade" type="text" placeholder="Ex: Campinas" autocomplete="off"></div>
+    <div class="field"><label>Prioridade</label>
+      <select id="nc_prio">
+        <option value="Monitoramento">⚪ Monitoramento</option>
+        <option value="Prioridade Média">🟡 Média</option>
+        <option value="Prioridade Alta">🟠 Alta</option>
+        <option value="Prioridade Máxima">🔴 Máxima</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field"><label>Tamanho (1-5)</label><input id="nc_tam" type="number" min="1" max="5" value="2"></div>
+      <div class="field"><label>Momento (1-5)</label><input id="nc_mom" type="number" min="1" max="5" value="2"></div>
+      <div class="field"><label>Pot.Estratégico (1-5)</label><input id="nc_pot" type="number" min="1" max="5" value="2"></div>
+      <div class="field"><label>Espaço (1-5)</label><input id="nc_esp" type="number" min="1" max="5" value="2"></div>
+    </div>
+    <div class="brow">
+      <button class="bcanc" onclick="closeNewContaModal()">Cancelar</button>
+      <button class="bsave" onclick="saveNewConta()">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -1675,7 +1701,12 @@ function saveAuditModal(){
     mat:document.getElementById('at_mat').value,
     ytd:document.getElementById('at_ytd').value
   };
-  persist();closeAuditModal();
+  persist();
+  // Atualiza auditStore no Firebase para persistência isolada
+  var auditPayload={};
+  for(var ak in cExtra){if(cExtra[ak]&&cExtra[ak].auditData)auditPayload[fbEncodeKey(ak)]=cExtra[ak].auditData;}
+  dbRef.child('auditStore').set(auditPayload).catch(function(e){console.error('auditStore:',e);});
+  closeAuditModal();
 }
 
 // ══════════ MODAL CSV AUDITORIA ══════════
@@ -1691,6 +1722,39 @@ function openCsvAuditModal(){
   document.getElementById('csvAuditOv').classList.add('on');
 }
 function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.remove('on');}
+
+function openNewContaModal(){
+  document.getElementById('nc_nome').value='';
+  document.getElementById('nc_cidade').value='';
+  document.getElementById('nc_prio').value='Monitoramento';
+  document.getElementById('nc_tam').value=2;
+  document.getElementById('nc_mom').value=2;
+  document.getElementById('nc_pot').value=2;
+  document.getElementById('nc_esp').value=2;
+  document.getElementById('newContaOv').classList.add('on');
+}
+function closeNewContaModal(){document.getElementById('newContaOv').classList.remove('on');}
+function saveNewConta(){
+  var nome=document.getElementById('nc_nome').value.trim();
+  if(!nome){alert('Informe o nome da conta.');return;}
+  for(var i=0;i<CONTAS_DEF.length;i++){if(CONTAS_DEF[i].conta===nome){alert('Conta "'+nome+'" já existe.');return;}}
+  var tam=parseInt(document.getElementById('nc_tam').value)||2;
+  var mom=parseInt(document.getElementById('nc_mom').value)||2;
+  var pot=parseInt(document.getElementById('nc_pot').value)||2;
+  var esp=parseInt(document.getElementById('nc_esp').value)||2;
+  var prio=document.getElementById('nc_prio').value;
+  var cidade=document.getElementById('nc_cidade').value.trim();
+  CONTAS_DEF.push({conta:nome,cidade:cidade,scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,scoreTotal:tam+mom+pot+esp,mat:0,ytd:0,prioridade:prio});
+  if(!cExtra[nome])cExtra[nome]={};
+  cExtra[nome].auditData={scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,mat:0,ytd:0};
+  persist();
+  var auditPayload={};
+  for(var ak in cExtra){if(cExtra[ak]&&cExtra[ak].auditData)auditPayload[fbEncodeKey(ak)]=cExtra[ak].auditData;}
+  dbRef.child('auditStore').set(auditPayload).catch(function(e){console.error('auditStore:',e);});
+  closeNewContaModal();
+  renderContas();
+  alert('✅ Conta "'+nome+'" criada!');
+}
 
 function loadCsvFile(evt){
   var file=evt.target.files&&evt.target.files[0];if(!file)return;
