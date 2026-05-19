@@ -1175,11 +1175,28 @@ function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));
 function toggleEmailSent(di,mi){
   var nm=docs[parseInt(di)].name;
   var k=sk(nm,parseInt(mi))+'__e';
-  if(sentEmail[k])delete sentEmail[k];
-  else sentEmail[k]=new Date().toISOString();
-  persist();
-  renderDocs();
-  _reopenMatList(di);
+  if(sentEmail[k]){
+    // Já marcado: desmarcar
+    delete sentEmail[k];
+    persist();
+    renderDocs();
+    _reopenMatList(di);
+  } else {
+    // Novo envio: pede a data imediatamente
+    var today=new Date().toISOString().split('T')[0];
+    var newDate=prompt('Data de envio do e-mail (AAAA-MM-DD):',today);
+    if(newDate){
+      var parsed=new Date(newDate+'T12:00:00Z');
+      if(!isNaN(parsed)){sentEmail[k]=parsed.toISOString();}
+      else{alert('Data inválida. Use o formato AAAA-MM-DD.');return;}
+    } else {
+      // Usuário cancelou — não marca
+      return;
+    }
+    persist();
+    renderDocs();
+    _reopenMatList(di);
+  }
 }
 function editEmailDate(di, mi) {
   var nm = docs[parseInt(di)].name;
