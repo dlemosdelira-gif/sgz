@@ -1149,10 +1149,10 @@ function renderDocs(){
             '<span><b>WA:</b> '+sc2+'/'+mats.length+'</span>'+
             '<span><b>Email:</b> '+sc2e+'/'+mats.length+'</span>'+
           '</div>'+
-          buildF2fHtml(d.name, di)+
+          buildTimelineHtml(d.name)+
           si+
           buildAgendaHtml(d.name, di)+
-          buildTimelineHtml(d.name)+
+          buildF2fHtml(d.name, di)+
           '<div class="mat-section" id="mats'+di+'">'+
             '<div class="mat-toggle-row" onclick="toggleMats('+di+')">'+
               '<span class="'+matBtnCls+'">'+matBtnLabel+'</span>'+
