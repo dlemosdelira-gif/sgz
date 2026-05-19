@@ -1194,11 +1194,12 @@ function editEmailDate(di, mi) {
   var newDate = prompt("Editar data de envio do e-mail (Formato: AAAA-MM-DD):", formattedDate);
   
   if (newDate) {
-    // Adiciona T12:00:00Z para evitar problemas de fuso horário deslocando o dia
-    var parsed = new Date(newDate + 'T12:00:00Z'); 
+    var parsed = new Date(newDate + 'T12:00:00Z');
     if (!isNaN(parsed)) {
       sentEmail[k] = parsed.toISOString();
       persist();
+      renderDocs();
+      _reopenMatList(di);
     } else {
       alert("Data inválida. Use o formato AAAA-MM-DD.");
     }
