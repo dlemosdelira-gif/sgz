@@ -1143,6 +1143,7 @@ function renderDocs(){
           '</div>'+
           si+
           buildAgendaHtml(d.name, di)+
+          buildTimelineHtml(d.name)+
           '<div class="mat-section" id="mats'+di+'">'+
             '<div class="mat-toggle-row" onclick="toggleMats('+di+')">'+
               '<span class="'+matBtnCls+'">'+matBtnLabel+'</span>'+
@@ -2291,6 +2292,37 @@ function renderRadar(){
       rowsPot+'</div>';
   }
 
+  // ── BLOCO SEMÁFORO: Interações por médico ──
+  var semList=docs.map(function(d,i){
+    var last=lastContactDate(d.name);
+    var sem=semaforo(last);
+    return{name:d.name,pot:d.pot,last:last,sem:sem,docIdx:i,sc:calcScore(d)};
+  });
+  semList.sort(function(a,b){return b.sem.days-a.sem.days;}); // mais tempo sem contato primeiro
+  var rowsSem='',rowsSemMore='';
+  semList.forEach(function(d,idx){
+    var row='<div class="dec-row">'+
+      '<div style="width:9px;height:9px;border-radius:50%;background:'+d.sem.dot+';flex-shrink:0;"></div>'+
+      '<span class="badge b'+d.pot+'" style="flex-shrink:0;">'+d.pot+'</span>'+
+      '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
+      '<span style="font-size:11px;color:#888;flex-shrink:0;margin-left:auto;">'+d.sem.label+'</span>'+
+    '</div>';
+    if(idx<10)rowsSem+=row;else rowsSemMore+=row;
+  });
+  if(rowsSemMore)rowsSem+='<details class="dec-more"><summary>Ver todos ('+semList.length+')</summary>'+rowsSemMore+'</details>';
+  var nVerde=semList.filter(function(d){return d.sem.days<30;}).length;
+  var nAmarelo=semList.filter(function(d){return d.sem.days>=30&&d.sem.days<60;}).length;
+  var nVermelho=semList.filter(function(d){return d.sem.days>=60;}).length;
+  html+='<div class="dec-card">'+
+    '<h3>🚦 Semáforo de Interações</h3>'+
+    '<div class="sub">Última interação por médico (WA ou E-mail). Ordenado do mais tempo sem contato.</div>'+
+    '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
+      '<span style="font-size:11px;font-weight:700;color:#22c55e;">🟢 '+nVerde+' recentes</span>'+
+      '<span style="font-size:11px;font-weight:700;color:#f59e0b;">🟡 '+nAmarelo+' atenção</span>'+
+      '<span style="font-size:11px;font-weight:700;color:#ef4444;">🔴 '+nVermelho+' urgente</span>'+
+    '</div>'+
+    rowsSem+'</div>';
+
   if(!html)html='<div class="dec-card"><div class="sub" style="text-align:center;padding:20px;">Registre médicos, lançamentos de budget e envios de material para ver o radar.</div></div>';
   document.getElementById('radarDiv').innerHTML=html;
 }
@@ -2434,6 +2466,47 @@ function getDayCls(v){
   if(v==='DT')return'dia-todo';
   if(v==='Ag')return'ag';
   return'off';
+}
+
+function lastContactDate(docName){
+  var best=null;
+  for(var i=0;i<mats.length;i++){
+    var ws=sent[sk(docName,i)];
+    var we=sentEmail[sk(docName,i)+'__e'];
+    if(ws&&(!best||ws>best))best=ws;
+    if(we&&(!best||we>best))best=we;
+  }
+  return best; // ISO string or null
+}
+function semaforo(iso){
+  if(!iso)return{dot:'#ccc',label:'Nunca',days:9999};
+  var days=Math.floor((Date.now()-new Date(iso).getTime())/86400000);
+  var dot=days<30?'#22c55e':days<60?'#f59e0b':'#ef4444';
+  var label=days===0?'Hoje':days===1?'Ontem':days+'d atrás';
+  return{dot:dot,label:label,days:days};
+}
+function buildTimelineHtml(docName){
+  var events=[];
+  for(var i=0;i<mats.length;i++){
+    var ws=sent[sk(docName,i)];
+    var we=sentEmail[sk(docName,i)+'__e'];
+    if(ws)events.push({date:ws,label:'📱 WA: '+esc(mats[i].name)});
+    if(we)events.push({date:we,label:'📧 Email: '+esc(mats[i].name)});
+  }
+  if(!events.length)return '';
+  events.sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:0;});
+  var rows='';
+  for(var j=0;j<events.length;j++){
+    var d=new Date(events[j].date);
+    var ds=d.getDate()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+    rows+='<div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #f2f2f7;font-size:12px;">'+
+      '<span style="color:#888;flex-shrink:0;min-width:72px;">'+ds+'</span>'+
+      '<span>'+events[j].label+'</span>'+
+    '</div>';
+  }
+  return '<div style="margin:6px 13px 0;background:#fafafa;border-radius:10px;padding:10px 12px;">'+
+    '<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:6px;">🕐 Histórico de interações</div>'+
+    rows+'</div>';
 }
 
 function buildAgendaHtml(docName,docIdx){
