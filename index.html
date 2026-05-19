@@ -354,6 +354,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <button class="ctrl-btn primary" onclick="exportJSON()">💾 Backup</button>
     <button class="ctrl-btn" onclick="document.getElementById('importFile').click()">📂 Restaurar</button>
     <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importJSON(event)">
+    <input id="emailDatePicker" type="date" style="display:none;position:fixed;opacity:0;pointer-events:none;" onchange="onEmailDatePicked(this.value)">
   </div>
   <div class="pot-row">
     <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
@@ -1172,55 +1173,41 @@ function _reopenMatList(di){var card=document.getElementById('dc'+di);if(card)ca
 function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();renderDocs();_reopenMatList(di);}
 function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();renderDocs();_reopenMatList(di);
 }
+var _emailPickDi=-1,_emailPickMi=-1;
 function toggleEmailSent(di,mi){
   var nm=docs[parseInt(di)].name;
   var k=sk(nm,parseInt(mi))+'__e';
   if(sentEmail[k]){
-    // Já marcado: desmarcar
     delete sentEmail[k];
-    persist();
-    renderDocs();
-    _reopenMatList(di);
+    persist();renderDocs();_reopenMatList(di);
   } else {
-    // Novo envio: pede a data imediatamente
-    var today=new Date().toISOString().split('T')[0];
-    var newDate=prompt('Data de envio do e-mail (AAAA-MM-DD):',today);
-    if(newDate){
-      var parsed=new Date(newDate+'T12:00:00Z');
-      if(!isNaN(parsed)){sentEmail[k]=parsed.toISOString();}
-      else{alert('Data inválida. Use o formato AAAA-MM-DD.');return;}
-    } else {
-      // Usuário cancelou — não marca
-      return;
-    }
-    persist();
-    renderDocs();
-    _reopenMatList(di);
+    _emailPickDi=di;_emailPickMi=mi;
+    var picker=document.getElementById('emailDatePicker');
+    picker.value=new Date().toISOString().split('T')[0];
+    picker.style.display='block';
+    picker.click();
+    picker.focus();
   }
+}
+function onEmailDatePicked(val){
+  document.getElementById('emailDatePicker').style.display='none';
+  if(!val||_emailPickDi<0)return;
+  var nm=docs[parseInt(_emailPickDi)].name;
+  var k=sk(nm,parseInt(_emailPickMi))+'__e';
+  var parsed=new Date(val+'T12:00:00Z');
+  if(!isNaN(parsed)){sentEmail[k]=parsed.toISOString();persist();renderDocs();_reopenMatList(_emailPickDi);}
+  _emailPickDi=-1;_emailPickMi=-1;
 }
 function editEmailDate(di, mi) {
   var nm = docs[parseInt(di)].name;
   var k = sk(nm, parseInt(mi)) + '__e';
   if (!sentEmail[k]) return;
-  
-  // Pega a data atual salva e formata para YYYY-MM-DD
-  var currentDate = new Date(sentEmail[k]);
-  var formattedDate = currentDate.toISOString().split('T')[0];
-  
-  // Pergunta a nova data ao usuário
-  var newDate = prompt("Editar data de envio do e-mail (Formato: AAAA-MM-DD):", formattedDate);
-  
-  if (newDate) {
-    var parsed = new Date(newDate + 'T12:00:00Z');
-    if (!isNaN(parsed)) {
-      sentEmail[k] = parsed.toISOString();
-      persist();
-      renderDocs();
-      _reopenMatList(di);
-    } else {
-      alert("Data inválida. Use o formato AAAA-MM-DD.");
-    }
-  }
+  _emailPickDi=di;_emailPickMi=mi;
+  var picker=document.getElementById('emailDatePicker');
+  picker.value=new Date(sentEmail[k]).toISOString().split('T')[0];
+  picker.style.display='block';
+  picker.click();
+  picker.focus();
 }
 function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
 
