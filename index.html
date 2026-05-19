@@ -1168,8 +1168,9 @@ function toggleMats(i){
   ml.style.display=open?'block':'none';
   if(mc)mc.style.transform=open?'rotate(180deg)':'';
 }
-function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();renderDocs();}
-function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();renderDocs();
+function _reopenMatList(di){var card=document.getElementById('dc'+di);if(card)card.classList.add('open');var ml=document.getElementById('ml'+di);if(ml){ml.style.display='block';var mc=document.getElementById('mc'+di);if(mc)mc.style.transform='rotate(180deg)';}}
+function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();renderDocs();_reopenMatList(di);}
+function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();renderDocs();_reopenMatList(di);
 }
 function toggleEmailSent(di,mi){
   var nm=docs[parseInt(di)].name;
@@ -1178,6 +1179,7 @@ function toggleEmailSent(di,mi){
   else sentEmail[k]=new Date().toISOString();
   persist();
   renderDocs();
+  _reopenMatList(di);
 }
 function editEmailDate(di, mi) {
   var nm = docs[parseInt(di)].name;
@@ -1285,7 +1287,34 @@ function saveDoc(){
 function openMatModal(idx){editMatIdx=idx;document.getElementById('matMT').childNodes[0].nodeValue=idx===-1?'Novo Material ':'Editar Material ';document.getElementById('mName').value=idx>=0?mats[idx].name:'';document.getElementById('mMsg').value=idx>=0?mats[idx].msg:'';document.getElementById('matOv').classList.add('on');}
 function closeMatModal(){document.getElementById('matOv').classList.remove('on');}
 function saveMat(){var nm=document.getElementById('mName').value.trim(),msg=document.getElementById('mMsg').value.trim();if(!nm||!msg){alert('Preencha nome e mensagem.');return;}if(editMatIdx===-1)mats.push({name:nm,msg:msg});else mats[editMatIdx]={name:nm,msg:msg};persist();closeMatModal();renderMats();renderInsights();}
-function renderMats(){var h='';for(var i=0;i<mats.length;i++){var m=mats[i];h+='<div class="mcard"><div class="mcard-t">'+esc(m.name)+'</div><div class="mcard-p">'+esc(m.msg)+'</div><div class="mcard-a"><button class="ibtn" onclick="openMatModal('+i+')">✏️ Editar</button><button class="ibtn d" onclick="askDel(\'mat\','+i+')">🗑️ Excluir</button></div></div>';}document.getElementById('matList').innerHTML=h;}
+var _matDragIdx=-1;
+function renderMats(){
+  var h='';
+  for(var i=0;i<mats.length;i++){
+    var m=mats[i];
+    h+='<div class="mcard" draggable="true" id="mcard'+i+'" ondragstart="matDragStart('+i+')" ondragover="matDragOver(event,'+i+')" ondrop="matDrop(event,'+i+')" ondragend="matDragEnd()" style="cursor:grab;">'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<span style="font-size:16px;color:#ccc;cursor:grab;flex-shrink:0;">☰</span>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div class="mcard-t">'+esc(m.name)+'</div>'+
+          '<div class="mcard-p">'+esc(m.msg)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="mcard-a"><button class="ibtn" onclick="openMatModal('+i+')">✏️ Editar</button><button class="ibtn d" onclick="askDel(\'mat\','+i+')">🗑️ Excluir</button></div>'+
+    '</div>';
+  }
+  document.getElementById('matList').innerHTML=h;
+}
+function matDragStart(i){_matDragIdx=i;}
+function matDragOver(e,i){e.preventDefault();var el=document.getElementById('mcard'+i);if(el)el.style.borderTop=i!==_matDragIdx?'2px solid #6d28d9':'';}
+function matDragEnd(){_matDragIdx=-1;for(var i=0;i<mats.length;i++){var el=document.getElementById('mcard'+i);if(el)el.style.borderTop='';}}
+function matDrop(e,toIdx){
+  e.preventDefault();
+  if(_matDragIdx<0||_matDragIdx===toIdx)return;
+  var moved=mats.splice(_matDragIdx,1)[0];
+  mats.splice(toIdx,0,moved);
+  persist();renderMats();renderInsights();
+}
 
 // ══════════ DELETE ══════════
 function askDel(type,idx){delType=type;delIdx=idx;var lb=type==='doc'?tc(docs[idx].name):mats[idx].name;document.getElementById('delMsg').textContent='Excluir "'+lb+'"? Não pode ser desfeito.';document.getElementById('delOv').classList.add('on');}
@@ -2219,79 +2248,10 @@ function renderRadar(){
   // ── BLOCO 1: Radar de Alinhamento ──
   html+=renderDecisaoHTML();
 
-  // ── BLOCO 2: ROI por Conta (R$ investido / MAT) ──
-  var roiContas=[];
   var allContas=CONTAS_DEF.slice();
   for(var cn in cExtra){var f=false;for(var j=0;j<allContas.length;j++){if(allContas[j].conta===cn){f=true;break;}}if(!f)allContas.push({conta:cn,scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,scoreTotal:4,mat:0,ytd:0,prioridade:'Monitoramento'});}
-  for(var i=0;i<allContas.length;i++){
-    var ct=allContas[i];
-    var cd=getContaData(ct);
-    var inv=budInvestimentoConta(ct.conta);
-    if(inv>0&&cd.mat>0){
-      var roiVal=inv/cd.mat; // R$ por caixa MAT
-      var ritmo=calcRitmoConta(cd.ytd,cd.mat);
-      roiContas.push({conta:ct.conta,inv:inv,mat:cd.mat,ytd:cd.ytd,roi:roiVal,ritmo:ritmo,score:cd.scoreTotal});
-    }
-  }
-  if(roiContas.length){
-    roiContas.sort(function(a,b){return a.roi-b.roi;}); // menor custo por caixa = melhor
-    var maxRoi=roiContas.reduce(function(m,c){return Math.max(m,c.roi);},0);
-    var rowsRoi='';
-    roiContas.forEach(function(c){
-      var pct=maxRoi?Math.round(c.roi/maxRoi*100):0;
-      var cor=c.roi<5?'#065f46':c.roi<20?'#92400e':'#b91c1c';
-      var ritmoSig=c.ritmo>=80?'<span class="signal sig-ok">'+c.ritmo+'%</span>':
-                   c.ritmo>=50?'<span class="signal sig-warn">'+c.ritmo+'%</span>':
-                   c.ritmo>0?'<span class="signal sig-down">'+c.ritmo+'%</span>':'<span class="signal sig-neu">—</span>';
-      rowsRoi+='<div class="dec-row">'+
-        '<div class="dec-name">'+esc(c.conta)+'</div>'+
-        '<div style="display:flex;flex-direction:column;gap:1px;width:60px;flex-shrink:0;">'+
-          '<div style="height:5px;border-radius:3px;background:#f2f2f7;overflow:hidden;"><div style="width:'+pct+'%;height:100%;border-radius:3px;background:'+cor+';"></div></div>'+
-        '</div>'+
-        '<div style="font-size:11px;font-weight:700;flex-shrink:0;min-width:52px;text-align:right;color:'+cor+';">R$'+c.roi.toFixed(1)+'/cx</div>'+
-        ritmoSig+
-      '</div>';
-    });
-    html+='<div class="dec-card">'+
-      '<h3>💸 ROI por Conta — custo por caixa MAT</h3>'+
-      '<div class="sub">R$ investido ÷ caixas MAT da conta. Menor = melhor retorno. Ritmo = YTD atual vs esperado.</div>'+
-      rowsRoi+'</div>';
-  }
 
-  // ── BLOCO 3: Custo por engajamento (R$/toque em médicos) ──
-  var engDocs=[];
-  for(var i=0;i<docs.length;i++){
-    var d=docs[i];
-    var inv=(budget.items||[]).filter(function(it){return it.docName===d.name;}).reduce(function(s,it){return s+(it.val||0);},0);
-    var nMat=0;for(var mi=0;mi<mats.length;mi++){if(sent[sk(d.name,mi)])nMat++;}
-    var nEmail=0;for(var mi=0;mi<mats.length;mi++){if(sentEmail[sk(d.name,mi)+'__e'])nEmail++;}
-    var congInt=budCongressoIntensidadeMedico(d.name);
-    var toques=nMat+nEmail+(congInt>0?2:0); // congresso vale 2 toques
-    if(inv>0&&toques>0){
-      engDocs.push({name:d.name,pot:d.pot,inv:inv,toques:toques,custo:inv/toques,sc:calcScore(d),docIdx:i});
-    }
-  }
-  if(engDocs.length){
-    engDocs.sort(function(a,b){return a.custo-b.custo;}); // mais barato = mais eficiente
-    var rowsEng='',rowsEngMore='';
-    engDocs.forEach(function(d,idx){
-      var cor=d.custo<50?'#065f46':d.custo<200?'#92400e':'#b91c1c';
-      var row='<div class="dec-row">'+
-        '<span class="badge b'+d.pot+'" style="flex-shrink:0">'+d.pot+'</span>'+
-        '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
-        '<span style="font-size:10px;color:#888;flex-shrink:0;">'+d.toques+' toques</span>'+
-        '<div style="font-size:11px;font-weight:700;flex-shrink:0;min-width:56px;text-align:right;color:'+cor+';">R$'+d.custo.toFixed(0)+'/toque</div>'+
-      '</div>';
-      if(idx<8)rowsEng+=row;else rowsEngMore+=row;
-    });
-    if(rowsEngMore)rowsEng+='<details class="dec-more"><summary>Ver todos ('+engDocs.length+')</summary>'+rowsEngMore+'</details>';
-    html+='<div class="dec-card">'+
-      '<h3>🎯 Eficiência de Engajamento</h3>'+
-      '<div class="sub">R$ investido ÷ número de toques (WA + e-mail + congresso). Menor custo por toque = mais eficiente.</div>'+
-      rowsEng+'</div>';
-  }
-
-  // ── BLOCO 4: Potencial inexplorado por conta ──
+  // ── BLOCO 2: Potencial inexplorado por conta ──
   var potencial=[];
   for(var i=0;i<allContas.length;i++){
     var ct2=allContas[i];
