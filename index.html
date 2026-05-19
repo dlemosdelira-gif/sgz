@@ -741,6 +741,7 @@ var BUD_CATS_DEF=[
 var budget={verba:VERBA_DEF,cats:BUD_CATS_DEF,items:[]};
 var editBudIdx=-1,pickedIcon='🍽️',budFilter={cat:'',sort:'date_desc',q:''};
 var activeMat=-1,potF={A:true,B:true,C:true};
+var semF={verde:true,amarelo:true,vermelho:true,nunca:true};
 var agendaFilter={day:'',period:''};
 var editDocIdx=-1,editMatIdx=-1,delType='',delIdx=-1,scFlags={};
 var auditContaNome='';
@@ -939,6 +940,8 @@ function goTab(n){
   if(n===3){ renderInsights(); renderMats(); }
   if(n===4)renderBudget();
 }
+
+function toggleSem(cat){semF[cat]=!semF[cat];renderRadar();}
 
 // ══════════ MÉDICOS ══════════
 function togglePot(p){
@@ -2293,12 +2296,18 @@ function renderRadar(){
   }
 
   // ── BLOCO SEMÁFORO: Interações por médico ──
-  var semList=docs.map(function(d,i){
+  var semAll=docs.map(function(d,i){
     var last=lastContactDate(d.name);
     var sem=semaforo(last);
-    return{name:d.name,pot:d.pot,last:last,sem:sem,docIdx:i,sc:calcScore(d)};
+    var cat=!last?'nunca':sem.days<30?'verde':sem.days<60?'amarelo':'vermelho';
+    return{name:d.name,pot:d.pot,last:last,sem:sem,cat:cat,docIdx:i};
   });
-  semList.sort(function(a,b){return b.sem.days-a.sem.days;}); // mais tempo sem contato primeiro
+  semAll.sort(function(a,b){return b.sem.days-a.sem.days;});
+  var nVerde=semAll.filter(function(d){return d.cat==='verde';}).length;
+  var nAmarelo=semAll.filter(function(d){return d.cat==='amarelo';}).length;
+  var nVermelho=semAll.filter(function(d){return d.cat==='vermelho';}).length;
+  var nNunca=semAll.filter(function(d){return d.cat==='nunca';}).length;
+  var semList=semAll.filter(function(d){return semF[d.cat];});
   var rowsSem='',rowsSemMore='';
   semList.forEach(function(d,idx){
     var row='<div class="dec-row">'+
@@ -2307,19 +2316,18 @@ function renderRadar(){
       '<button class="doc-link" onclick="navigateToDoc('+d.docIdx+')">'+esc(tc(d.name))+'</button>'+
       '<span style="font-size:11px;color:#888;flex-shrink:0;margin-left:auto;">'+d.sem.label+'</span>'+
     '</div>';
-    if(idx<10)rowsSem+=row;else rowsSemMore+=row;
+    if(idx<12)rowsSem+=row;else rowsSemMore+=row;
   });
   if(rowsSemMore)rowsSem+='<details class="dec-more"><summary>Ver todos ('+semList.length+')</summary>'+rowsSemMore+'</details>';
-  var nVerde=semList.filter(function(d){return d.sem.days<30;}).length;
-  var nAmarelo=semList.filter(function(d){return d.sem.days>=30&&d.sem.days<60;}).length;
-  var nVermelho=semList.filter(function(d){return d.sem.days>=60;}).length;
+  if(!rowsSem)rowsSem='<div style="text-align:center;padding:12px;font-size:12px;color:#aaa;">Nenhum médico nesta categoria.</div>';
   html+='<div class="dec-card">'+
     '<h3>🚦 Semáforo de Interações</h3>'+
-    '<div class="sub">Última interação por médico (WA ou E-mail). Ordenado do mais tempo sem contato.</div>'+
-    '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
-      '<span style="font-size:11px;font-weight:700;color:#22c55e;">🟢 '+nVerde+' recentes</span>'+
-      '<span style="font-size:11px;font-weight:700;color:#f59e0b;">🟡 '+nAmarelo+' atenção</span>'+
-      '<span style="font-size:11px;font-weight:700;color:#ef4444;">🔴 '+nVermelho+' urgente</span>'+
+    '<div class="sub">Última interação por médico (WA ou E-mail). Clique nos botões para filtrar.</div>'+
+    '<div class="pot-row" style="margin-bottom:10px;">'+
+      '<button class="pc '+(semF.verde?'':'dim')+'" style="background:#d1fae5;color:#065f46;border:none;" onclick="toggleSem(\'verde\')">🟢 '+nVerde+'</button>'+
+      '<button class="pc '+(semF.amarelo?'':'dim')+'" style="background:#fef3c7;color:#92400e;border:none;" onclick="toggleSem(\'amarelo\')">🟡 '+nAmarelo+'</button>'+
+      '<button class="pc '+(semF.vermelho?'':'dim')+'" style="background:#fee2e2;color:#991b1b;border:none;" onclick="toggleSem(\'vermelho\')">🔴 '+nVermelho+'</button>'+
+      (nNunca>0?'<button class="pc '+(semF.nunca?'':'dim')+'" style="background:#f3f4f6;color:#374151;border:none;" onclick="toggleSem(\'nunca\')">⬜ '+nNunca+'</button>':'')+
     '</div>'+
     rowsSem+'</div>';
 
