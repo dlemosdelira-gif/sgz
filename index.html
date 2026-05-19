@@ -361,7 +361,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importJSON(event)">
     <div id="emailDateOv" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center;" onclick="if(event.target===this)closeEmailDateOv()">
       <div style="background:#fff;border-radius:16px;padding:20px 18px;width:280px;box-shadow:0 8px 32px rgba(0,0,0,.18);">
-        <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;">📧 Data de envio</div>
+        <div id="emailDateOvTitle" style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;">📧 Data de envio</div>
         <input id="emailDatePicker" type="date" style="width:100%;padding:10px;border:1.5px solid #6d28d9;border-radius:10px;font-size:16px;outline:none;color:#1c1c1e;">
         <div style="display:flex;gap:8px;margin-top:14px;">
           <button onclick="closeEmailDateOv()" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-size:14px;font-weight:600;color:#888;cursor:pointer;">Cancelar</button>
@@ -1199,10 +1199,9 @@ function openEmailDateOv(di,mi,currentVal){
   document.getElementById('emailDateOv').style.display='flex';
 }
 function closeEmailDateOv(){
-  var ov=document.getElementById('emailDateOv');
-  ov.style.display='none';
-  ov.dataset.mode='email';
-  ov.querySelector('div div:first-child').textContent='📧 Data de envio';
+  document.getElementById('emailDateOv').style.display='none';
+  document.getElementById('emailDateOv').dataset.mode='email';
+  document.getElementById('emailDateOvTitle').textContent='📧 Data de envio';
   _emailPickDi=-1;_emailPickMi=-1;_f2fDi=-1;
 }
 function confirmEmailDate(){
@@ -1210,8 +1209,7 @@ function confirmEmailDate(){
   var mode=document.getElementById('emailDateOv').dataset.mode||'email';
   document.getElementById('emailDateOv').style.display='none';
   document.getElementById('emailDateOv').dataset.mode='email';
-  // Reset title
-  document.getElementById('emailDateOv').querySelector('div div:first-child').textContent='📧 Data de envio';
+  document.getElementById('emailDateOvTitle').textContent='📧 Data de envio';
   if(!val)return;
   var parsed=new Date(val+'T12:00:00Z');
   if(isNaN(parsed))return;
@@ -2537,9 +2535,9 @@ var _f2fDi=-1;
 function openF2fDate(di){
   _f2fDi=di;
   document.getElementById('emailDatePicker').value=new Date().toISOString().split('T')[0];
-  document.getElementById('emailDateOv').querySelector('div div:first-child').textContent='🤝 Data da visita F2F';
-  document.getElementById('emailDateOv').style.display='flex';
+  document.getElementById('emailDateOvTitle').textContent='🤝 Data da visita F2F';
   document.getElementById('emailDateOv').dataset.mode='f2f';
+  document.getElementById('emailDateOv').style.display='flex';
 }
 function removeLastF2f(di){
   var d=docs[parseInt(di)];
