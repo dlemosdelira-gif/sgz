@@ -354,7 +354,16 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <button class="ctrl-btn primary" onclick="exportJSON()">💾 Backup</button>
     <button class="ctrl-btn" onclick="document.getElementById('importFile').click()">📂 Restaurar</button>
     <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importJSON(event)">
-    <input id="emailDatePicker" type="date" style="display:none;position:fixed;opacity:0;pointer-events:none;" onchange="onEmailDatePicked(this.value)">
+    <div id="emailDateOv" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center;" onclick="if(event.target===this)closeEmailDateOv()">
+      <div style="background:#fff;border-radius:16px;padding:20px 18px;width:280px;box-shadow:0 8px 32px rgba(0,0,0,.18);">
+        <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;">📧 Data de envio</div>
+        <input id="emailDatePicker" type="date" style="width:100%;padding:10px;border:1.5px solid #6d28d9;border-radius:10px;font-size:16px;outline:none;color:#1c1c1e;">
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button onclick="closeEmailDateOv()" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-size:14px;font-weight:600;color:#888;cursor:pointer;">Cancelar</button>
+          <button onclick="confirmEmailDate()" style="flex:1;padding:10px;border:none;border-radius:10px;background:#6d28d9;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Confirmar</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="pot-row">
     <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
@@ -1174,40 +1183,36 @@ function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))
 function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();renderDocs();_reopenMatList(di);
 }
 var _emailPickDi=-1,_emailPickMi=-1;
-function toggleEmailSent(di,mi){
-  var nm=docs[parseInt(di)].name;
-  var k=sk(nm,parseInt(mi))+'__e';
-  if(sentEmail[k]){
-    delete sentEmail[k];
-    persist();renderDocs();_reopenMatList(di);
-  } else {
-    _emailPickDi=di;_emailPickMi=mi;
-    var picker=document.getElementById('emailDatePicker');
-    picker.value=new Date().toISOString().split('T')[0];
-    picker.style.display='block';
-    picker.click();
-    picker.focus();
-  }
+function openEmailDateOv(di,mi,currentVal){
+  _emailPickDi=di;_emailPickMi=mi;
+  document.getElementById('emailDatePicker').value=currentVal||new Date().toISOString().split('T')[0];
+  document.getElementById('emailDateOv').style.display='flex';
 }
-function onEmailDatePicked(val){
-  document.getElementById('emailDatePicker').style.display='none';
-  if(!val||_emailPickDi<0)return;
+function closeEmailDateOv(){
+  document.getElementById('emailDateOv').style.display='none';
+  _emailPickDi=-1;_emailPickMi=-1;
+}
+function confirmEmailDate(){
+  var val=document.getElementById('emailDatePicker').value;
+  document.getElementById('emailDateOv').style.display='none';
+  if(!val||_emailPickDi<0){_emailPickDi=-1;_emailPickMi=-1;return;}
   var nm=docs[parseInt(_emailPickDi)].name;
   var k=sk(nm,parseInt(_emailPickMi))+'__e';
   var parsed=new Date(val+'T12:00:00Z');
   if(!isNaN(parsed)){sentEmail[k]=parsed.toISOString();persist();renderDocs();_reopenMatList(_emailPickDi);}
   _emailPickDi=-1;_emailPickMi=-1;
 }
-function editEmailDate(di, mi) {
-  var nm = docs[parseInt(di)].name;
-  var k = sk(nm, parseInt(mi)) + '__e';
-  if (!sentEmail[k]) return;
-  _emailPickDi=di;_emailPickMi=mi;
-  var picker=document.getElementById('emailDatePicker');
-  picker.value=new Date(sentEmail[k]).toISOString().split('T')[0];
-  picker.style.display='block';
-  picker.click();
-  picker.focus();
+function toggleEmailSent(di,mi){
+  var nm=docs[parseInt(di)].name;
+  var k=sk(nm,parseInt(mi))+'__e';
+  if(sentEmail[k]){delete sentEmail[k];persist();renderDocs();_reopenMatList(di);}
+  else{openEmailDateOv(di,mi,null);}
+}
+function editEmailDate(di,mi){
+  var nm=docs[parseInt(di)].name;
+  var k=sk(nm,parseInt(mi))+'__e';
+  if(!sentEmail[k])return;
+  openEmailDateOv(di,mi,new Date(sentEmail[k]).toISOString().split('T')[0]);
 }
 function toggleSc(btn){var v=btn.dataset.v;scFlags[v]=!scFlags[v];btn.classList.toggle('sel',!!scFlags[v]);}
 
