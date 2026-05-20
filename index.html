@@ -3075,11 +3075,11 @@ var _calcYears=1;
 // imrozMaintSwitch: semana em que troca de Q2W para Q4W (aprox semana 77 = C18)
 var CALC_PROTOCOLS={
   tmo:[
-    {id:'cassiopeia',name:'CASSIOPEIA',subtitle:'DVTd · Dara IV 16mg/kg',drug:'dara_iv',dosePerKg:16,
+    {id:'cassiopeia',name:'CASSIOPEIA',subtitle:'DVTd · Dara 16mg/kg IV ou 1800mg SC',drug:'dara_iv',dosePerKg:16,showBothForms:true,
      inductionWeeks:24,
      phases:[{l:'Indução C1–2 (QW×4, 4-sem)',d:8},{l:'Indução C3–4 (Q2W×2, 4-sem)',d:4},{l:'Consolidação C5–6 (Q2W×2, 4-sem)',d:4}],
      maintenanceFreqWeeks:null},
-    {id:'perseus',name:'PERSEUS',subtitle:'DVRd · Dara SC 1800mg fixo',drug:'dara_sc',
+    {id:'perseus',name:'PERSEUS',subtitle:'DVRd · Dara 16mg/kg IV ou 1800mg SC + Manutenção Q4W',drug:'dara_sc',showBothForms:true,
      inductionWeeks:24,
      phases:[{l:'Indução C1–2 (QW×4, 4-sem)',d:8},{l:'Indução C3–4 (Q2W×2, 4-sem)',d:4},{l:'Consolidação C5–6 (Q2W×2, 4-sem)',d:4}],
      maintenanceFreqWeeks:4},
@@ -3093,7 +3093,7 @@ var CALC_PROTOCOLS={
      inductionWeeks:24,
      phases:[{l:'C1 indução (QW×5, 6-sem)',d:5},{l:'C2–4 indução (Q2W×3/ciclo, 6-sem cada)',d:9}],
      maintenanceFreqWeeks:2, maintenanceSwitchWeek:77, maintenanceFreqWeeks2:4},
-    {id:'cepheus',name:'CEPHEUS',subtitle:'DVRd · Dara SC 1800mg fixo',drug:'dara_sc',
+    {id:'cepheus',name:'CEPHEUS',subtitle:'DVRd · Dara 1800mg SC ou 16mg/kg IV + Manutenção Q4W',drug:'dara_sc',showBothForms:true,
      inductionWeeks:24,
      phases:[{l:'C1–2 DVRd (QW×3, ciclos 3-sem)',d:6},{l:'C3–8 DVRd (Q3W×1/ciclo, ciclos 3-sem)',d:6}],
      maintenanceFreqWeeks:4}
@@ -3178,85 +3178,133 @@ function renderCalc(){
   var html='';
   var totals=[];
 
-  protos.forEach(function(p){
-    var dv=_doseVials(p);
-    var yearDoses=[];
-    var yearCosts=[];
-    var yearMargins=[];
+  function _calcProtoVariant(p, forceDrug){
+    var pCopy=Object.assign({},p,{drug:forceDrug||(p.drug)});
+    var dv=_doseVials(pCopy);
+    var yearDoses=[],yearCosts=[],yearMargins=[];
     for(var y=1;y<=_calcYears;y++){
       var d=_dosesPerYear(p,y);
-      var acqCost=d*dv.cost;
-      var reembTotal=d*dv.reemb;
-      var margin=reembTotal-acqCost;
       yearDoses.push(d);
-      yearCosts.push(acqCost);
-      yearMargins.push(margin);
+      yearCosts.push(d*dv.cost);
+      yearMargins.push(d*dv.reemb - d*dv.cost);
     }
     var totalDoses=yearDoses.reduce(function(s,v){return s+v;},0);
     var totalCost=yearCosts.reduce(function(s,v){return s+v;},0);
     var totalMargin=yearMargins.reduce(function(s,v){return s+v;},0);
-    var displayCost=isPrestador?totalMargin:totalCost;
-    totals.push({name:p.name,cost:totalCost,margin:totalMargin,displayCost:displayCost,drug:p.drug,totalDoses:totalDoses});
+    return {dv:dv,yearDoses:yearDoses,yearCosts:yearCosts,yearMargins:yearMargins,
+            totalDoses:totalDoses,totalCost:totalCost,totalMargin:totalMargin,drug:forceDrug||p.drug};
+  }
 
+  protos.forEach(function(p){
     var isISA=p.drug==='isa_iv';
     var accent=isISA?'#6d28d9':'#1e40af';
     var accentBg=isISA?'#ede9fe':'#dbeafe';
     var accentGreen='#059669';
 
-    // Phases (year 1 only)
+    var variants=[];
+    if(p.showBothForms){
+      variants.push({label:'IV '+Math.ceil(_gv('cPeso')*(p.dosePerKg||16))+'mg',v:_calcProtoVariant(p,'dara_iv')});
+      variants.push({label:'SC 1800mg',v:_calcProtoVariant(p,'dara_sc')});
+    } else {
+      variants.push({label:null,v:_calcProtoVariant(p,p.drug)});
+    }
+
+    // Add all variants to totals for comparativo
+    variants.forEach(function(vr){
+      var displayCost=isPrestador?vr.v.totalMargin:vr.v.totalCost;
+      var tname=p.name+(vr.label?' ('+vr.label+')':'');
+      totals.push({name:tname,cost:vr.v.totalCost,margin:vr.v.totalMargin,displayCost:displayCost,drug:vr.v.drug,totalDoses:vr.v.totalDoses});
+    });
+
+    // Phases (indução - same for all variants)
     var schedHtml=p.phases.map(function(r){
       return '<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f5f5f8;">'+
         '<span style="color:#666;">'+r.l+'</span>'+
         '<span style="font-weight:700;color:#333;">'+r.d+' doses</span>'+
       '</div>';
     }).join('');
-    if(p.maintenanceFreqWeeks){
-      var mLabel=_calcYears>1?'Manutenção (Q'+(p.maintenanceFreqWeeks)+'W)':'';
-      if(mLabel){schedHtml+='<div style="font-size:10px;color:#888;padding:3px 0;">'+mLabel+' · troca Q4W a partir sem 77 (se aplicável)</div>';}
-    }
 
-    // Year-by-year breakdown
-    var yrHtml='';
-    for(var y2=1;y2<=_calcYears;y2++){
-      var yd=yearDoses[y2-1],yc=yearCosts[y2-1],ym=yearMargins[y2-1];
-      yrHtml+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid #f5f5f8;">'+
-        '<span style="color:#555;font-weight:600;">Ano '+y2+' ('+yd+' doses)</span>'+
-        (isPrestador?
-          '<span style="font-weight:700;color:'+(ym>=0?accentGreen:'#dc2626')+';">Margem '+_fmtBRL(ym)+'</span>':
-          '<span style="font-weight:700;color:#333;">Custo '+_fmtBRL(yc)+'</span>')+
-      '</div>';
-    }
-
-    var totalLabel=isPrestador?'Margem Total '+_calcYears+' ano(s)':'Custo Total '+_calcYears+' ano(s)';
-    var totalVal=isPrestador?totalMargin:totalCost;
-    var totalColor=isPrestador?(totalMargin>=0?accentGreen:'#dc2626'):accent;
-
-    html+='<div style="background:#fff;border:1.5px solid '+accentBg+';border-radius:12px;margin-bottom:14px;overflow:hidden;">'+
-      '<div style="background:'+accentBg+';padding:10px 13px;display:flex;align-items:center;gap:8px;">'+
-        '<div style="flex:1;">'+
-          '<div style="font-size:14px;font-weight:800;color:'+accent+';">'+p.name+'</div>'+
-          '<div style="font-size:11px;color:#666;margin-top:1px;">'+p.subtitle+'</div>'+
-          '<div style="font-size:10px;color:#888;margin-top:2px;">'+dv.label+' · '+dv.mg+'mg por dose</div>'+
-        '</div>'+
-        '<div style="text-align:right;">'+
-          '<div style="font-size:10px;color:#888;">custo/dose</div>'+
-          '<div style="font-size:13px;font-weight:800;color:'+accent+';">'+_fmtBRL(dv.cost)+'</div>'+
-          (isPrestador?'<div style="font-size:10px;color:'+accentGreen+';">reemb '+_fmtBRL(dv.reemb)+'</div>':'')+
-        '</div>'+
+    // Header
+    var cardHtml='<div style="background:#fff;border:1.5px solid '+accentBg+';border-radius:12px;margin-bottom:14px;overflow:hidden;">'+
+      '<div style="background:'+accentBg+';padding:10px 13px;">'+
+        '<div style="font-size:14px;font-weight:800;color:'+accent+';">'+p.name+'</div>'+
+        '<div style="font-size:11px;color:#666;margin-top:1px;">'+p.subtitle+'</div>'+
       '</div>'+
-      '<div style="padding:6px 13px 2px;border-bottom:1px solid #f0f0f5;">'+
-        '<div style="font-size:10px;font-weight:700;color:#aaa;padding:4px 0 2px;letter-spacing:.3px;">INDUÇÃO</div>'+
+      '<div style="padding:6px 13px 6px;border-bottom:1px solid #f0f0f5;">'+
+        '<div style="font-size:10px;font-weight:700;color:#aaa;padding:4px 0 2px;letter-spacing:.3px;">INDUÇÃO / SCHEDULE</div>'+
         schedHtml+
-      '</div>'+
-      '<div style="padding:6px 13px 4px;">'+
-        '<div style="font-size:10px;font-weight:700;color:#aaa;padding:4px 0 2px;letter-spacing:.3px;">POR ANO</div>'+
-        yrHtml+
-      '</div>'+
-      '<div style="padding:8px 13px 10px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid '+accentBg+';margin-top:4px;">'+
-        '<span style="font-size:12px;color:#555;font-weight:700;">'+totalLabel+'</span>'+
-        '<span style="font-size:15px;font-weight:900;color:'+totalColor+';">'+_fmtBRL(totalVal)+'</span>'+
-      '</div>'+
-    '</div>';
+      '</div>';
+
+    // Variant columns (IV vs SC side by side if applicable)
+    if(p.showBothForms){
+      // Side-by-side comparison of IV vs SC
+      var vIV=variants[0].v, vSC=variants[1].v;
+      var cheaperV=vIV.totalCost<=vSC.totalCost?'iv':'sc';
+      var colIV='#1e40af', colSC='#0891b2';
+      cardHtml+='<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #f0f0f5;">';
+      ['IV','SC'].forEach(function(form,fi){
+        var vr=fi===0?vIV:vSC;
+        var col=fi===0?colIV:colSC;
+        var lbl=fi===0?('IV '+Math.ceil(_gv('cPeso')*(p.dosePerKg||16))+'mg'):'SC 1800mg';
+        var isCheaper=(fi===0&&cheaperV==='iv')||(fi===1&&cheaperV==='sc');
+        cardHtml+='<div style="padding:8px 10px;'+(fi===0?'border-right:1px solid #f0f0f5;':'')+'">'+
+          '<div style="font-size:10px;font-weight:800;color:'+col+';margin-bottom:4px;">'+lbl+(isCheaper?' 🏆':'')+'</div>'+
+          '<div style="font-size:11px;color:#888;">por dose</div>'+
+          '<div style="font-size:13px;font-weight:800;color:'+col+';">'+_fmtBRL(vr.dv.cost)+'</div>'+
+          (isPrestador?'<div style="font-size:10px;color:'+accentGreen+';">reemb '+_fmtBRL(vr.dv.reemb)+'</div>':'')+
+          '<div style="margin-top:6px;">';
+        for(var y2=1;y2<=_calcYears;y2++){
+          var yc=vr.yearCosts[y2-1],ym=vr.yearMargins[y2-1],yd=vr.yearDoses[y2-1];
+          cardHtml+='<div style="font-size:10px;color:#555;padding:2px 0;border-top:1px solid #f5f5f8;">'+
+            'Ano '+y2+' ('+yd+'d) · '+(isPrestador?'<span style="color:'+(ym>=0?accentGreen:'#dc2626')+';">'+_fmtBRL(ym)+'</span>':'<b>'+_fmtBRL(yc)+'</b>')+
+          '</div>';
+        }
+        var totalVal=isPrestador?vr.totalMargin:vr.totalCost;
+        var totalColor=isPrestador?(vr.totalMargin>=0?accentGreen:'#dc2626'):col;
+        cardHtml+='</div>'+
+          '<div style="margin-top:6px;padding-top:6px;border-top:2px solid '+(fi===0?colIV:colSC)+';font-size:12px;font-weight:800;color:'+totalColor+';">'+
+            _fmtBRL(totalVal)+
+          '</div>'+
+        '</div>';
+      });
+      // Delta row
+      var dIV=isPrestador?vIV.totalMargin:vIV.totalCost;
+      var dSC=isPrestador?vSC.totalMargin:vSC.totalCost;
+      var delta=dSC-dIV;
+      var deltaLabel=isPrestador?
+        (delta>0?'SC rende '+_fmtBRL(Math.abs(delta))+' a mais':'IV rende '+_fmtBRL(Math.abs(delta))+' a mais'):
+        (delta>0?'SC custa '+_fmtBRL(Math.abs(delta))+' a mais':'SC economiza '+_fmtBRL(Math.abs(delta)));
+      cardHtml+='</div>'+
+        '<div style="padding:7px 13px;background:#f8f8fc;font-size:11px;font-weight:700;color:#555;border-bottom:1px solid #f0f0f5;">'+
+          '∆ '+deltaLabel+
+        '</div>';
+    } else {
+      // Single variant
+      var sv=variants[0].v;
+      var yrHtml='';
+      for(var y2=1;y2<=_calcYears;y2++){
+        var yd=sv.yearDoses[y2-1],yc=sv.yearCosts[y2-1],ym=sv.yearMargins[y2-1];
+        yrHtml+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid #f5f5f8;">'+
+          '<span style="color:#555;font-weight:600;">Ano '+y2+' ('+yd+' doses)</span>'+
+          (isPrestador?
+            '<span style="font-weight:700;color:'+(ym>=0?accentGreen:'#dc2626')+';">Margem '+_fmtBRL(ym)+'</span>':
+            '<span style="font-weight:700;color:#333;">Custo '+_fmtBRL(yc)+'</span>')+
+        '</div>';
+      }
+      var totalVal2=isPrestador?sv.totalMargin:sv.totalCost;
+      var totalColor2=isPrestador?(sv.totalMargin>=0?accentGreen:'#dc2626'):accent;
+      cardHtml+=
+        '<div style="padding:6px 13px 2px;">'+
+          '<div style="font-size:10px;color:#888;padding:2px 0;">'+sv.dv.label+' · '+_fmtBRL(sv.dv.cost)+'/dose'+(isPrestador?' · reemb '+_fmtBRL(sv.dv.reemb):'')+'</div>'+
+          yrHtml+
+        '</div>'+
+        '<div style="padding:8px 13px 10px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid '+accentBg+';margin-top:4px;">'+
+          '<span style="font-size:12px;color:#555;font-weight:700;">'+(isPrestador?'Margem':'Custo')+' '+_calcYears+' ano(s)</span>'+
+          '<span style="font-size:15px;font-weight:900;color:'+totalColor2+';">'+_fmtBRL(totalVal2)+'</span>'+
+        '</div>';
+    }
+    cardHtml+='</div>';
+    html+=cardHtml;
   });
 
   // Comparativo
