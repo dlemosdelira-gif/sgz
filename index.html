@@ -370,6 +370,44 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       </div>
     </div>
   </div>
+
+  <!-- Calculadora de Custo Modal -->
+  <div id="calcOv" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:700;overflow-y:auto;">
+    <div style="background:#fff;min-height:100%;padding:0 0 40px 0;">
+      <div style="background:#6d28d9;color:#fff;padding:14px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
+        <span style="font-size:16px;font-weight:800;flex:1;">🧮 Calculadora de Custo</span>
+        <button onclick="closeCalcModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fechar</button>
+      </div>
+      <!-- Tabs TMO -->
+      <div style="display:flex;border-bottom:2px solid #f0f0f5;background:#fafafa;">
+        <button id="calcT0" onclick="calcTab(0)" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:transparent;color:#6d28d9;border-bottom:3px solid #6d28d9;cursor:pointer;">💊 Elegível TMO</button>
+        <button id="calcT1" onclick="calcTab(1)" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:transparent;color:#999;border-bottom:3px solid transparent;cursor:pointer;">🏥 Inelegível TMO</button>
+      </div>
+      <!-- Parâmetros -->
+      <div style="padding:12px 14px;background:#f8f8fc;border-bottom:1px solid #f0f0f5;">
+        <div style="font-size:11px;font-weight:800;color:#6d28d9;margin-bottom:10px;letter-spacing:.5px;">⚙️ PARÂMETROS</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="75" min="40" max="200" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+          <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="12" min="0" max="30" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+          <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+          <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:6px;letter-spacing:.5px;">PREÇOS PF SEM IMPOSTOS (editáveis)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <label style="font-size:10px;color:#555;font-weight:600;">ISA 100mg<br><input id="pISA100" type="number" value="2480.96" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+            <label style="font-size:10px;color:#555;font-weight:600;">ISA 500mg<br><input id="pISA500" type="number" value="12404.79" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+            <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 100mg<br><input id="pDARA100" type="number" value="1915.26" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+            <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 400mg<br><input id="pDARA400" type="number" value="7661.07" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+            <label style="font-size:10px;color:#555;font-weight:600;" style="grid-column:1/-1">DARA SC 1800mg<br><input id="pDARA1800" type="number" value="22979.41" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          </div>
+        </div>
+      </div>
+      <!-- Resultados -->
+      <div id="calcResults" style="padding:12px 14px;"></div>
+    </div>
+  </div>
+
   <div class="pot-row">
     <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
     <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
@@ -405,6 +443,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="ctrl-btn" onclick="openCityModal()">🗺️ Cidades</button>
         <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Auditoria</button>
+        <button class="ctrl-btn" onclick="openCalcModal()">🧮 Calc</button>
         <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova</button>
       </div>
     </div>
@@ -2662,9 +2701,11 @@ function editAgendaObs(docName,docIdx){
 }
 
 // ══════════ EXPORT / IMPORT ══════════
-function exportJSON(){var p={version:2,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,cExtra:cExtra};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
+function exportJSON(){var p={version:3,exportedAt:new Date().toISOString(),mats:mats,docs:docs,sent:sent,sentEmail:sentEmail,cExtra:cExtra,budget:budget,docAgenda:docAgenda};var b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sarclisa-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
+function exportCSVDocs(){var rows=[['Nome','CRM','Cidade','Conta','Potencial','WhatsApps','Emails','F2F','Último contato']];docs.forEach(function(d){var wa=0,em=0;for(var i=0;i<mats.length;i++){if(sent[sk(d.name,i)])wa++;if(sentEmail[sk(d.name,i)+'__e'])em++;}var f2f=((cExtra[d.name]||{}).f2fDates||[]).length;var lc=lastContactDate(d.name);rows.push([d.name,d.crm||'',d.city||'',d.conta||'',d.pot||'',wa,em,f2f,lc?fmtDate(lc):'—']);});_dlCSV(rows,'medicos-'+new Date().toISOString().slice(0,10)+'.csv');}
+function _dlCSV(rows,fname){var s=rows.map(function(r){return r.map(function(c){var v=String(c).replace(/"/g,'""');return v.indexOf(',')>=0||v.indexOf('"')>=0?'"'+v+'"':v;}).join(',');}).join('\n');var b=new Blob(['﻿'+s],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname;document.body.appendChild(a);a.click();a.remove();}
 function exportCSV(){var hd=['Nome','CRM','Potencial','Cidade','Conta','WhatsApp','Score','Marcadores'];var rows=[hd.join(';')];docs.forEach(function(d){var f=d.scoreFlags||{},m=[];if(f.hasAccess)m.push('Acesso');if(f.testedSarc)m.push('Sarclisa');if(f.daraRelacao)m.push('Dara exp.');if(f.aberturaGuideline)m.push('Guideline');if(f.noAccess)m.push('Sem acesso');if(f.prefereSQ)m.push('SC/SQ');if(f.concorrenciaForte)m.push('Concorrência');if(f.daraLover)m.push('Dara Lover');rows.push([d.name||'',d.crm||'',d.pot||'',d.city||'',d.conta||'',d.phone||'',calcScore(d),m.join(' | ')].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';'));});var csv='\uFEFF'+rows.join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='medicos-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},3000);}
-function importJSON(evt){var file=evt.target.files&&evt.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(String(r.result||'{}'));if(!p||!Array.isArray(p.docs)||!Array.isArray(p.mats))throw new Error();mats=p.mats;docs=p.docs;sent=p.sent||{};cExtra=p.cExtra||{};persist();alert('Importado ✅ — sincronizando em todos os devices...');}catch(e){alert('Arquivo inválido.');}evt.target.value='';};r.readAsText(file);}
+function importJSON(evt){var file=evt.target.files&&evt.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(String(r.result||'{}'));if(!p||!Array.isArray(p.docs)||!Array.isArray(p.mats))throw new Error();mats=p.mats;docs=p.docs;sent=p.sent||{};sentEmail=p.sentEmail||{};cExtra=p.cExtra||{};if(p.budget)budget=p.budget;if(p.docAgenda)docAgenda=p.docAgenda;persist();alert('Importado ✅ — sincronizando em todos os devices...');}catch(e){alert('Arquivo inválido.');}evt.target.value='';};r.readAsText(file);}
 
 // ══════════ BUDGET ══════════
 var CAT_COLORS=['#6d28d9','#059669','#d97706','#dc2626','#2563eb','#7c3aed','#0891b2','#be123c'];
@@ -2973,6 +3014,122 @@ function exportBudCSV(){
 function openBudVerbaModal(){document.getElementById('bVerba').value=budget.verba||VERBA_DEF;document.getElementById('budVerbaOv').classList.add('on');}
 function closeBudVerbaModal(){document.getElementById('budVerbaOv').classList.remove('on');}
 function saveBudVerba(){var v=parseFloat(document.getElementById('bVerba').value)||VERBA_DEF;budget.verba=v;persist();closeBudVerbaModal();renderBudget();}
+
+// ─── Calculadora de Custo ───────────────────────────────────────────────────
+var _calcTabIdx=0;
+var CALC_PROTOCOLS={
+  tmo:[
+    {id:'cassiopeia',name:'CASSIOPEIA',subtitle:'DVTd · Dara IV 16mg/kg',drug:'dara_iv',dosePerKg:16,
+     schedule:[{l:'C1–2 (QW × 8)',d:8},{l:'C3–4 (Q2W × 4)',d:4},{l:'C5–6 (Q4W × 2)',d:2},{l:'Manutenção Q4W · sem 25–52',d:7}]},
+    {id:'perseus',name:'PERSEUS',subtitle:'DVRd · Dara SC 1800mg fixo',drug:'dara_sc',
+     schedule:[{l:'C1–2 (QW × 8)',d:8},{l:'C3–4 (Q2W × 4)',d:4},{l:'C5–6 (Q2W × 4)',d:4},{l:'Manutenção Q4W · sem 25–52',d:7}]},
+    {id:'gmmg',name:'GMMG-HD7',subtitle:'IsaVRd · Isa IV 10mg/kg',drug:'isa_iv',dosePerKg:10,
+     schedule:[{l:'C1 (QW × 5, 6 sem)',d:5},{l:'C2–3 (Q2W × 4)',d:4},{l:'C4 pós-TMO (Q1W × 4)',d:4},{l:'C5–6 Q2W · sem 23–30',d:4},{l:'C7+ Q4W · sem 31–52',d:6}]}
+  ],
+  nontmo:[
+    {id:'imroz',name:'IMROZ',subtitle:'IsaVRd · Isa IV 10mg/kg',drug:'isa_iv',dosePerKg:10,
+     schedule:[{l:'C1 indução (QW × 4, 6 sem)',d:4},{l:'C2–4 indução (Q2W × 2/ciclo)',d:6},{l:'Manutenção Q2W · sem 25–52',d:14}]},
+    {id:'cepheus',name:'CEPHEUS',subtitle:'DVRd · Dara SC 1800mg fixo',drug:'dara_sc',
+     schedule:[{l:'C1–2 DVRd (QW, ciclos 3 sem)',d:6},{l:'C3–8 DVRd (Q3W × 1/ciclo)',d:6},{l:'Manutenção C9+ Q4W · sem 25–52',d:7}]}
+  ]
+};
+function openCalcModal(){document.getElementById('calcOv').style.display='block';document.body.style.overflow='hidden';renderCalc();}
+function closeCalcModal(){document.getElementById('calcOv').style.display='none';document.body.style.overflow='';}
+function calcTab(i){_calcTabIdx=i;document.getElementById('calcT0').style.color=i===0?'#6d28d9':'#999';document.getElementById('calcT0').style.borderBottomColor=i===0?'#6d28d9':'transparent';document.getElementById('calcT1').style.color=i===1?'#6d28d9':'#999';document.getElementById('calcT1').style.borderBottomColor=i===1?'#6d28d9':'transparent';renderCalc();}
+function _gv(id){return parseFloat(document.getElementById(id).value)||0;}
+function _fmtBRL(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function _calcVialsISA(mg){
+  var p500=_gv('pISA500'),p100=_gv('pISA100');
+  var n500=Math.floor(mg/500),rem=mg%500,n100=rem>0?Math.ceil(rem/100):0;
+  if(n100*100>500){n500++;n100=0;}
+  var pf=n500*p500+n100*p100;
+  var icms=_gv('cIcms')/100;
+  var pfFinal=icms>0?pf/(1-icms):pf;
+  var desc=_gv('cDescISA')/100;
+  return {cost:pfFinal*(1-desc),label:n500+'×500mg'+(n100?'+'+n100+'×100mg':''),vials:n500+n100};
+}
+function _calcVialsDaraIV(mg){
+  var p400=_gv('pDARA400'),p100=_gv('pDARA100');
+  var n400=Math.floor(mg/400),rem=mg%400,n100=rem>0?Math.ceil(rem/100):0;
+  var pf=n400*p400+n100*p100;
+  var desc=_gv('cDescDARA')/100;
+  return {cost:pf*(1-desc),label:n400+'×400mg'+(n100?'+'+n100+'×100mg':''),vials:n400+n100};
+}
+function _calcVialsDaraSC(){
+  var p1800=_gv('pDARA1800');
+  var desc=_gv('cDescDARA')/100;
+  return {cost:p1800*(1-desc),label:'1×1800mg',vials:1};
+}
+function _doseVials(proto){
+  var peso=_gv('cPeso');
+  if(proto.drug==='isa_iv'){return _calcVialsISA(Math.ceil(peso*(proto.dosePerKg||10)));}
+  if(proto.drug==='dara_iv'){return _calcVialsDaraIV(Math.ceil(peso*(proto.dosePerKg||16)));}
+  return _calcVialsDaraSC();
+}
+function renderCalc(){
+  var protos=_calcTabIdx===0?CALC_PROTOCOLS.tmo:CALC_PROTOCOLS.nontmo;
+  var html='';
+  var totals=[];
+  protos.forEach(function(p){
+    var dv=_doseVials(p);
+    var totalDoses=p.schedule.reduce(function(s,r){return s+r.d;},0);
+    var totalCost=totalDoses*dv.cost;
+    totals.push({name:p.name,cost:totalCost,drug:p.drug});
+    var schedHtml=p.schedule.map(function(r){
+      return '<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f5f5f8;">'+
+        '<span style="color:#666;">'+r.l+'</span>'+
+        '<span style="font-weight:700;color:#333;">'+r.d+' doses · '+_fmtBRL(r.d*dv.cost)+'</span>'+
+      '</div>';
+    }).join('');
+    var isISA=p.drug==='isa_iv';
+    var accent=isISA?'#6d28d9':'#1e40af';
+    var accentBg=isISA?'#ede9fe':'#dbeafe';
+    html+='<div style="background:#fff;border:1.5px solid '+accentBg+';border-radius:12px;margin-bottom:14px;overflow:hidden;">'+
+      '<div style="background:'+accentBg+';padding:10px 13px;display:flex;align-items:center;gap:8px;">'+
+        '<div style="flex:1;">'+
+          '<div style="font-size:14px;font-weight:800;color:'+accent+';">'+p.name+'</div>'+
+          '<div style="font-size:11px;color:#666;margin-top:1px;">'+p.subtitle+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:10px;color:#888;">por dose ('+dv.label+')</div>'+
+          '<div style="font-size:13px;font-weight:800;color:'+accent+';">'+_fmtBRL(dv.cost)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="padding:8px 13px 4px;">'+schedHtml+'</div>'+
+      '<div style="padding:8px 13px 10px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid '+accentBg+';margin-top:4px;">'+
+        '<span style="font-size:12px;color:#555;font-weight:700;">Total Ano 1 ('+totalDoses+' doses)</span>'+
+        '<span style="font-size:15px;font-weight:900;color:'+accent+';">'+_fmtBRL(totalCost)+'</span>'+
+      '</div>'+
+    '</div>';
+  });
+  // Comparativo
+  if(totals.length===2){
+    var a=totals[0],b=totals[1];
+    var diff=Math.abs(a.cost-b.cost);
+    var cheaper=a.cost<b.cost?a:b;
+    var pct=((diff/Math.max(a.cost,b.cost))*100).toFixed(1);
+    var maxC=Math.max(a.cost,b.cost);
+    html='<div style="background:#f8f8fc;border:1.5px solid #e5e7eb;border-radius:12px;margin-bottom:14px;padding:12px 13px;">'+
+      '<div style="font-size:11px;font-weight:800;color:#6d28d9;margin-bottom:8px;letter-spacing:.4px;">📊 COMPARATIVO ANO 1</div>'+
+      totals.map(function(t){
+        var isISA=t.drug==='isa_iv';
+        var bar=Math.round((t.cost/maxC)*100);
+        var col=isISA?'#6d28d9':'#1e40af';
+        return '<div style="margin-bottom:6px;">'+
+          '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">'+
+            '<span style="font-weight:700;color:'+col+';">'+t.name+'</span>'+
+            '<span style="font-weight:800;color:#333;">'+_fmtBRL(t.cost)+'</span>'+
+          '</div>'+
+          '<div style="background:#e5e7eb;border-radius:4px;height:8px;"><div style="width:'+bar+'%;background:'+col+';height:8px;border-radius:4px;"></div></div>'+
+        '</div>';
+      }).join('')+
+      '<div style="margin-top:8px;padding:8px 10px;background:'+(cheaper.drug==='isa_iv'?'#ede9fe':'#dbeafe')+';border-radius:8px;font-size:11px;font-weight:700;color:#333;">'+
+        cheaper.name+' é '+_fmtBRL(diff)+' mais barato ('+pct+'% de diferença)'+
+      '</div>'+
+    '</div>'+html;
+  }
+  document.getElementById('calcResults').innerHTML=html;
+}
 
 
 </script>
