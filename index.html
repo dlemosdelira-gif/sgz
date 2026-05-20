@@ -432,11 +432,11 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       </div>
       <div style="font-size:11px;font-weight:800;color:#6d28d9;margin-bottom:8px;letter-spacing:.5px;">⚙️ PARÂMETROS</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="75" min="40" max="200" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="12" min="0" max="30" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        <label style="font-size:11px;color:#555;font-weight:600;grid-column:1/-1;">Markup Reembolso Prestador (% sobre PF)<br><input id="cMarkup" type="number" value="0" min="-50" max="100" step="1" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #059669;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;color:#059669;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="70" min="40" max="200" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="26" min="0" max="30" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="6" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="6" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label id="cMarkupRow" style="display:none;font-size:11px;color:#555;font-weight:600;grid-column:1/-1;">Markup Reembolso Prestador (% sobre PF)<br><input id="cMarkup" type="number" value="0" min="-50" max="100" step="1" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #059669;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;color:#059669;"></label>
       </div>
       <div style="margin-top:10px;">
         <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:6px;letter-spacing:.5px;">PREÇOS PF SEM IMPOSTOS (editáveis)</div>
@@ -3135,7 +3135,18 @@ function _dosesPerYear(proto, year){
 function openCalcModal(){document.getElementById('calcOv').style.display='block';document.body.style.overflow='hidden';renderCalc();}
 function closeCalcModal(){document.getElementById('calcOv').style.display='none';document.body.style.overflow='';}
 function calcTab(i){_calcTabIdx=i;document.getElementById('calcT0').style.color=i===0?'#6d28d9':'#999';document.getElementById('calcT0').style.borderBottomColor=i===0?'#6d28d9':'transparent';document.getElementById('calcT1').style.color=i===1?'#6d28d9':'#999';document.getElementById('calcT1').style.borderBottomColor=i===1?'#6d28d9':'transparent';renderCalc();}
-function calcPersp(i){_calcPerspIdx=i;document.getElementById('cPerspP').style.background=i===0?'#6d28d9':'#e5e7eb';document.getElementById('cPerspP').style.color=i===0?'#fff':'#555';document.getElementById('cPerspPr').style.background=i===1?'#059669':'#e5e7eb';document.getElementById('cPerspPr').style.color=i===1?'#fff':'#555';renderCalc();}
+function calcPersp(i){
+  _calcPerspIdx=i;
+  document.getElementById('cPerspP').style.background=i===0?'#6d28d9':'#e5e7eb';
+  document.getElementById('cPerspP').style.color=i===0?'#fff':'#555';
+  document.getElementById('cPerspPr').style.background=i===1?'#059669':'#e5e7eb';
+  document.getElementById('cPerspPr').style.color=i===1?'#fff':'#555';
+  document.getElementById('cMarkupRow').style.display=i===1?'block':'none';
+  // Atualiza ICMS default conforme perspectiva
+  var icmsEl=document.getElementById('cIcms');
+  if(icmsEl&&(icmsEl.value==26||icmsEl.value==15)){icmsEl.value=i===0?26:15;}
+  renderCalc();
+}
 function calcYears(n){_calcYears=n;[1,2,3].forEach(function(y){var el=document.getElementById('cY'+y);if(el){el.style.background=y===n?'#6d28d9':'#e5e7eb';el.style.color=y===n?'#fff':'#555';}});renderCalc();}
 function _gv(id){var el=document.getElementById(id);return el?parseFloat(el.value)||0:0;}
 function _fmtBRL(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
