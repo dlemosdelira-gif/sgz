@@ -371,43 +371,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     </div>
   </div>
 
-  <!-- Calculadora de Custo Modal -->
-  <div id="calcOv" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:700;overflow-y:auto;">
-    <div style="background:#fff;min-height:100%;padding:0 0 40px 0;">
-      <div style="background:#6d28d9;color:#fff;padding:14px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
-        <span style="font-size:16px;font-weight:800;flex:1;">🧮 Calculadora de Custo</span>
-        <button onclick="closeCalcModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fechar</button>
-      </div>
-      <!-- Tabs TMO -->
-      <div style="display:flex;border-bottom:2px solid #f0f0f5;background:#fafafa;">
-        <button id="calcT0" onclick="calcTab(0)" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:transparent;color:#6d28d9;border-bottom:3px solid #6d28d9;cursor:pointer;">💊 Elegível TMO</button>
-        <button id="calcT1" onclick="calcTab(1)" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:transparent;color:#999;border-bottom:3px solid transparent;cursor:pointer;">🏥 Inelegível TMO</button>
-      </div>
-      <!-- Parâmetros -->
-      <div style="padding:12px 14px;background:#f8f8fc;border-bottom:1px solid #f0f0f5;">
-        <div style="font-size:11px;font-weight:800;color:#6d28d9;margin-bottom:10px;letter-spacing:.5px;">⚙️ PARÂMETROS</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="75" min="40" max="200" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-          <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="12" min="0" max="30" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-          <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-          <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        </div>
-        <div style="margin-top:10px;">
-          <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:6px;letter-spacing:.5px;">PREÇOS PF SEM IMPOSTOS (editáveis)</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <label style="font-size:10px;color:#555;font-weight:600;">ISA 100mg<br><input id="pISA100" type="number" value="2480.96" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-            <label style="font-size:10px;color:#555;font-weight:600;">ISA 500mg<br><input id="pISA500" type="number" value="12404.79" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-            <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 100mg<br><input id="pDARA100" type="number" value="1915.26" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-            <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 400mg<br><input id="pDARA400" type="number" value="7661.07" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-            <label style="font-size:10px;color:#555;font-weight:600;" style="grid-column:1/-1">DARA SC 1800mg<br><input id="pDARA1800" type="number" value="22979.41" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-          </div>
-        </div>
-      </div>
-      <!-- Resultados -->
-      <div id="calcResults" style="padding:12px 14px;"></div>
-    </div>
-  </div>
-
   <div class="pot-row">
     <button class="pc pcA" id="pcA" onclick="togglePot('A')">● A</button>
     <button class="pc pcB" id="pcB" onclick="togglePot('B')">● B</button>
@@ -434,6 +397,40 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <div class="stline" id="stline"></div>
   <div class="dlist" id="dlist"></div>
   <button class="fab" onclick="openDocModal(-1)">+</button>
+</div>
+
+<!-- Calculadora de Custo — fora de todas as pages para funcionar em qualquer aba -->
+<div id="calcOv" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:700;overflow-y:auto;">
+  <div style="background:#fff;min-height:100%;padding:0 0 60px 0;">
+    <div style="background:#6d28d9;color:#fff;padding:14px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
+      <span style="font-size:16px;font-weight:800;flex:1;">🧮 Calculadora de Custo</span>
+      <button onclick="closeCalcModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fechar</button>
+    </div>
+    <div style="display:flex;border-bottom:2px solid #f0f0f5;background:#fafafa;">
+      <button id="calcT0" onclick="calcTab(0)" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:transparent;color:#6d28d9;border-bottom:3px solid #6d28d9;cursor:pointer;">💊 Elegível TMO</button>
+      <button id="calcT1" onclick="calcTab(1)" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:transparent;color:#999;border-bottom:3px solid transparent;cursor:pointer;">🏥 Inelegível TMO</button>
+    </div>
+    <div style="padding:12px 14px;background:#f8f8fc;border-bottom:1px solid #f0f0f5;">
+      <div style="font-size:11px;font-weight:800;color:#6d28d9;margin-bottom:10px;letter-spacing:.5px;">⚙️ PARÂMETROS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="75" min="40" max="200" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="12" min="0" max="30" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="0" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:6px;letter-spacing:.5px;">PREÇOS PF SEM IMPOSTOS (editáveis)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label style="font-size:10px;color:#555;font-weight:600;">ISA 100mg<br><input id="pISA100" type="number" value="2480.96" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">ISA 500mg<br><input id="pISA500" type="number" value="12404.79" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 100mg<br><input id="pDARA100" type="number" value="1915.26" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 400mg<br><input id="pDARA400" type="number" value="7661.07" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">DARA SC 1800mg<br><input id="pDARA1800" type="number" value="22979.41" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+        </div>
+      </div>
+    </div>
+    <div id="calcResults" style="padding:12px 14px;"></div>
+  </div>
 </div>
 
 <div class="page" id="p1">
