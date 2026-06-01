@@ -434,6 +434,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="70" min="40" max="200" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
         <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="18" min="0" max="30" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">PIS/COFINS — ambos (%)<br><input id="cPisCofins" type="number" value="12" min="0" max="20" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
         <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="26" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
         <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="6" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
         <label id="cMarkupRow" style="display:none;font-size:11px;color:#555;font-weight:600;grid-column:1/-1;">Markup Reembolso Prestador (% sobre PF)<br><input id="cMarkup" type="number" value="0" min="-50" max="100" step="1" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #059669;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;color:#059669;"></label>
@@ -3157,7 +3158,9 @@ function _calcVialsISA(mg){
   if(n100*100>=500){n500++;n100=0;}
   var pf=n500*p500+n100*p100;
   var icms=_gv('cIcms')/100;
-  var pfFinal=icms>0?pf/(1-icms):pf;
+  var pc=_gv('cPisCofins')/100;
+  // PF sem imp → ÷(1-ICMS) → ×(1+PIS/COFINS) = preço aquisição
+  var pfFinal=pf/(icms<1?(1-icms):1)*(1+pc);
   var desc=_gv('cDescISA')/100;
   var reemb=pf*(1+_gv('cMarkup')/100);
   return {pf:pf,pfFinal:pfFinal,cost:pfFinal*(1-desc),reemb:reemb,label:n500+'×500mg'+(n100?'+'+n100+'×100mg':''),mg:mg};
@@ -3166,15 +3169,20 @@ function _calcVialsDaraIV(mg){
   var p400=_gv('pDARA400'),p100=_gv('pDARA100');
   var n400=Math.floor(mg/400),rem=mg%400,n100=rem>0?Math.ceil(rem/100):0;
   var pf=n400*p400+n100*p100;
+  var pc=_gv('cPisCofins')/100;
+  // Dalinvi: isento de ICMS, mas incide PIS/COFINS
+  var pfFinal=pf*(1+pc);
   var desc=_gv('cDescDARA')/100;
   var reemb=pf*(1+_gv('cMarkup')/100);
-  return {pf:pf,pfFinal:pf,cost:pf*(1-desc),reemb:reemb,label:n400+'×400mg'+(n100?'+'+n100+'×100mg':''),mg:mg};
+  return {pf:pf,pfFinal:pfFinal,cost:pfFinal*(1-desc),reemb:reemb,label:n400+'×400mg'+(n100?'+'+n100+'×100mg':''),mg:mg};
 }
 function _calcVialsDaraSC(){
   var p1800=_gv('pDARA1800');
+  var pc=_gv('cPisCofins')/100;
+  var pfFinal=p1800*(1+pc);
   var desc=_gv('cDescDARA')/100;
   var reemb=p1800*(1+_gv('cMarkup')/100);
-  return {pf:p1800,pfFinal:p1800,cost:p1800*(1-desc),reemb:reemb,label:'1×1800mg',mg:1800};
+  return {pf:p1800,pfFinal:pfFinal,cost:pfFinal*(1-desc),reemb:reemb,label:'1×1800mg',mg:1800};
 }
 function _doseVials(proto){
   var peso=_gv('cPeso');
