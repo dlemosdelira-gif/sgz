@@ -833,6 +833,13 @@ function initListener(){
         if(!cExtra[ck])cExtra[ck]={};
         cExtra[ck].auditData=auditStore[ck];
       }
+      // Mescla contasCustom (contas adicionadas via CSV/manual) em CONTAS_DEF
+      var custom=fbDecodeCExtra(data.contasCustom||{});
+      for(var cn in custom){
+        var already=false;
+        for(var _i=0;_i<CONTAS_DEF.length;_i++){if(CONTAS_DEF[_i].conta===cn){already=true;break;}}
+        if(!already)CONTAS_DEF.push(custom[cn]);
+      }
     }
     // SE data===null: banco vazio ou auth ainda pendente.
     // NÃO gravamos nada — apenas usamos localStorage como fallback.
@@ -1871,6 +1878,7 @@ function saveNewConta(){
   CONTAS_DEF.push({conta:nome,cidade:cidade,scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,scoreTotal:tam+mom+pot+esp,mat:0,ytd:0,prioridade:prio});
   if(!cExtra[nome])cExtra[nome]={};
   cExtra[nome].auditData={scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,mat:0,ytd:0};
+  saveContasCustom();
   persist();
   var auditPayload={};
   for(var ak in cExtra){if(cExtra[ak]&&cExtra[ak].auditData)auditPayload[fbEncodeKey(ak)]=cExtra[ak].auditData;}
@@ -1921,6 +1929,16 @@ function fuzzyMatchConta(contaRaw){
 }
 
 function parsePtNum(s){return parseFloat(String(s||'').replace(/\./g,'').replace(',','.'));}
+
+function saveContasCustom(){
+  var HARDCODED=20;
+  var payload={};
+  for(var i=HARDCODED;i<CONTAS_DEF.length;i++){
+    var c=CONTAS_DEF[i];
+    payload[fbEncodeKey(c.conta)]=c;
+  }
+  dbRef.child('contasCustom').set(payload).catch(function(e){console.error('contasCustom:',e);});
+}
 
 function processCsvAuditWide(lines,brandRow,subRow){
   // Constrói map coluna→{marca,metric} a partir das duas primeiras linhas
@@ -2192,6 +2210,7 @@ function applyCsvAudit(){
     dbRef.child('auditStore').set(auditPayload)
       .then(function(){console.log('auditStore salvo com sucesso');})
       .catch(function(e){console.error('auditStore save error:',e);alert('⚠️ Erro ao salvar auditStore:\n'+(e&&e.message?e.message:e));});
+    saveContasCustom();
     closeCsvAuditModal();
     renderContas();
     alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!');
