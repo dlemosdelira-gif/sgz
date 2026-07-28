@@ -833,12 +833,17 @@ function initListener(){
         if(!cExtra[ck])cExtra[ck]={};
         cExtra[ck].auditData=auditStore[ck];
       }
-      // Mescla contasCustom (contas adicionadas via CSV/manual) em CONTAS_DEF
-      var custom=fbDecodeCExtra(data.contasCustom||{});
-      for(var cn in custom){
-        var already=false;
-        for(var _i=0;_i<CONTAS_DEF.length;_i++){if(CONTAS_DEF[_i].conta===cn){already=true;break;}}
-        if(!already)CONTAS_DEF.push(custom[cn]);
+      // Restaura CONTAS_DEF completo do Firebase (fonte única de verdade)
+      if(Array.isArray(data.contasDefFull)&&data.contasDefFull.length>0){
+        CONTAS_DEF=data.contasDefFull.filter(function(c){return c&&c.conta;});
+      } else if(data.contasCustom){
+        // Compat: migra formato antigo contasCustom → contasDefFull
+        var custom=fbDecodeCExtra(data.contasCustom);
+        for(var cn in custom){
+          var already=false;
+          for(var _i=0;_i<CONTAS_DEF.length;_i++){if(CONTAS_DEF[_i].conta===cn){already=true;break;}}
+          if(!already)CONTAS_DEF.push(custom[cn]);
+        }
       }
     }
     // SE data===null: banco vazio ou auth ainda pendente.
@@ -1931,13 +1936,20 @@ function fuzzyMatchConta(contaRaw){
 function parsePtNum(s){return parseFloat(String(s||'').replace(/\./g,'').replace(',','.'));}
 
 function saveContasCustom(){
-  var HARDCODED=20;
-  var payload={};
-  for(var i=HARDCODED;i<CONTAS_DEF.length;i++){
-    var c=CONTAS_DEF[i];
-    payload[fbEncodeKey(c.conta)]=c;
-  }
-  dbRef.child('contasCustom').set(payload).catch(function(e){console.error('contasCustom:',e);});
+  // Serializa CONTAS_DEF inteiro como array — fonte única de verdade
+  var clean=CONTAS_DEF.filter(function(c){return c&&c.conta;}).map(function(c){
+    return {
+      conta:c.conta,
+      cidade:c.cidade||'',
+      scoreTam:c.scoreTam||1,scoreMom:c.scoreMom||1,scorePot:c.scorePot||1,scoreEsp:c.scoreEsp||1,
+      scoreTotal:c.scoreTotal||((c.scoreTam||1)+(c.scoreMom||1)+(c.scorePot||1)+(c.scoreEsp||1)),
+      mat:c.mat||0,ytd:c.ytd||0,
+      prioridade:c.prioridade||'Monitoramento'
+    };
+  });
+  return dbRef.child('contasDefFull').set(clean)
+    .then(function(){console.log('contasDefFull salvo:',clean.length,'contas');})
+    .catch(function(e){console.error('contasDefFull ERRO:',e);alert('⚠️ Erro ao salvar lista de contas:\n'+(e&&e.message?e.message:e));});
 }
 
 function processCsvAuditWide(lines,brandRow,subRow){
@@ -1991,7 +2003,7 @@ function processCsvAuditWide(lines,brandRow,subRow){
   csvNewContasPending=notFound;
   var resultEl=document.getElementById('csvResult');
   resultEl.style.display='block';
-  resultEl.innerHTML='<b>'+found+' de '+parsed.length+' contas identificadas (formato OncoTracking wide)</b><br>'+results.join('<br>');
+  resultEl.innerHTML='<b>📊 Formato OncoTracking wide detectado — '+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
   document.getElementById('csvApplyBtn').style.display=(found>0||notFound.length>0)?'':'none';
 
   var newEl=document.getElementById('csvNewContas');
