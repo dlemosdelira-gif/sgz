@@ -1922,11 +1922,92 @@ function fuzzyMatchConta(contaRaw){
 
 function parsePtNum(s){return parseFloat(String(s||'').replace(/\./g,'').replace(',','.'));}
 
+function processCsvAuditWide(lines,brandRow,subRow){
+  // Constrói map coluna→{marca,metric} a partir das duas primeiras linhas
+  var colMap=[]; var lastBrand='';
+  for(var c=0;c<Math.max(brandRow.length,subRow.length);c++){
+    var b=(brandRow[c]||'').toUpperCase();
+    if(b.indexOf('SARCLISA')>=0)lastBrand='sarclisa';
+    else if(b.indexOf('DALINVI')>=0)lastBrand='dalinvi';
+    else if(b.indexOf('DARZALEX')>=0)lastBrand='darzalex';
+    else if(b&&/razão|razao|social|conta/i.test(b))lastBrand='';
+    var s=(subRow[c]||'').toLowerCase();
+    var metric=null;
+    if(/ytd/.test(s)&&/ant/.test(s))metric='ytdAnt';
+    else if(/ytd/.test(s)&&/atu/.test(s))metric='ytdAtu';
+    else if(/mat/.test(s)&&/ant/.test(s))metric='matAnt';
+    else if(/mat/.test(s)&&/atu/.test(s))metric='matAtu';
+    colMap.push({brand:lastBrand,metric:metric});
+  }
+  // Coluna razão social = primeira com sub-header contendo "razão"/"conta"/"social" ou coluna 0
+  var iRazao=0;
+  for(var c2=0;c2<subRow.length;c2++){if(/razão|razao|social|conta/i.test(subRow[c2]||'')){iRazao=c2;break;}}
+
+  var byRazao={};
+  for(var li=2;li<lines.length;li++){
+    var cols=parseCsvLine(lines[li]);
+    var razao=(cols[iRazao]||'').trim();
+    if(!razao||/^total$/i.test(razao))continue;
+    if(!byRazao[razao])byRazao[razao]={razao:razao,products:{}};
+    for(var k=0;k<colMap.length;k++){
+      var m=colMap[k];if(!m.brand||!m.metric)continue;
+      var v=parsePtNum(cols[k]);if(isNaN(v))continue;
+      if(!byRazao[razao].products[m.brand])byRazao[razao].products[m.brand]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
+      byRazao[razao].products[m.brand][m.metric]=(byRazao[razao].products[m.brand][m.metric]||0)+v;
+    }
+  }
+
+  var results=[],parsed=[];
+  for(var razao in byRazao){
+    var entry=byRazao[razao];
+    var matchNome=fuzzyMatchConta(razao);
+    var row={contaRaw:razao,conta:matchNome,isNewFormat:true,products:entry.products};
+    if(entry.products.sarclisa){row.mat=Math.round(entry.products.sarclisa.matAtu);row.ytd=Math.round(entry.products.sarclisa.ytdAtu);}
+    parsed.push(row);
+    results.push(matchNome?'<span class="ok">✓ '+esc(razao)+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+esc(razao)+'"</span>');
+  }
+
+  csvParsedData=parsed;
+  var found=parsed.filter(function(r){return r.conta;}).length;
+  var notFound=parsed.filter(function(r){return !r.conta;});
+  csvNewContasPending=notFound;
+  var resultEl=document.getElementById('csvResult');
+  resultEl.style.display='block';
+  resultEl.innerHTML='<b>'+found+' de '+parsed.length+' contas identificadas (formato OncoTracking wide)</b><br>'+results.join('<br>');
+  document.getElementById('csvApplyBtn').style.display=(found>0||notFound.length>0)?'':'none';
+
+  var newEl=document.getElementById('csvNewContas');
+  if(newEl&&notFound.length>0){
+    var h='<div style="margin-top:8px;padding:10px 12px;background:#ede9fe;border-radius:10px;">'+
+      '<div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:8px;">🆕 '+notFound.length+' conta(s) nova(s) — incluir?</div>';
+    for(var ni=0;ni<notFound.length;ni++){
+      var nr=notFound[ni];
+      h+='<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 0;border-bottom:1px solid #ddd8fe;font-size:13px;">'+
+        '<input type="checkbox" data-idx="'+ni+'" checked style="width:16px;height:16px;accent-color:#6d28d9;">'+
+        '<span><b>'+esc(nr.contaRaw)+'</b>'+(nr.mat!=null?' · Sar MAT '+nr.mat:'')+' <span style="font-size:10px;color:#888;">(prioridade: Monitoramento)</span></span>'+
+      '</label>';
+    }
+    h+='</div>';
+    newEl.innerHTML=h;newEl.style.display='block';
+  } else if(newEl){newEl.innerHTML='';newEl.style.display='none';}
+}
+
 function processCsvAudit(){
   var raw=document.getElementById('csvPaste').value.trim();
   if(!raw){alert('Cole os dados primeiro.');return;}
   var lines=raw.split(/\r?\n/).filter(function(l){return l.trim();});
   if(lines.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
+
+  // Detecta formato wide OncoTracking: linha 1 tem banner de marca (DALINVI/SARCLISA) repetido; linha 2 tem R3M/YTD/MAT ANT/ATU
+  var brandRow=parseCsvLine(lines[0]);
+  var hasBrandBanner=brandRow.some(function(c){var u=(c||'').toUpperCase();return u.indexOf('DALINVI')>=0||u.indexOf('SARCLISA')>=0||u.indexOf('DARZALEX')>=0;});
+  var subHeaderRow=lines.length>1?parseCsvLine(lines[1]):[];
+  var hasSubHeader=subHeaderRow.some(function(c){return /ytd|mat/i.test(c||'')&&/(ant|atu)/i.test(c||'');});
+
+  if(hasBrandBanner&&hasSubHeader){
+    processCsvAuditWide(lines,brandRow,subHeaderRow);
+    return;
+  }
 
   var header=parseCsvLine(lines[0]).map(function(h){return h.toLowerCase().replace(/[^a-záàãâéêíóõôúç.\s]/gi,'').trim();});
   var iMarca=header.findIndex(function(h){return h==='marca'||h.indexOf('marca')===0;});
