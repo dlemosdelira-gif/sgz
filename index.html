@@ -334,7 +334,6 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <button class="tab-btn" id="t1" onclick="goTab(1)">🏆 Contas</button>
   <button class="tab-btn" id="t2" onclick="goTab(2)">🎯 Radar</button>
   <button class="tab-btn" id="t4" onclick="goTab(4)">💰 Budget</button>
-  <button class="tab-btn" id="t3" onclick="goTab(3)">📊 Insights</button>
 </div>
 
 <div class="sync-bar">
@@ -461,6 +460,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="ctrl-btn" onclick="openCityModal()">🗺️ Cidades</button>
         <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Auditoria</button>
+        <button class="ctrl-btn" onclick="openOncoModal()">📡 OncoTracking</button>
         <button class="ctrl-btn" onclick="openCalcModal()">🧮 Calc</button>
         <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova</button>
       </div>
@@ -489,7 +489,16 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 </div>
 
 <div class="page" id="p2">
-  <div class="pwrap"><div id="radarDiv"></div></div>
+  <div class="pwrap">
+    <div id="radarDiv"></div>
+    <h2 style="margin-top:30px;margin-bottom:12px">📊 Insights</h2>
+    <div id="insDiv"></div>
+    <div class="phd" style="margin-top:30px;">
+      <h2>📄 Materiais</h2>
+      <button class="hdr-btn" style="background:#6d28d9;color:#fff" onclick="openMatModal(-1)">+ Novo</button>
+    </div>
+    <div id="matList"></div>
+  </div>
 </div>
 
 <div class="ov" id="cityOv">
@@ -499,16 +508,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   </div>
 </div>
 
-<div class="page" id="p3">
-  <div class="pwrap">
-    <h2 style="margin-bottom:12px">📊 Insights</h2>
-    <div id="insDiv"></div>
-    
-    <div class="phd" style="margin-top:30px;">
-      <h2>📄 Materiais</h2>
-      <button class="hdr-btn" style="background:#6d28d9;color:#fff" onclick="openMatModal(-1)">+ Novo</button>
-    </div>
-    <div id="matList"></div>
+<div class="ov" id="oncoOv">
+  <div class="modal" style="max-height:88vh;max-width:920px;">
+    <div class="mhd"><h2>📡 OncoTracking · Análise de Mercado</h2><button onclick="closeOncoModal()">×</button></div>
+    <div id="oncoBody" style="padding:12px 14px;"></div>
   </div>
 </div>
 
@@ -833,6 +836,8 @@ function initListener(){
         if(!cExtra[ck])cExtra[ck]={};
         cExtra[ck].auditData=auditStore[ck];
       }
+      // Snapshot do último import para o diff do OncoTracking
+      if(data.lastAuditSnapshot)_lastAuditSnapshot=data.lastAuditSnapshot;
       // Restaura CONTAS_DEF completo do Firebase (fonte única de verdade)
       if(Array.isArray(data.contasDefFull)&&data.contasDefFull.length>0){
         CONTAS_DEF=data.contasDefFull.filter(function(c){return c&&c.conta;});
@@ -861,7 +866,7 @@ function initListener(){
     renderDocs();
     if(document.getElementById('p1').classList.contains('on'))renderContas();
     if(document.getElementById('p2').classList.contains('on'))renderCities();
-    if(document.getElementById('p3').classList.contains('on')){ renderInsights(); renderMats(); }
+    if(document.getElementById('p2').classList.contains('on')){ renderInsights(); renderMats(); }
     if(document.getElementById('p4').classList.contains('on'))renderBudget();
     restoreOpenIds(openDc);
     restoreOpenIds(openCc);
@@ -1010,8 +1015,7 @@ function goTab(n){
     if(pg)pg.classList.toggle('on',i===n);
   }
   if(n===1)renderContas();
-  if(n===2)renderRadar();
-  if(n===3){ renderInsights(); renderMats(); }
+  if(n===2){ renderRadar(); renderInsights(); renderMats(); }
   if(n===4)renderBudget();
 }
 
@@ -1030,7 +1034,7 @@ function togglePot(p){
   
   // Recarrega as duas telas
   renderDocs();
-  if(document.getElementById('p3').classList.contains('on')) renderInsights();
+  if(document.getElementById('p2').classList.contains('on')) renderInsights();
 }
 
 // ── Debounce para busca de médicos ──
@@ -1859,6 +1863,165 @@ function openCsvAuditModal(){
 }
 function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.remove('on');}
 
+// ══════════ ONCOTRACKING · ANÁLISE DE MERCADO ══════════
+var _lastAuditSnapshot=null; // populado no boot a partir de data.lastAuditSnapshot
+function openOncoModal(){document.getElementById('oncoOv').classList.add('on');renderOncoTracking();}
+function closeOncoModal(){document.getElementById('oncoOv').classList.remove('on');}
+function _pct(a,b){if(!b)return null;return (a-b)/b*100;}
+function _fmtPct(p){if(p==null||!isFinite(p))return '—';var s=p>=0?'+':'';return s+p.toFixed(0)+'%';}
+function _fmtNum(n){return Math.round(n||0).toLocaleString('pt-BR');}
+function _clrPct(p){if(p==null)return '#888';if(p>=20)return '#059669';if(p>0)return '#0891b2';if(p<=-20)return '#dc2626';if(p<0)return '#ea580c';return '#888';}
+function _contaWithAudit(){
+  var out=[];
+  for(var i=0;i<CONTAS_DEF.length;i++){
+    var c=CONTAS_DEF[i];var ext=cExtra[c.conta]||{};var ad=ext.auditData||{};
+    if(!ad.sarclisa&&!ad.dalinvi)continue;
+    var s=ad.sarclisa||{},d=ad.dalinvi||{};
+    out.push({
+      conta:c.conta,
+      sarMat:s.matAtu||0,sarMatAnt:s.matAnt||0,sarYtd:s.ytdAtu||0,sarYtdAnt:s.ytdAnt||0,
+      dalMat:d.matAtu||0,dalMatAnt:d.matAnt||0,dalYtd:d.ytdAtu||0,dalYtdAnt:d.ytdAnt||0
+    });
+  }
+  return out;
+}
+function _classifyConta(c){
+  var sarPct=_pct(c.sarMat,c.sarMatAnt);
+  var dalPct=_pct(c.dalMat,c.dalMatAnt);
+  var sarYtdPct=_pct(c.sarYtd,c.sarYtdAnt);
+  var total=c.sarMat+c.dalMat;
+  var tipos=[];
+  if(c.dalMat>=100&&c.sarMat===0)tipos.push('virgem');
+  if(sarPct!=null&&sarPct>=30)tipos.push('decolagem');
+  if(sarPct!=null&&sarPct>0&&sarYtdPct!=null&&sarYtdPct<=0&&c.sarMat>10)tipos.push('parou');
+  if(sarPct!=null&&sarPct<0&&dalPct!=null&&dalPct>0&&c.sarMat>0)tipos.push('contraataque');
+  if(dalPct!=null&&dalPct<=-20&&c.dalMat>0)tipos.push('dalqueda');
+  if(!tipos.length&&total<20)tipos.push('observacao');
+  return {tipos:tipos,sarPct:sarPct,dalPct:dalPct,total:total,sarYtdPct:sarYtdPct};
+}
+function renderOncoTracking(){
+  var contas=_contaWithAudit();
+  if(!contas.length){document.getElementById('oncoBody').innerHTML='<div style="padding:20px;text-align:center;color:#888;">Importe o CSV do OncoTracking na aba <b>Auditoria</b> para ver a análise.</div>';return;}
+  var totalSar=0,totalDal=0,totalSarAnt=0,totalDalAnt=0;
+  var buckets={virgem:[],decolagem:[],parou:[],contraataque:[],dalqueda:[],observacao:[]};
+  var enriched=contas.map(function(c){
+    var m=_classifyConta(c);c.meta=m;
+    totalSar+=c.sarMat;totalDal+=c.dalMat;totalSarAnt+=c.sarMatAnt;totalDalAnt+=c.dalMatAnt;
+    m.tipos.forEach(function(t){buckets[t].push(c);});
+    return c;
+  });
+  var totalMkt=totalSar+totalDal;
+  var share=totalMkt?totalSar/totalMkt*100:0;
+  var shareAnt=(totalSarAnt+totalDalAnt)?totalSarAnt/(totalSarAnt+totalDalAnt)*100:0;
+  var shareDelta=share-shareAnt;
+  var evolSar=_pct(totalSar,totalSarAnt);
+  var evolDal=_pct(totalDal,totalDalAnt);
+  var gap=(evolSar||0)-(evolDal||0);
+
+  var kpiCard=function(lbl,val,sub,clr){
+    return '<div style="background:#f8f7ff;border:1px solid #ede9fe;border-radius:12px;padding:10px 12px;">'+
+      '<div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">'+lbl+'</div>'+
+      '<div style="font-size:22px;font-weight:800;color:'+(clr||'#1c1c1e')+';margin-top:2px;">'+val+'</div>'+
+      (sub?'<div style="font-size:11px;color:#666;margin-top:2px;">'+sub+'</div>':'')+
+    '</div>';
+  };
+  var kpis='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
+    kpiCard('Mercado total (MAT)',_fmtNum(totalMkt),_fmtNum(totalSar)+' Sar · '+_fmtNum(totalDal)+' Dal')+
+    kpiCard('Share Sarclisa',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior',_clrPct(shareDelta*3))+
+    kpiCard('Evol. Sarclisa MAT',_fmtPct(evolSar),null,_clrPct(evolSar))+
+    kpiCard('Evol. Dalinvi MAT',_fmtPct(evolDal),null,_clrPct(evolDal))+
+    kpiCard('Growth gap',_fmtPct(gap),'Sar − Dal',_clrPct(gap))+
+    kpiCard('Contas ativas',contas.length,'com dados no CSV')+
+  '</div>';
+
+  var archDef=[
+    {k:'decolagem',ico:'🚀',t:'Sarclisa em decolagem',d:'MAT Sar +30% ou mais — reforçar e virar case'},
+    {k:'virgem',ico:'🎯',t:'Alvos virgens',d:'Dal MAT ≥ 100 e Sar zerado — prioridade de novo prescritor'},
+    {k:'parou',ico:'💤',t:'Sarclisa parou',d:'MAT positivo mas YTD estagnado — ligar antes de reverter'},
+    {k:'contraataque',ico:'⚔️',t:'Contra-ataque',d:'Sar caindo E Dal subindo — reforço competitivo'},
+    {k:'dalqueda',ico:'📉',t:'Dalinvi em queda',d:'Dal MAT −20% ou mais — janela de troca'},
+    {k:'observacao',ico:'⚠️',t:'Sob observação',d:'Volume total < 20 — manter monitoramento'}
+  ];
+  var contaRow=function(c){
+    var m=c.meta;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #f0edff;">'+
+      '<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:13px;color:#1c1c1e;">'+esc(c.conta)+'</div>'+
+      '<div style="font-size:11px;color:#666;">Sar '+_fmtNum(c.sarMat)+' · Dal '+_fmtNum(c.dalMat)+' · Total '+_fmtNum(m.total)+'</div></div>'+
+      '<div style="text-align:right;font-size:11px;line-height:1.3;">'+
+        '<div style="color:'+_clrPct(m.sarPct)+';font-weight:700;">Sar '+_fmtPct(m.sarPct)+'</div>'+
+        '<div style="color:'+_clrPct(m.dalPct)+';">Dal '+_fmtPct(m.dalPct)+'</div>'+
+      '</div>'+
+    '</div>';
+  };
+  var arqHtml='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:14px 0 8px;letter-spacing:.5px;">🗂️ ARQUÉTIPOS DE CONTA</div>';
+  archDef.forEach(function(a){
+    var list=buckets[a.k].slice().sort(function(x,y){return y.meta.total-x.meta.total;});
+    arqHtml+='<details '+(a.k==='decolagem'||a.k==='virgem'?'open':'')+' style="background:#fff;border:1px solid #ede9fe;border-radius:10px;margin-bottom:8px;">'+
+      '<summary style="padding:10px 12px;cursor:pointer;font-weight:700;font-size:13px;color:#1c1c1e;list-style:none;display:flex;align-items:center;gap:8px;">'+
+        '<span style="font-size:18px;">'+a.ico+'</span>'+
+        '<span style="flex:1;">'+a.t+' <span style="color:#888;font-weight:500;">· '+list.length+'</span></span>'+
+        '<span style="font-size:10px;color:#888;">▼</span>'+
+      '</summary>'+
+      '<div style="padding:0 4px 4px;">'+
+        '<div style="font-size:11px;color:#888;padding:0 10px 6px;">'+a.d+'</div>'+
+        (list.length?list.map(contaRow).join(''):'<div style="padding:12px;text-align:center;color:#aaa;font-size:12px;">Nenhuma conta neste arquétipo</div>')+
+      '</div>'+
+    '</details>';
+  });
+
+  // Rankings
+  var upSar=enriched.filter(function(c){return c.meta.sarPct!=null&&c.sarMat>=10;}).sort(function(a,b){return b.meta.sarPct-a.meta.sarPct;}).slice(0,10);
+  var downSar=enriched.filter(function(c){return c.meta.sarPct!=null&&c.sarMatAnt>=10;}).sort(function(a,b){return a.meta.sarPct-b.meta.sarPct;}).slice(0,10);
+  var rankHtml=function(title,list,ico){
+    return '<div style="background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;">'+
+      '<div style="font-weight:700;font-size:13px;margin-bottom:8px;">'+ico+' '+title+'</div>'+
+      (list.length?list.map(function(c,i){
+        return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0edff;">'+
+          '<span style="color:#666;">#'+(i+1)+' '+esc(c.conta)+'</span>'+
+          '<span style="color:'+_clrPct(c.meta.sarPct)+';font-weight:700;">'+_fmtPct(c.meta.sarPct)+' · Sar '+_fmtNum(c.sarMat)+'</span>'+
+        '</div>';
+      }).join(''):'<div style="color:#aaa;font-size:12px;">Sem dados suficientes</div>')+
+    '</div>';
+  };
+  var rankBlock='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">📈 RANKING SARCLISA</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+      rankHtml('Contas em decolagem',upSar,'🚀')+
+      rankHtml('Contas em queda',downSar,'📉')+
+    '</div>';
+
+  // Diff vs último snapshot
+  var diffHtml='';
+  if(_lastAuditSnapshot&&_lastAuditSnapshot.contas){
+    var deltas=[];
+    contas.forEach(function(c){
+      var prev=_lastAuditSnapshot.contas[c.conta];
+      if(!prev)return;
+      var dSar=c.sarMat-(prev.sarMat||0);
+      var dDal=c.dalMat-(prev.dalMat||0);
+      if(dSar||dDal)deltas.push({conta:c.conta,dSar:dSar,dDal:dDal,sarMat:c.sarMat,dalMat:c.dalMat});
+    });
+    deltas.sort(function(a,b){return Math.abs(b.dSar)-Math.abs(a.dSar);});
+    var top=deltas.slice(0,15);
+    var since=_lastAuditSnapshot.ts?new Date(_lastAuditSnapshot.ts).toLocaleDateString('pt-BR'):'último import';
+    diffHtml='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">🔀 O QUE MUDOU DESDE '+since.toUpperCase()+'</div>'+
+      '<div style="background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:8px 12px;">'+
+      (top.length?top.map(function(d){
+        var sClr=d.dSar>0?'#059669':d.dSar<0?'#dc2626':'#888';
+        var dClr=d.dDal>0?'#0891b2':d.dDal<0?'#ea580c':'#888';
+        return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f0edff;">'+
+          '<span style="flex:1;min-width:0;color:#333;font-weight:600;">'+esc(d.conta)+'</span>'+
+          '<span style="color:'+sClr+';font-weight:700;min-width:70px;text-align:right;">Sar '+(d.dSar>=0?'+':'')+d.dSar+'</span>'+
+          '<span style="color:'+dClr+';font-weight:700;min-width:70px;text-align:right;">Dal '+(d.dDal>=0?'+':'')+d.dDal+'</span>'+
+        '</div>';
+      }).join(''):'<div style="color:#aaa;font-size:12px;padding:6px;">Nenhuma variação relevante</div>')+
+      '</div>';
+  } else {
+    diffHtml='<div style="margin-top:18px;padding:10px 12px;background:#f8f7ff;border-radius:10px;font-size:11px;color:#888;">💡 Um snapshot foi salvo. Da próxima vez que você importar um CSV, esta seção mostrará automaticamente o que mudou.</div>';
+  }
+
+  document.getElementById('oncoBody').innerHTML=kpis+arqHtml+rankBlock+diffHtml;
+}
+
 function openNewContaModal(){
   document.getElementById('nc_nome').value='';
   document.getElementById('nc_cidade').value='';
@@ -2159,6 +2322,22 @@ function processCsvAudit(){
 function applyCsvAudit(){
   try{
     if(!csvParsedData||!csvParsedData.length){alert('⚠️ Nenhum dado para aplicar. Cole o CSV e clique em "Processar" primeiro.');return;}
+    // Snapshot ANTES de sobrescrever — usado no diff do OncoTracking
+    var snap={ts:new Date().toISOString(),contas:{}};
+    for(var _sk in cExtra){
+      var _ad=cExtra[_sk]&&cExtra[_sk].auditData;
+      if(!_ad||(!_ad.sarclisa&&!_ad.dalinvi))continue;
+      snap.contas[_sk]={
+        sarMat:(_ad.sarclisa&&_ad.sarclisa.matAtu)||0,
+        dalMat:(_ad.dalinvi&&_ad.dalinvi.matAtu)||0,
+        sarYtd:(_ad.sarclisa&&_ad.sarclisa.ytdAtu)||0,
+        dalYtd:(_ad.dalinvi&&_ad.dalinvi.ytdAtu)||0
+      };
+    }
+    if(Object.keys(snap.contas).length){
+      _lastAuditSnapshot=snap;
+      dbRef.child('lastAuditSnapshot').set(snap).catch(function(e){console.error('snapshot:',e);});
+    }
     var updated=0;
 
   // 1. Atualiza contas já conhecidas
