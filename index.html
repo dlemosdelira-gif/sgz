@@ -431,21 +431,21 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       </div>
       <div style="font-size:11px;font-weight:800;color:#6d28d9;margin-bottom:8px;letter-spacing:.5px;">⚙️ PARÂMETROS</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="70" min="40" max="200" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="18" min="0" max="30" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Peso (kg)<br><input id="cPeso" type="number" value="70" min="40" max="200" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">ICMS Sarclisa (%)<br><input id="cIcms" type="number" value="18" min="0" max="30" step=".5" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
         <input id="cPisCofins" type="hidden" value="0">
-        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="26" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="6" min="0" max="80" step=".5" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
-        <label id="cMarkupRow" style="display:none;font-size:11px;color:#555;font-weight:600;grid-column:1/-1;">Markup Reembolso Prestador (% sobre PF)<br><input id="cMarkup" type="number" value="0" min="-50" max="100" step="1" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #059669;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;color:#059669;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Sarclisa (%)<br><input id="cDescISA" type="number" value="26" min="0" max="80" step=".5" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label style="font-size:11px;color:#555;font-weight:600;">Desconto Dalinvi (%)<br><input id="cDescDARA" type="number" value="6" min="0" max="80" step=".5" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;"></label>
+        <label id="cMarkupRow" style="display:none;font-size:11px;color:#555;font-weight:600;grid-column:1/-1;">Markup Reembolso Prestador (% sobre PF)<br><input id="cMarkup" type="number" value="0" min="-50" max="100" step="1" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:7px 8px;border:1.5px solid #059669;border-radius:8px;font-size:14px;font-weight:700;margin-top:3px;outline:none;color:#059669;"></label>
       </div>
       <div style="margin-top:10px;">
         <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:6px;letter-spacing:.5px;">PREÇOS PF 0% CMED (editáveis)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          <label style="font-size:10px;color:#555;font-weight:600;">ISA 100mg<br><input id="pISA100" type="number" value="2778.68" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-          <label style="font-size:10px;color:#555;font-weight:600;">ISA 500mg<br><input id="pISA500" type="number" value="13893.37" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-          <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 100mg<br><input id="pDARA100" type="number" value="2145.09" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-          <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 400mg<br><input id="pDARA400" type="number" value="8580.40" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
-          <label style="font-size:10px;color:#555;font-weight:600;">DARA SC 1800mg<br><input id="pDARA1800" type="number" value="25736.94" oninput="renderCalc()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">ISA 100mg <span id="pISA100_icms" style="color:#6d28d9;font-weight:700;"></span><br><input id="pISA100" type="number" value="2778.68" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">ISA 500mg <span id="pISA500_icms" style="color:#6d28d9;font-weight:700;"></span><br><input id="pISA500" type="number" value="13893.37" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 100mg<br><input id="pDARA100" type="number" value="2145.09" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">DARA IV 400mg<br><input id="pDARA400" type="number" value="8580.40" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
+          <label style="font-size:10px;color:#555;font-weight:600;">DARA SC 1800mg<br><input id="pDARA1800" type="number" value="25736.94" oninput="renderCalc();saveCalcConfig()" style="width:100%;box-sizing:border-box;padding:6px 7px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;margin-top:2px;outline:none;"></label>
         </div>
       </div>
     </div>
@@ -836,6 +836,8 @@ function initListener(){
         if(!cExtra[ck])cExtra[ck]={};
         cExtra[ck].auditData=auditStore[ck];
       }
+      // Config da calculadora (preços editáveis + parâmetros)
+      if(data.calcConfig)applyCalcConfig(data.calcConfig);
       // MAT Brasil de referência (input manual — usado para calcular Share BR)
       if(data.matBR&&typeof data.matBR==='object')_matBR={sar:(typeof data.matBR.sar==='number'?data.matBR.sar:null),dal:(typeof data.matBR.dal==='number'?data.matBR.dal:null)};
       // Snapshot do último import para o diff do OncoTracking
@@ -3481,6 +3483,25 @@ function _dosesPerYear(proto, year){
 }
 
 function openCalcModal(){document.getElementById('calcOv').style.display='block';document.body.style.overflow='hidden';renderCalc();}
+
+var _calcConfigLoaded=false;
+var _calcSaveTimer=null;
+function _calcFields(){return ['cPeso','cIcms','cDescISA','cDescDARA','cMarkup','pISA100','pISA500','pDARA100','pDARA400','pDARA1800'];}
+function saveCalcConfig(){
+  clearTimeout(_calcSaveTimer);
+  _calcSaveTimer=setTimeout(function(){
+    var cfg={};
+    _calcFields().forEach(function(id){var el=document.getElementById(id);if(el&&el.value!=='')cfg[id]=parseFloat(el.value);});
+    dbRef.child('calcConfig').set(cfg).catch(function(e){console.error('calcConfig:',e);});
+  },400);
+}
+function applyCalcConfig(cfg){
+  if(!cfg)return;
+  _calcFields().forEach(function(id){
+    if(typeof cfg[id]==='number'){var el=document.getElementById(id);if(el)el.value=cfg[id];}
+  });
+  if(document.getElementById('calcOv')&&document.getElementById('calcOv').style.display==='block')renderCalc();
+}
 function closeCalcModal(){document.getElementById('calcOv').style.display='none';document.body.style.overflow='';}
 function calcTab(i){_calcTabIdx=i;document.getElementById('calcT0').style.color=i===0?'#6d28d9':'#999';document.getElementById('calcT0').style.borderBottomColor=i===0?'#6d28d9':'transparent';document.getElementById('calcT1').style.color=i===1?'#6d28d9':'#999';document.getElementById('calcT1').style.borderBottomColor=i===1?'#6d28d9':'transparent';renderCalc();}
 function calcPersp(i){
@@ -3531,6 +3552,14 @@ function _doseVials(proto){
 }
 
 function renderCalc(){
+  // Atualiza spans "com ICMS" ao lado dos labels de Sarclisa
+  var _icms=_gv('cIcms')/100;
+  var _fac=_icms<1?1/(1-_icms):1;
+  var _sp1=document.getElementById('pISA100_icms');
+  var _sp5=document.getElementById('pISA500_icms');
+  if(_sp1)_sp1.textContent='(c/ICMS '+_fmtBRL(_gv('pISA100')*_fac)+')';
+  if(_sp5)_sp5.textContent='(c/ICMS '+_fmtBRL(_gv('pISA500')*_fac)+')';
+
   var protos=_calcTabIdx===0?CALC_PROTOCOLS.tmo:CALC_PROTOCOLS.nontmo;
   var isPrestador=_calcPerspIdx===1;
   var html='';
