@@ -3526,7 +3526,9 @@ function _calcVialsISA(mg){
   var icms=_gv('cIcms')/100;
   var pfFinal=pf/(icms<1?(1-icms):1);
   var desc=_gv('cDescISA')/100;
-  var reemb=pf*(1+_gv('cMarkup')/100);
+  // Prestador: margem = Custo bruto (c/ICMS) − Custo c/desc = pfFinal × desc
+  // Por isso reemb usa pfFinal (com ICMS) — bate com a calculadora oficial da companhia
+  var reemb=pfFinal*(1+_gv('cMarkup')/100);
   return {pf:pf,pfFinal:pfFinal,cost:pfFinal*(1-desc),reemb:reemb,label:mg+'mg (proporcional)',mg:mg};
 }
 function _calcVialsDaraIV(mg){
@@ -3534,14 +3536,14 @@ function _calcVialsDaraIV(mg){
   var pf=mg*(_gv('pDARA400')/400);
   var pfFinal=pf;
   var desc=_gv('cDescDARA')/100;
-  var reemb=pf*(1+_gv('cMarkup')/100);
+  var reemb=pfFinal*(1+_gv('cMarkup')/100);
   return {pf:pf,pfFinal:pfFinal,cost:pfFinal*(1-desc),reemb:reemb,label:mg+'mg (proporcional)',mg:mg};
 }
 function _calcVialsDaraSC(){
   var p1800=_gv('pDARA1800');
   var pfFinal=p1800;
   var desc=_gv('cDescDARA')/100;
-  var reemb=p1800*(1+_gv('cMarkup')/100);
+  var reemb=pfFinal*(1+_gv('cMarkup')/100);
   return {pf:p1800,pfFinal:pfFinal,cost:pfFinal*(1-desc),reemb:reemb,label:'1×1800mg',mg:1800};
 }
 function _doseVials(proto){
