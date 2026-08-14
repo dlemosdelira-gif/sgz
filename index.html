@@ -836,6 +836,8 @@ function initListener(){
         if(!cExtra[ck])cExtra[ck]={};
         cExtra[ck].auditData=auditStore[ck];
       }
+      // Share BR de referência (input manual)
+      if(typeof data.shareBR==='number')_shareBR=data.shareBR;
       // Snapshot do último import para o diff do OncoTracking
       if(data.lastAuditSnapshot){
         var sn=data.lastAuditSnapshot;
@@ -1870,6 +1872,26 @@ function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.re
 
 // ══════════ ONCOTRACKING · ANÁLISE DE MERCADO ══════════
 var _lastAuditSnapshot=null; // populado no boot a partir de data.lastAuditSnapshot
+var _shareBR=null; // share Sarclisa BR (referência manual, %)
+function _shareBRCard(shareTerritorio){
+  var val=_shareBR!=null?_shareBR.toFixed(1)+'%':'—';
+  var gap=(_shareBR!=null)?(shareTerritorio-_shareBR):null;
+  var sub=(gap!=null)?(gap>=0?'▲':'▼')+' Território '+Math.abs(gap).toFixed(1)+'pp vs BR':'Digite p/ comparar';
+  var clr=(gap!=null)?_clrPct(gap*3):'#888';
+  return '<div style="background:#f8f7ff;border:1px solid #ede9fe;border-radius:12px;padding:10px 12px;">'+
+    '<div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:flex;justify-content:space-between;align-items:center;">Share BR (ref)'+
+      '<input id="_shareBRInput" type="number" min="0" max="100" step="0.1" value="'+(_shareBR!=null?_shareBR:'')+'" placeholder="%" onchange="setShareBR(this.value)" style="width:56px;font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:5px;text-align:right;">'+
+    '</div>'+
+    '<div style="font-size:22px;font-weight:800;color:'+clr+';margin-top:2px;">'+val+'</div>'+
+    '<div style="font-size:11px;color:#666;margin-top:2px;">'+sub+'</div>'+
+  '</div>';
+}
+function setShareBR(v){
+  var n=parseFloat(String(v).replace(',','.'));
+  _shareBR=isFinite(n)&&n>=0?n:null;
+  dbRef.child('shareBR').set(_shareBR).catch(function(e){console.error('shareBR:',e);});
+  renderOncoTracking();
+}
 function openOncoModal(){document.getElementById('oncoOv').classList.add('on');renderOncoTracking();}
 function closeOncoModal(){document.getElementById('oncoOv').classList.remove('on');}
 function _pct(a,b){if(!b)return null;return (a-b)/b*100;}
@@ -1932,7 +1954,8 @@ function renderOncoTracking(){
   };
   var kpis='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
     kpiCard('Mercado total (MAT)',_fmtNum(totalMkt),_fmtNum(totalSar)+' Sar · '+_fmtNum(totalDal)+' Dal')+
-    kpiCard('Share Sarclisa',share.toFixed(1)+'%','Sar ÷ (Sar+Dal) · '+(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior',_clrPct(shareDelta*3))+
+    kpiCard('Share Sarclisa',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior',_clrPct(shareDelta*3))+
+    _shareBRCard(share)+
     kpiCard('Evol. Sarclisa MAT',_fmtPct(evolSar),null,_clrPct(evolSar))+
     kpiCard('Evol. Dalinvi MAT',_fmtPct(evolDal),null,_clrPct(evolDal))+
     kpiCard('Growth gap',_fmtPct(gap),'Sar − Dal',_clrPct(gap))+
