@@ -2026,11 +2026,13 @@ function renderOncoTracking(){
   var diffHtml='';
   if(_lastAuditSnapshot&&_lastAuditSnapshot.contas){
     var deltas=[];
+    var _stale=function(v){return v>0&&v<10&&Math.floor(v)!==v;}; // snapshot antigo (parse decimal errado)
     contas.forEach(function(c){
       var prev=_lastAuditSnapshot.contas[c.conta];
       if(!prev)return;
-      var dSar=c.sarMat-(prev.sarMat||0);
-      var dDal=c.dalMat-(prev.dalMat||0);
+      if(_stale(prev.sarMat)||_stale(prev.dalMat))return; // pula lixo de snapshot anterior à correção de parser
+      var dSar=Math.round(c.sarMat-(prev.sarMat||0));
+      var dDal=Math.round(c.dalMat-(prev.dalMat||0));
       if(dSar||dDal)deltas.push({conta:c.conta,dSar:dSar,dDal:dDal,sarMat:c.sarMat,dalMat:c.dalMat});
     });
     deltas.sort(function(a,b){return Math.abs(b.dSar)-Math.abs(a.dSar);});
@@ -2041,10 +2043,10 @@ function renderOncoTracking(){
       (top.length?top.map(function(d){
         var sClr=d.dSar>0?'#059669':d.dSar<0?'#dc2626':'#888';
         var dClr=d.dDal>0?'#0891b2':d.dDal<0?'#ea580c':'#888';
-        return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f0edff;">'+
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;padding:5px 0;border-bottom:1px solid #f0edff;">'+
           '<span style="flex:1;min-width:0;color:#333;font-weight:600;">'+esc(d.conta)+'</span>'+
-          '<span style="color:'+sClr+';font-weight:700;min-width:70px;text-align:right;">Sar '+(d.dSar>=0?'+':'')+d.dSar+'</span>'+
-          '<span style="color:'+dClr+';font-weight:700;min-width:70px;text-align:right;">Dal '+(d.dDal>=0?'+':'')+d.dDal+'</span>'+
+          '<span style="color:'+sClr+';font-weight:700;min-width:80px;text-align:right;">Sar '+(d.dSar>=0?'+':'')+_fmtNum(d.dSar)+'</span>'+
+          '<span style="color:'+dClr+';font-weight:700;min-width:80px;text-align:right;">Dal '+(d.dDal>=0?'+':'')+_fmtNum(d.dDal)+'</span>'+
         '</div>';
       }).join(''):'<div style="color:#aaa;font-size:12px;padding:6px;">Nenhuma variação relevante</div>')+
       '</div>';
