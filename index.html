@@ -1880,15 +1880,15 @@ function _shareBRCard(shareTerritorio){
   var gap=(shareBR!=null)?(shareTerritorio-shareBR):null;
   var sub=(gap!=null)?(gap>=0?'▲':'▼')+' Território '+Math.abs(gap).toFixed(1)+'pp vs BR':'Preencha MAT p/ comparar';
   var clr=(gap!=null)?_clrPct(gap*3):'#888';
-  var inp='style="width:70px;font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:5px;text-align:right;"';
+  var inp='style="width:100%;min-width:0;font-size:11px;padding:3px 4px;border:1px solid #ddd;border-radius:5px;text-align:right;box-sizing:border-box;"';
   return '<div style="background:#f8f7ff;border:1px solid #ede9fe;border-radius:12px;padding:10px 12px;">'+
     '<div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Share BR (ref)</div>'+
     '<div style="font-size:22px;font-weight:800;color:'+clr+';margin-top:2px;">'+val+'</div>'+
-    '<div style="display:flex;gap:4px;margin-top:4px;font-size:10px;color:#666;align-items:center;">'+
-      '<span style="color:#7c3aed;font-weight:700;">Sar</span><input id="_matBRSar" type="number" min="0" step="1" value="'+(sar!=null?sar:'')+'" placeholder="MAT" onchange="setMatBR(\'sar\',this.value)" '+inp+'>'+
-      '<span style="color:#0891b2;font-weight:700;margin-left:4px;">Dal</span><input id="_matBRDal" type="number" min="0" step="1" value="'+(dal!=null?dal:'')+'" placeholder="MAT" onchange="setMatBR(\'dal\',this.value)" '+inp+'>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px;font-size:10px;color:#666;">'+
+      '<label style="display:flex;flex-direction:column;gap:2px;"><span style="color:#7c3aed;font-weight:700;">Sar MAT</span><input id="_matBRSar" type="number" min="0" step="1" value="'+(sar!=null?sar:'')+'" placeholder="—" onchange="setMatBR(\'sar\',this.value)" '+inp+'></label>'+
+      '<label style="display:flex;flex-direction:column;gap:2px;"><span style="color:#0891b2;font-weight:700;">Dal MAT</span><input id="_matBRDal" type="number" min="0" step="1" value="'+(dal!=null?dal:'')+'" placeholder="—" onchange="setMatBR(\'dal\',this.value)" '+inp+'></label>'+
     '</div>'+
-    '<div style="font-size:11px;color:#666;margin-top:4px;">'+sub+'</div>'+
+    '<div style="font-size:11px;color:#666;margin-top:6px;">'+sub+'</div>'+
   '</div>';
 }
 function setMatBR(k,v){
