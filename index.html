@@ -3557,8 +3557,8 @@ function renderCalc(){
   var _fac=_icms<1?1/(1-_icms):1;
   var _sp1=document.getElementById('pISA100_icms');
   var _sp5=document.getElementById('pISA500_icms');
-  if(_sp1)_sp1.textContent='(c/ICMS '+_fmtBRL(_gv('pISA100')*_fac)+')';
-  if(_sp5)_sp5.textContent='(c/ICMS '+_fmtBRL(_gv('pISA500')*_fac)+')';
+  if(_sp1)_sp1.textContent='(c/ ICMS '+_fmtBRL(_gv('pISA100')*_fac)+')';
+  if(_sp5)_sp5.textContent='(c/ ICMS '+_fmtBRL(_gv('pISA500')*_fac)+')';
 
   var protos=_calcTabIdx===0?CALC_PROTOCOLS.tmo:CALC_PROTOCOLS.nontmo;
   var isPrestador=_calcPerspIdx===1;
