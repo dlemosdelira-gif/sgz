@@ -1959,7 +1959,7 @@ function renderOncoTracking(){
   };
   var kpis='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
     kpiCard('Mercado total (MAT)',_fmtNum(totalMkt),_fmtNum(totalSar)+' Sar · '+_fmtNum(totalDal)+' Dal')+
-    kpiCard('Share Sarclisa',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior',_clrPct(shareDelta*3))+
+    kpiCard('Share Sarclisa Territórioa',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior',_clrPct(shareDelta*3))+
     _shareBRCard(share)+
     kpiCard('Evol. Sarclisa MAT',_fmtPct(evolSar),null,_clrPct(evolSar))+
     kpiCard('Evol. Dalinvi MAT',_fmtPct(evolDal),null,_clrPct(evolDal))+
