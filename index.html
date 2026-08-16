@@ -840,6 +840,14 @@ function initListener(){
       if(data.calcConfig)applyCalcConfig(data.calcConfig);
       // MAT Brasil de referência (input manual — usado para calcular Share BR)
       if(data.matBR&&typeof data.matBR==='object')_matBR={sar:(typeof data.matBR.sar==='number'?data.matBR.sar:null),dal:(typeof data.matBR.dal==='number'?data.matBR.dal:null)};
+      // Meta trimestral Sarclisa
+      if(data.qGoal&&typeof data.qGoal==='object'){
+        _qGoal={
+          meta:typeof data.qGoal.meta==='number'?data.qGoal.meta:240,
+          realizado:typeof data.qGoal.realizado==='number'?data.qGoal.realizado:0,
+          rotulo:typeof data.qGoal.rotulo==='string'?data.qGoal.rotulo:'Q3'
+        };
+      }
       // Snapshot do último import para o diff do OncoTracking
       if(data.lastAuditSnapshot){
         var sn=data.lastAuditSnapshot;
@@ -1875,6 +1883,11 @@ function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.re
 // ══════════ ONCOTRACKING · ANÁLISE DE MERCADO ══════════
 var _lastAuditSnapshot=null; // populado no boot a partir de data.lastAuditSnapshot
 var _matBR={sar:null,dal:null}; // MAT Brasil (referência manual)
+var _oncoLens='mat'; // 'mat' ou 'ytd' — toggle nos KPIs
+var _qGoal={meta:240,realizado:0,rotulo:'Q3'}; // Meta trimestral Sarclisa (frascos)
+function setOncoLens(l){_oncoLens=l;renderOncoTracking();}
+function setQGoal(k,v){var n=parseFloat(String(v).replace(',','.'));_qGoal[k]=isFinite(n)?n:(k==='rotulo'?String(v||''):0);dbRef.child('qGoal').set(_qGoal).catch(function(e){console.error('qGoal:',e);});renderOncoTracking();}
+function setQGoalRot(v){_qGoal.rotulo=String(v||'Q3');dbRef.child('qGoal').set(_qGoal).catch(function(e){console.error('qGoal:',e);});renderOncoTracking();}
 function _shareBRCard(shareTerritorio){
   var sar=_matBR.sar,dal=_matBR.dal;
   var shareBR=(sar!=null&&dal!=null&&(sar+dal)>0)?(sar/(sar+dal)*100):null;
@@ -1937,20 +1950,33 @@ function renderOncoTracking(){
   var contas=_contaWithAudit();
   if(!contas.length){document.getElementById('oncoBody').innerHTML='<div style="padding:20px;text-align:center;color:#888;">Importe o CSV do OncoTracking na aba <b>Auditoria</b> para ver a análise.</div>';return;}
   var totalSar=0,totalDal=0,totalSarAnt=0,totalDalAnt=0;
+  var totalSarY=0,totalDalY=0,totalSarYAnt=0,totalDalYAnt=0;
   var buckets={virgem:[],decolagem:[],parou:[],contraataque:[],dalqueda:[],observacao:[]};
   var enriched=contas.map(function(c){
     var m=_classifyConta(c);c.meta=m;
     totalSar+=c.sarMat;totalDal+=c.dalMat;totalSarAnt+=c.sarMatAnt;totalDalAnt+=c.dalMatAnt;
+    totalSarY+=c.sarYtd;totalDalY+=c.dalYtd;totalSarYAnt+=c.sarYtdAnt;totalDalYAnt+=c.dalYtdAnt;
+    m.acel=(m.sarYtdPct!=null&&m.sarPct!=null)?(m.sarYtdPct-m.sarPct):null; // Aceleração conta
+    m.matSize=c.sarMat+c.dalMat;
+    c.acel=m.acel;
     m.tipos.forEach(function(t){buckets[t].push(c);});
     return c;
   });
-  var totalMkt=totalSar+totalDal;
-  var share=totalMkt?totalSar/totalMkt*100:0;
-  var shareAnt=(totalSarAnt+totalDalAnt)?totalSarAnt/(totalSarAnt+totalDalAnt)*100:0;
+  // Fontes por lente
+  var isYtd=_oncoLens==='ytd';
+  var tSar=isYtd?totalSarY:totalSar,tDal=isYtd?totalDalY:totalDal;
+  var tSarAnt=isYtd?totalSarYAnt:totalSarAnt,tDalAnt=isYtd?totalDalYAnt:totalDalAnt;
+  var totalMkt=tSar+tDal;
+  var share=totalMkt?tSar/totalMkt*100:0;
+  var shareAnt=(tSarAnt+tDalAnt)?tSarAnt/(tSarAnt+tDalAnt)*100:0;
   var shareDelta=share-shareAnt;
-  var evolSar=_pct(totalSar,totalSarAnt);
-  var evolDal=_pct(totalDal,totalDalAnt);
+  var evolSar=_pct(tSar,tSarAnt);
+  var evolDal=_pct(tDal,tDalAnt);
   var gap=(evolSar||0)-(evolDal||0);
+  // Aceleração território = evol YTD Sar − evol MAT Sar
+  var evolSarMat=_pct(totalSar,totalSarAnt);
+  var evolSarYtd=_pct(totalSarY,totalSarYAnt);
+  var acelTer=(evolSarMat!=null&&evolSarYtd!=null)?(evolSarYtd-evolSarMat):null;
 
   var kpiCard=function(lbl,val,sub,clr){
     return '<div style="background:#f8f7ff;border:1px solid #ede9fe;border-radius:12px;padding:10px 12px;">'+
@@ -1959,14 +1985,40 @@ function renderOncoTracking(){
       (sub?'<div style="font-size:11px;color:#666;margin-top:2px;">'+sub+'</div>':'')+
     '</div>';
   };
-  var kpis='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
-    kpiCard('Mercado total (MAT)',_fmtNum(totalMkt),_fmtNum(totalSar)+' Sar · '+_fmtNum(totalDal)+' Dal')+
-    kpiCard('Share Sarclisa Território',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior',_clrPct(shareDelta*3))+
+  var lensLbl=isYtd?'YTD':'MAT';
+  var btn=function(l,active){return '<button onclick="setOncoLens(\''+l.toLowerCase()+'\')" style="padding:4px 12px;font-size:11px;font-weight:700;border:1px solid #ede9fe;border-radius:20px;cursor:pointer;background:'+(active?'#6d28d9':'#fff')+';color:'+(active?'#fff':'#6d28d9')+';">'+l+'</button>';};
+  var toggle='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:11px;color:#888;font-weight:700;">LENTE:</span>'+btn('MAT',!isYtd)+btn('YTD',isYtd)+'</div>';
+  var kpis=toggle+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
+    kpiCard('Mercado total ('+lensLbl+')',_fmtNum(totalMkt),_fmtNum(tSar)+' Sar · '+_fmtNum(tDal)+' Dal')+
+    kpiCard('Share Sarclisa Território',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior · '+lensLbl,_clrPct(shareDelta*3))+
     _shareBRCard(share)+
-    kpiCard('Evol. Sarclisa MAT',_fmtPct(evolSar),null,_clrPct(evolSar))+
-    kpiCard('Evol. Dalinvi MAT',_fmtPct(evolDal),null,_clrPct(evolDal))+
-    kpiCard('Growth gap',_fmtPct(gap),'Sar − Dal',_clrPct(gap))+
+    kpiCard('Evol. Sarclisa '+lensLbl,_fmtPct(evolSar),null,_clrPct(evolSar))+
+    kpiCard('Evol. Dalinvi '+lensLbl,_fmtPct(evolDal),null,_clrPct(evolDal))+
+    kpiCard('Growth gap ('+lensLbl+')',_fmtPct(gap),'Sar − Dal',_clrPct(gap))+
+    kpiCard('Aceleração Território',_fmtPct(acelTer),'YTD − MAT · positivo = ganhando ritmo',_clrPct(acelTer))+
     kpiCard('Contas ativas',contas.length,'com dados no CSV')+
+  '</div>';
+
+  // Meta trimestral Sarclisa (frascos)
+  var mt=_qGoal.meta||0,rz=_qGoal.realizado||0,rot=_qGoal.rotulo||'Q3';
+  var pctGoal=mt>0?rz/mt*100:0;var falta=Math.max(0,mt-rz);
+  var barClr=pctGoal>=100?'#059669':pctGoal>=70?'#0891b2':pctGoal>=40?'#ea580c':'#dc2626';
+  var inpS='style="width:80px;font-size:12px;padding:3px 6px;border:1px solid #ddd;border-radius:6px;text-align:right;box-sizing:border-box;"';
+  var metaCard='<div style="background:#fff;border:1px solid #ede9fe;border-radius:12px;padding:12px 14px;margin-bottom:14px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+      '<div style="font-size:12px;font-weight:800;color:#6d28d9;letter-spacing:.5px;">🎯 META SARCLISA <input type="text" value="'+esc(rot)+'" onchange="setQGoalRot(this.value)" style="width:50px;font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:5px;text-align:center;font-weight:700;color:#6d28d9;"> (frascos)</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;font-size:11px;color:#666;">'+
+        '<label>Meta: <input type="number" min="0" step="1" value="'+mt+'" onchange="setQGoal(\'meta\',this.value)" '+inpS+'></label>'+
+        '<label>Realizado: <input type="number" min="0" step="1" value="'+rz+'" onchange="setQGoal(\'realizado\',this.value)" '+inpS+'></label>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:4px;">'+
+      '<span style="color:'+barClr+';">'+_fmtNum(rz)+' de '+_fmtNum(mt)+' · '+pctGoal.toFixed(0)+'%</span>'+
+      '<span style="color:#888;">Faltam '+_fmtNum(falta)+'</span>'+
+    '</div>'+
+    '<div style="height:10px;background:#f0edff;border-radius:5px;overflow:hidden;">'+
+      '<div style="height:100%;background:'+barClr+';width:'+Math.min(100,pctGoal)+'%;transition:width .3s;"></div>'+
+    '</div>'+
   '</div>';
 
   var archDef=[
@@ -2018,11 +2070,32 @@ function renderOncoTracking(){
       }).join(''):'<div style="color:#aaa;font-size:12px;">Sem dados suficientes</div>')+
     '</div>';
   };
-  var rankBlock='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">📈 RANKING SARCLISA</div>'+
+  var rankBlock='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">📈 RANKING SARCLISA (MAT)</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
       rankHtml('Contas em decolagem',upSar,'🚀')+
       rankHtml('Contas em queda',downSar,'📉')+
     '</div>';
+
+  // Ranking Aceleração YTD vs MAT
+  var acelUp=enriched.filter(function(c){return c.acel!=null&&c.sarYtd>=3;}).sort(function(a,b){return b.acel-a.acel;}).slice(0,5);
+  var acelDown=enriched.filter(function(c){return c.acel!=null&&(c.sarMat>=5||c.sarYtdAnt>=3);}).sort(function(a,b){return a.acel-b.acel;}).slice(0,5);
+  var rankAcelHtml=function(title,list,ico){
+    return '<div style="background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;">'+
+      '<div style="font-weight:700;font-size:13px;margin-bottom:8px;">'+ico+' '+title+'</div>'+
+      (list.length?list.map(function(c,i){
+        return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0edff;">'+
+          '<span style="color:#666;flex:1;min-width:0;">#'+(i+1)+' '+esc(c.conta)+'</span>'+
+          '<span style="color:'+_clrPct(c.acel)+';font-weight:700;">'+_fmtPct(c.acel)+' <span style="color:#888;font-weight:400;">YTD '+_fmtPct(c.meta.sarYtdPct)+' vs MAT '+_fmtPct(c.meta.sarPct)+'</span></span>'+
+        '</div>';
+      }).join(''):'<div style="color:#aaa;font-size:12px;">Sem dados suficientes</div>')+
+    '</div>';
+  };
+  var acelBlock='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">⚡ ACELERAÇÃO SARCLISA (YTD − MAT)</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+      rankAcelHtml('🔥 Acelerando',acelUp,'')+
+      rankAcelHtml('🧊 Esfriando',acelDown,'')+
+    '</div>';
+  rankBlock+=acelBlock;
 
   // Diff vs último snapshot
   var diffHtml='';
@@ -2056,7 +2129,7 @@ function renderOncoTracking(){
     diffHtml='<div style="margin-top:18px;padding:10px 12px;background:#f8f7ff;border-radius:10px;font-size:11px;color:#888;">💡 Um snapshot foi salvo. Da próxima vez que você importar um CSV, esta seção mostrará automaticamente o que mudou.</div>';
   }
 
-  document.getElementById('oncoBody').innerHTML=kpis+arqHtml+rankBlock+diffHtml;
+  document.getElementById('oncoBody').innerHTML=kpis+metaCard+arqHtml+rankBlock+diffHtml;
 }
 
 function openNewContaModal(){
