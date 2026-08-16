@@ -858,8 +858,17 @@ function initListener(){
       }
       // Config da calculadora (preços editáveis + parâmetros)
       if(data.calcConfig)applyCalcConfig(data.calcConfig);
-      // MAT Brasil de referência (input manual — usado para calcular Share BR)
-      if(data.matBR&&typeof data.matBR==='object')_matBR={sar:(typeof data.matBR.sar==='number'?data.matBR.sar:null),dal:(typeof data.matBR.dal==='number'?data.matBR.dal:null)};
+      // Brasil de referência (input manual — usado para calcular Share BR), por lente MAT/YTD
+      if(data.matBR&&typeof data.matBR==='object'){
+        if(typeof data.matBR.sar==='number'||typeof data.matBR.dal==='number'){
+          // Compat: formato antigo {sar,dal} único (assumia MAT) → migra
+          _matBR.mat={sar:typeof data.matBR.sar==='number'?data.matBR.sar:null,dal:typeof data.matBR.dal==='number'?data.matBR.dal:null};
+        } else {
+          ['mat','ytd'].forEach(function(lens){
+            if(data.matBR[lens])_matBR[lens]={sar:typeof data.matBR[lens].sar==='number'?data.matBR[lens].sar:null,dal:typeof data.matBR[lens].dal==='number'?data.matBR[lens].dal:null};
+          });
+        }
+      }
       // Meta trimestral Sarclisa
       if(data.qGoal&&typeof data.qGoal==='object'){
         _qGoal={
@@ -1932,7 +1941,7 @@ function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.re
 
 // ══════════ ONCOTRACKING · ANÁLISE DE MERCADO ══════════
 var _lastAuditSnapshot=null; // populado no boot a partir de data.lastAuditSnapshot
-var _matBR={sar:null,dal:null}; // MAT Brasil (referência manual)
+var _matBR={mat:{sar:null,dal:null},ytd:{sar:null,dal:null}}; // Brasil (referência manual) — por lente
 var _oncoLens='mat'; // 'mat' ou 'ytd' — toggle nos KPIs
 var _qGoal={meta:240,realizado:0,rotulo:'Q3'}; // Meta trimestral Sarclisa (frascos)
 var _territoryOverride={ // Override manual dos totais de mercado (sobrescreve a soma por conta)
@@ -1953,27 +1962,30 @@ function clearTerritoryOverride(lens){
 function setOncoLens(l){_oncoLens=l;renderOncoTracking();}
 function setQGoal(k,v){var n=parseFloat(String(v).replace(',','.'));_qGoal[k]=isFinite(n)?n:(k==='rotulo'?String(v||''):0);dbRef.child('qGoal').set(_qGoal).catch(function(e){console.error('qGoal:',e);});renderOncoTracking();}
 function setQGoalRot(v){_qGoal.rotulo=String(v||'Q3');dbRef.child('qGoal').set(_qGoal).catch(function(e){console.error('qGoal:',e);});renderOncoTracking();}
-function _shareBRCard(shareTerritorio){
-  var sar=_matBR.sar,dal=_matBR.dal;
+function _shareBRCard(shareTerritorio,lens){
+  var lbl=lens==='ytd'?'YTD':'MAT';
+  var ref=_matBR[lens]||{sar:null,dal:null};
+  var sar=ref.sar,dal=ref.dal;
   var shareBR=(sar!=null&&dal!=null&&(sar+dal)>0)?(sar/(sar+dal)*100):null;
   var val=shareBR!=null?shareBR.toFixed(1)+'%':'—';
   var gap=(shareBR!=null)?(shareTerritorio-shareBR):null;
-  var sub=(gap!=null)?(gap>=0?'▲':'▼')+' Território '+Math.abs(gap).toFixed(1)+'pp vs BR':'Preencha MAT p/ comparar';
+  var sub=(gap!=null)?(gap>=0?'▲':'▼')+' Território '+Math.abs(gap).toFixed(1)+'pp vs BR':'Preencha '+lbl+' p/ comparar';
   var clr=(gap!=null)?_clrPct(gap*3):'#888';
   var inp='style="width:100%;min-width:0;font-size:11px;padding:3px 4px;border:1px solid #ddd;border-radius:5px;text-align:right;box-sizing:border-box;"';
   return '<div style="background:#f8f7ff;border:1px solid #ede9fe;border-radius:12px;padding:10px 12px;">'+
-    '<div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Share BR (ref)</div>'+
+    '<div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Share BR (ref) · '+lbl+'</div>'+
     '<div style="font-size:22px;font-weight:800;color:'+clr+';margin-top:2px;">'+val+'</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px;font-size:10px;color:#666;">'+
-      '<label style="display:flex;flex-direction:column;gap:2px;"><span style="color:#7c3aed;font-weight:700;">Sar MAT</span><input id="_matBRSar" type="number" min="0" step="1" value="'+(sar!=null?sar:'')+'" placeholder="—" onchange="setMatBR(\'sar\',this.value)" '+inp+'></label>'+
-      '<label style="display:flex;flex-direction:column;gap:2px;"><span style="color:#0891b2;font-weight:700;">Dal MAT</span><input id="_matBRDal" type="number" min="0" step="1" value="'+(dal!=null?dal:'')+'" placeholder="—" onchange="setMatBR(\'dal\',this.value)" '+inp+'></label>'+
+      '<label style="display:flex;flex-direction:column;gap:2px;"><span style="color:#7c3aed;font-weight:700;">Sar '+lbl+'</span><input id="_matBRSar" type="number" min="0" step="1" value="'+(sar!=null?sar:'')+'" placeholder="—" onchange="setMatBR(\''+lens+'\',\'sar\',this.value)" '+inp+'></label>'+
+      '<label style="display:flex;flex-direction:column;gap:2px;"><span style="color:#0891b2;font-weight:700;">Dal '+lbl+'</span><input id="_matBRDal" type="number" min="0" step="1" value="'+(dal!=null?dal:'')+'" placeholder="—" onchange="setMatBR(\''+lens+'\',\'dal\',this.value)" '+inp+'></label>'+
     '</div>'+
     '<div style="font-size:11px;color:#666;margin-top:6px;">'+sub+'</div>'+
   '</div>';
 }
-function setMatBR(k,v){
+function setMatBR(lens,k,v){
   var n=parseFloat(String(v).replace(',','.'));
-  _matBR[k]=isFinite(n)&&n>=0?n:null;
+  if(!_matBR[lens])_matBR[lens]={sar:null,dal:null};
+  _matBR[lens][k]=isFinite(n)&&n>=0?n:null;
   dbRef.child('matBR').set(_matBR).catch(function(e){console.error('matBR:',e);});
   renderOncoTracking();
 }
@@ -2082,7 +2094,7 @@ function renderOncoTracking(){
   var kpis=toggle+terOvBox+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
     kpiCard('Mercado total ('+lensLbl+')',_fmtNum(totalMkt),_fmtNum(tSar)+' Sar · '+_fmtNum(tDal)+' Dal')+
     kpiCard('Share Sarclisa Território',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior · '+lensLbl,_clrPct(shareDelta*3))+
-    _shareBRCard(share)+
+    _shareBRCard(share,ovLens)+
     kpiCard('Evol. Sarclisa '+lensLbl,_fmtPct(evolSar),null,_clrPct(evolSar))+
     kpiCard('Evol. Dalinvi '+lensLbl,_fmtPct(evolDal),null,_clrPct(evolDal))+
     kpiCard('Growth gap ('+lensLbl+')',_fmtPct(gap),'Sar − Dal',_clrPct(gap))+
