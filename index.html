@@ -2516,10 +2516,11 @@ function applyCsvAudit(){
         prioridade:'Monitoramento'
       });
       if(!cExtra[nr.contaRaw])cExtra[nr.contaRaw]={};
-      cExtra[nr.contaRaw].auditData={
-        scoreTam:tam,scoreMom:mom,scorePot:pot2,scoreEsp:esp,
-        mat:nr.mat||0,ytd:nr.ytd||0
-      };
+      if(!cExtra[nr.contaRaw].auditData)cExtra[nr.contaRaw].auditData={};
+      // Merge (não sobrescreve) — preserva ad.sarclisa/ad.dalinvi já gravados no passo 1
+      var adNew=cExtra[nr.contaRaw].auditData;
+      adNew.scoreTam=tam;adNew.scoreMom=mom;adNew.scorePot=pot2;adNew.scoreEsp=esp;
+      adNew.mat=nr.mat||adNew.mat||0;adNew.ytd=nr.ytd||adNew.ytd||0;
       updated++;
     }
   }
