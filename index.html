@@ -2080,6 +2080,7 @@ function renderOncoTracking(){
         '<div style="color:'+_clrPct(m.sarPct)+';font-weight:700;">Sar '+_fmtPct(m.sarPct)+'</div>'+
         '<div style="color:'+_clrPct(m.dalPct)+';">Dal '+_fmtPct(m.dalPct)+'</div>'+
       '</div>'+
+      '<button onclick="openAuditModal(\''+escJ(c.conta)+'\',-1)" style="background:none;border:none;cursor:pointer;font-size:15px;padding:2px 4px;flex-shrink:0;" title="Editar">✏️</button>'+
     '</div>';
   };
   var arqHtml='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:14px 0 8px;letter-spacing:.5px;">🗂️ ARQUÉTIPOS DE CONTA</div>';
@@ -2105,9 +2106,10 @@ function renderOncoTracking(){
     return '<div style="background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;">'+
       '<div style="font-weight:700;font-size:13px;margin-bottom:8px;">'+ico+' '+title+'</div>'+
       (list.length?list.map(function(c,i){
-        return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0edff;">'+
-          '<span style="color:#666;">#'+(i+1)+' '+esc(c.conta)+'</span>'+
-          '<span style="color:'+_clrPct(c.meta.sarPct)+';font-weight:700;">'+_fmtPct(c.meta.sarPct)+' · Sar '+_fmtNum(c.sarMat)+'</span>'+
+        return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:4px 0;border-bottom:1px solid #f0edff;">'+
+          '<span style="color:#666;flex:1;min-width:0;">#'+(i+1)+' '+esc(c.conta)+'</span>'+
+          '<span style="color:'+_clrPct(c.meta.sarPct)+';font-weight:700;white-space:nowrap;">'+_fmtPct(c.meta.sarPct)+' · Sar '+_fmtNum(c.sarMat)+'</span>'+
+          '<button onclick="openAuditModal(\''+escJ(c.conta)+'\',-1)" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;" title="Editar">✏️</button>'+
         '</div>';
       }).join(''):'<div style="color:#aaa;font-size:12px;">Sem dados suficientes</div>')+
     '</div>';
@@ -2125,9 +2127,10 @@ function renderOncoTracking(){
     return '<div style="background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;">'+
       '<div style="font-weight:700;font-size:13px;margin-bottom:8px;">'+ico+' '+title+'</div>'+
       (list.length?list.map(function(c,i){
-        return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0edff;">'+
+        return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:4px 0;border-bottom:1px solid #f0edff;">'+
           '<span style="color:#666;flex:1;min-width:0;">#'+(i+1)+' '+esc(c.conta)+'</span>'+
-          '<span style="color:'+_clrPct(c.acel)+';font-weight:700;">'+_fmtPct(c.acel)+' <span style="color:#888;font-weight:400;">YTD '+_fmtPct(c.meta.sarYtdPct)+' vs MAT '+_fmtPct(c.meta.sarPct)+'</span></span>'+
+          '<span style="color:'+_clrPct(c.acel)+';font-weight:700;white-space:nowrap;">'+_fmtPct(c.acel)+' <span style="color:#888;font-weight:400;">YTD '+_fmtPct(c.meta.sarYtdPct)+' vs MAT '+_fmtPct(c.meta.sarPct)+'</span></span>'+
+          '<button onclick="openAuditModal(\''+escJ(c.conta)+'\',-1)" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;" title="Editar">✏️</button>'+
         '</div>';
       }).join(''):'<div style="color:#aaa;font-size:12px;">Sem dados suficientes</div>')+
     '</div>';
