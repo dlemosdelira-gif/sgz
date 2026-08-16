@@ -2482,14 +2482,18 @@ function processCsvAudit(){
 function _processRowsMatrix(rows){
   if(!rows||rows.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
 
-  // Detecta formato wide OncoTracking: linha 1 tem banner de marca (DALINVI/SARCLISA) repetido; linha 2 tem R3M/YTD/MAT ANT/ATU
-  var brandRow=rows[0];
-  var hasBrandBanner=brandRow.some(function(c){var u=(c||'').toUpperCase();return u.indexOf('DALINVI')>=0||u.indexOf('SARCLISA')>=0||u.indexOf('DARZALEX')>=0;});
-  var subHeaderRow=rows.length>1?rows[1]:[];
-  var hasSubHeader=subHeaderRow.some(function(c){return /ytd|mat/i.test(c||'')&&/(ant|atu)/i.test(c||'');});
+  // Detecta formato wide OncoTracking: escaneia as primeiras linhas (até 5) procurando
+  // a linha com banner de marca (DALINVI/SARCLISA) — tabelas dinâmicas do Excel costumam
+  // ter 1 linha extra ("Column Labels") antes do banner, então não assumimos linha 0.
+  var _isBrandRow=function(r){return (r||[]).some(function(c){var u=(c||'').toUpperCase();return u.indexOf('DALINVI')>=0||u.indexOf('SARCLISA')>=0||u.indexOf('DARZALEX')>=0;});};
+  var _isSubHeaderRow=function(r){return (r||[]).some(function(c){return /ytd|mat/i.test(c||'')&&/(ant|atu)/i.test(c||'');});};
+  var brandRowIdx=-1;
+  for(var _bi=0;_bi<Math.min(5,rows.length-1);_bi++){
+    if(_isBrandRow(rows[_bi])&&_isSubHeaderRow(rows[_bi+1])){brandRowIdx=_bi;break;}
+  }
 
-  if(hasBrandBanner&&hasSubHeader){
-    processCsvAuditWideMatrix(rows);
+  if(brandRowIdx>=0){
+    processCsvAuditWideMatrix(brandRowIdx===0?rows:rows.slice(brandRowIdx));
     return;
   }
 
