@@ -688,6 +688,23 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <div class="audit-field"><label>MAT (unidades)</label><input type="number" id="at_mat" min="0" oninput="updateAuditPreview()"></div>
       <div class="audit-field"><label>YTD (unidades)</label><input type="number" id="at_ytd" min="0" oninput="updateAuditPreview()"></div>
     </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #eee;">
+      <div style="font-size:12px;font-weight:800;color:#6d28d9;margin-bottom:8px;letter-spacing:.5px;">📡 ONCOTRACKING (edição manual — usado no Radar/Contas/Insights)</div>
+      <div style="font-size:10px;font-weight:700;color:#7c3aed;margin-bottom:4px;">SARCLISA</div>
+      <div class="audit-grid" style="margin-bottom:10px;">
+        <div class="audit-field"><label>MAT anterior</label><input type="number" id="at_sarMatAnt" min="0"></div>
+        <div class="audit-field"><label>MAT atual</label><input type="number" id="at_sarMatAtu" min="0"></div>
+        <div class="audit-field"><label>YTD anterior</label><input type="number" id="at_sarYtdAnt" min="0"></div>
+        <div class="audit-field"><label>YTD atual</label><input type="number" id="at_sarYtdAtu" min="0"></div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:#0891b2;margin-bottom:4px;">DALINVI</div>
+      <div class="audit-grid">
+        <div class="audit-field"><label>MAT anterior</label><input type="number" id="at_dalMatAnt" min="0"></div>
+        <div class="audit-field"><label>MAT atual</label><input type="number" id="at_dalMatAtu" min="0"></div>
+        <div class="audit-field"><label>YTD anterior</label><input type="number" id="at_dalYtdAnt" min="0"></div>
+        <div class="audit-field"><label>YTD atual</label><input type="number" id="at_dalYtdAtu" min="0"></div>
+      </div>
+    </div>
     <div class="brow"><button class="bcanc" onclick="closeAuditModal()">Cancelar</button><button class="bsave" onclick="saveAuditModal()">Salvar</button></div>
   </div>
 </div>
@@ -1836,6 +1853,15 @@ function openAuditModal(contaNome,idx){
   document.getElementById('at_esp').value=ad.scoreEsp!=null?ad.scoreEsp:ct.scoreEsp;
   document.getElementById('at_mat').value=ad.mat!=null?ad.mat:ct.mat;
   document.getElementById('at_ytd').value=ad.ytd!=null?ad.ytd:ct.ytd;
+  var s=ad.sarclisa||{},d=ad.dalinvi||{};
+  document.getElementById('at_sarMatAnt').value=s.matAnt!=null?s.matAnt:'';
+  document.getElementById('at_sarMatAtu').value=s.matAtu!=null?s.matAtu:'';
+  document.getElementById('at_sarYtdAnt').value=s.ytdAnt!=null?s.ytdAnt:'';
+  document.getElementById('at_sarYtdAtu').value=s.ytdAtu!=null?s.ytdAtu:'';
+  document.getElementById('at_dalMatAnt').value=d.matAnt!=null?d.matAnt:'';
+  document.getElementById('at_dalMatAtu').value=d.matAtu!=null?d.matAtu:'';
+  document.getElementById('at_dalYtdAnt').value=d.ytdAnt!=null?d.ytdAnt:'';
+  document.getElementById('at_dalYtdAtu').value=d.ytdAtu!=null?d.ytdAtu:'';
   document.getElementById('auditTitle').textContent='✏️ '+contaNome;
   updateAuditPreview();
   document.getElementById('auditOv').classList.add('on');
@@ -1853,7 +1879,8 @@ function updateAuditPreview(){
 }
 function saveAuditModal(){
   if(!cExtra[auditContaNome])cExtra[auditContaNome]={};
-  cExtra[auditContaNome].auditData={
+  var _gvId=function(id){var v=document.getElementById(id).value;return v===''?null:parseFloat(v)||0;};
+  var newAd={
     scoreTam:document.getElementById('at_tam').value,
     scoreMom:document.getElementById('at_mom').value,
     scorePot:document.getElementById('at_pot').value,
@@ -1861,12 +1888,23 @@ function saveAuditModal(){
     mat:document.getElementById('at_mat').value,
     ytd:document.getElementById('at_ytd').value
   };
+  var sMatAnt=_gvId('at_sarMatAnt'),sMatAtu=_gvId('at_sarMatAtu'),sYtdAnt=_gvId('at_sarYtdAnt'),sYtdAtu=_gvId('at_sarYtdAtu');
+  if(sMatAnt!=null||sMatAtu!=null||sYtdAnt!=null||sYtdAtu!=null){
+    newAd.sarclisa={matAnt:sMatAnt||0,matAtu:sMatAtu||0,ytdAnt:sYtdAnt||0,ytdAtu:sYtdAtu||0};
+  }
+  var dMatAnt=_gvId('at_dalMatAnt'),dMatAtu=_gvId('at_dalMatAtu'),dYtdAnt=_gvId('at_dalYtdAnt'),dYtdAtu=_gvId('at_dalYtdAtu');
+  if(dMatAnt!=null||dMatAtu!=null||dYtdAnt!=null||dYtdAtu!=null){
+    newAd.dalinvi={matAnt:dMatAnt||0,matAtu:dMatAtu||0,ytdAnt:dYtdAnt||0,ytdAtu:dYtdAtu||0};
+  }
+  cExtra[auditContaNome].auditData=newAd;
   persist();
   // Atualiza auditStore no Firebase para persistência isolada
   var auditPayload={};
   for(var ak in cExtra){if(cExtra[ak]&&cExtra[ak].auditData)auditPayload[fbEncodeKey(ak)]=cExtra[ak].auditData;}
   dbRef.child('auditStore').set(auditPayload).catch(function(e){console.error('auditStore:',e);});
   closeAuditModal();
+  renderContas();
+  if(document.getElementById('oncoOv')&&document.getElementById('oncoOv').classList.contains('on'))renderOncoTracking();
 }
 
 // ══════════ MODAL CSV AUDITORIA ══════════
