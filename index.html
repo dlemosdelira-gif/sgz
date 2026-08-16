@@ -2067,7 +2067,7 @@ function renderOncoTracking(){
   var ovCur=_territoryOverride[ovLens];
   var _ovHasAny=ovCur.sarAnt!=null||ovCur.sarAtu!=null||ovCur.dalAnt!=null||ovCur.dalAtu!=null;
   var _ovIn=function(id,val){return '<input type="number" id="'+id+'" value="'+(val!=null?val:'')+'" placeholder="—" onchange="setTerritoryOverride(\''+ovLens+'\',\''+id.replace('terOv_','')+'\',this.value)" style="width:100%;box-sizing:border-box;font-size:12px;padding:5px 6px;border:1px solid #ddd;border-radius:6px;text-align:right;">';};
-  var terOvBox='<div id="terOvBox" style="display:'+(_ovHasAny?'block':'none')+';background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;margin-bottom:12px;">'+
+  var terOvBox='<div id="terOvBox" style="display:none;background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;margin-bottom:12px;">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
       '<div style="font-size:11px;font-weight:800;color:#6d28d9;letter-spacing:.4px;">✏️ AJUSTAR TOTAIS DE MERCADO — '+lensLbl+' <span style="color:#aaa;font-weight:500;">(sobrescreve a soma por conta)</span></div>'+
       (_ovHasAny?'<button onclick="clearTerritoryOverride(\''+ovLens+'\')" style="background:none;border:none;color:#dc2626;font-size:11px;cursor:pointer;">✕ Limpar</button>':'')+
