@@ -868,6 +868,15 @@ function initListener(){
           rotulo:typeof data.qGoal.rotulo==='string'?data.qGoal.rotulo:'Q3'
         };
       }
+      // Override manual dos totais de mercado
+      if(data.territoryOverride&&typeof data.territoryOverride==='object'){
+        var _to=data.territoryOverride;
+        ['mat','ytd'].forEach(function(lens){
+          if(_to[lens])['sarAnt','sarAtu','dalAnt','dalAtu'].forEach(function(k){
+            _territoryOverride[lens][k]=typeof _to[lens][k]==='number'?_to[lens][k]:null;
+          });
+        });
+      }
       // Snapshot do último import para o diff do OncoTracking
       if(data.lastAuditSnapshot){
         var sn=data.lastAuditSnapshot;
@@ -1926,6 +1935,21 @@ var _lastAuditSnapshot=null; // populado no boot a partir de data.lastAuditSnaps
 var _matBR={sar:null,dal:null}; // MAT Brasil (referência manual)
 var _oncoLens='mat'; // 'mat' ou 'ytd' — toggle nos KPIs
 var _qGoal={meta:240,realizado:0,rotulo:'Q3'}; // Meta trimestral Sarclisa (frascos)
+var _territoryOverride={ // Override manual dos totais de mercado (sobrescreve a soma por conta)
+  mat:{sarAnt:null,sarAtu:null,dalAnt:null,dalAtu:null},
+  ytd:{sarAnt:null,sarAtu:null,dalAnt:null,dalAtu:null}
+};
+function setTerritoryOverride(lens,key,v){
+  var n=parseFloat(String(v).replace(',','.'));
+  _territoryOverride[lens][key]=(v===''||v==null)?null:(isFinite(n)?n:null);
+  dbRef.child('territoryOverride').set(_territoryOverride).catch(function(e){console.error('territoryOverride:',e);});
+  renderOncoTracking();
+}
+function clearTerritoryOverride(lens){
+  _territoryOverride[lens]={sarAnt:null,sarAtu:null,dalAnt:null,dalAtu:null};
+  dbRef.child('territoryOverride').set(_territoryOverride).catch(function(e){console.error('territoryOverride:',e);});
+  renderOncoTracking();
+}
 function setOncoLens(l){_oncoLens=l;renderOncoTracking();}
 function setQGoal(k,v){var n=parseFloat(String(v).replace(',','.'));_qGoal[k]=isFinite(n)?n:(k==='rotulo'?String(v||''):0);dbRef.child('qGoal').set(_qGoal).catch(function(e){console.error('qGoal:',e);});renderOncoTracking();}
 function setQGoalRot(v){_qGoal.rotulo=String(v||'Q3');dbRef.child('qGoal').set(_qGoal).catch(function(e){console.error('qGoal:',e);});renderOncoTracking();}
@@ -2004,6 +2028,13 @@ function renderOncoTracking(){
     m.tipos.forEach(function(t){buckets[t].push(c);});
     return c;
   });
+  // Overrides manuais do usuário sobrescrevem a soma por conta (mais confiável quando o import diverge)
+  var ovMat=_territoryOverride.mat,ovYtd=_territoryOverride.ytd;
+  if(ovMat.sarAtu!=null)totalSar=ovMat.sarAtu;if(ovMat.sarAnt!=null)totalSarAnt=ovMat.sarAnt;
+  if(ovMat.dalAtu!=null)totalDal=ovMat.dalAtu;if(ovMat.dalAnt!=null)totalDalAnt=ovMat.dalAnt;
+  if(ovYtd.sarAtu!=null)totalSarY=ovYtd.sarAtu;if(ovYtd.sarAnt!=null)totalSarYAnt=ovYtd.sarAnt;
+  if(ovYtd.dalAtu!=null)totalDalY=ovYtd.dalAtu;if(ovYtd.dalAnt!=null)totalDalYAnt=ovYtd.dalAnt;
+
   // Fontes por lente
   var isYtd=_oncoLens==='ytd';
   var tSar=isYtd?totalSarY:totalSar,tDal=isYtd?totalDalY:totalDal;
@@ -2029,8 +2060,26 @@ function renderOncoTracking(){
   };
   var lensLbl=isYtd?'YTD':'MAT';
   var btn=function(l,active){return '<button onclick="setOncoLens(\''+l.toLowerCase()+'\')" style="padding:4px 12px;font-size:11px;font-weight:700;border:1px solid #ede9fe;border-radius:20px;cursor:pointer;background:'+(active?'#6d28d9':'#fff')+';color:'+(active?'#fff':'#6d28d9')+';">'+l+'</button>';};
-  var toggle='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:11px;color:#888;font-weight:700;">LENTE:</span>'+btn('MAT',!isYtd)+btn('YTD',isYtd)+'</div>';
-  var kpis=toggle+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
+  var toggle='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;"><span style="font-size:11px;color:#888;font-weight:700;">LENTE:</span>'+btn('MAT',!isYtd)+btn('YTD',isYtd)+
+    '<button onclick="document.getElementById(\'terOvBox\').style.display=document.getElementById(\'terOvBox\').style.display===\'none\'?\'block\':\'none\';" style="margin-left:auto;background:none;border:1px solid #ede9fe;border-radius:20px;padding:4px 10px;font-size:11px;color:#6d28d9;cursor:pointer;">✏️ Ajustar totais</button>'+
+  '</div>';
+  var ovLens=isYtd?'ytd':'mat';
+  var ovCur=_territoryOverride[ovLens];
+  var _ovHasAny=ovCur.sarAnt!=null||ovCur.sarAtu!=null||ovCur.dalAnt!=null||ovCur.dalAtu!=null;
+  var _ovIn=function(id,val){return '<input type="number" id="'+id+'" value="'+(val!=null?val:'')+'" placeholder="—" onchange="setTerritoryOverride(\''+ovLens+'\',\''+id.replace('terOv_','')+'\',this.value)" style="width:100%;box-sizing:border-box;font-size:12px;padding:5px 6px;border:1px solid #ddd;border-radius:6px;text-align:right;">';};
+  var terOvBox='<div id="terOvBox" style="display:'+(_ovHasAny?'block':'none')+';background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;margin-bottom:12px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+      '<div style="font-size:11px;font-weight:800;color:#6d28d9;letter-spacing:.4px;">✏️ AJUSTAR TOTAIS DE MERCADO — '+lensLbl+' <span style="color:#aaa;font-weight:500;">(sobrescreve a soma por conta)</span></div>'+
+      (_ovHasAny?'<button onclick="clearTerritoryOverride(\''+ovLens+'\')" style="background:none;border:none;color:#dc2626;font-size:11px;cursor:pointer;">✕ Limpar</button>':'')+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">'+
+      '<label style="font-size:10px;color:#7c3aed;font-weight:700;">Sar ant<br>'+_ovIn('terOv_sarAnt',ovCur.sarAnt)+'</label>'+
+      '<label style="font-size:10px;color:#7c3aed;font-weight:700;">Sar atual<br>'+_ovIn('terOv_sarAtu',ovCur.sarAtu)+'</label>'+
+      '<label style="font-size:10px;color:#0891b2;font-weight:700;">Dal ant<br>'+_ovIn('terOv_dalAnt',ovCur.dalAnt)+'</label>'+
+      '<label style="font-size:10px;color:#0891b2;font-weight:700;">Dal atual<br>'+_ovIn('terOv_dalAtu',ovCur.dalAtu)+'</label>'+
+    '</div>'+
+  '</div>';
+  var kpis=toggle+terOvBox+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
     kpiCard('Mercado total ('+lensLbl+')',_fmtNum(totalMkt),_fmtNum(tSar)+' Sar · '+_fmtNum(tDal)+' Dal')+
     kpiCard('Share Sarclisa Território',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior · '+lensLbl,_clrPct(shareDelta*3))+
     _shareBRCard(share)+
