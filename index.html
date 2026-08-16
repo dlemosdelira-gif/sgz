@@ -2010,28 +2010,42 @@ function _contaWithAudit(){
   }
   return out;
 }
-function _classifyConta(c){
+function _classifyConta(c,isYtd){
   var sarPct=_pct(c.sarMat,c.sarMatAnt);
   var dalPct=_pct(c.dalMat,c.dalMatAnt);
   var sarYtdPct=_pct(c.sarYtd,c.sarYtdAnt);
+  var dalYtdPct=_pct(c.dalYtd,c.dalYtdAnt);
   var total=c.sarMat+c.dalMat;
+  // Base de classificação depende da lente ativa — MAT = relação de longo prazo (12m),
+  // YTD = execução do ano corrente (volumes menores, limiares proporcionalmente reduzidos)
+  var gSar=isYtd?sarYtdPct:sarPct, gDal=isYtd?dalYtdPct:dalPct;
+  var curSar=isYtd?c.sarYtd:c.sarMat, curDal=isYtd?c.dalYtd:c.dalMat;
+  var curTotal=curSar+curDal;
+  var virgemThresh=isYtd?40:100, obsThresh=isYtd?10:20;
   var tipos=[];
-  if(c.dalMat>=100&&c.sarMat===0)tipos.push('virgem');
-  if(sarPct!=null&&sarPct>=30)tipos.push('decolagem');
-  if(sarPct!=null&&sarPct>0&&sarYtdPct!=null&&sarYtdPct<=0&&c.sarMat>10)tipos.push('parou');
-  if(sarPct!=null&&sarPct<0&&dalPct!=null&&dalPct>0&&c.sarMat>0)tipos.push('contraataque');
-  if(dalPct!=null&&dalPct<=-20&&c.dalMat>0)tipos.push('dalqueda');
-  if(!tipos.length&&total<20)tipos.push('observacao');
-  return {tipos:tipos,sarPct:sarPct,dalPct:dalPct,total:total,sarYtdPct:sarYtdPct};
+  if(curDal>=virgemThresh&&curSar===0)tipos.push('virgem');
+  if(gSar!=null&&gSar>=30)tipos.push('decolagem');
+  if(isYtd){
+    // YTD: Sarclisa tinha relação histórica (MAT) mas estagnou no ano corrente
+    if(gSar!=null&&gSar<=0&&c.sarMatAnt>10)tipos.push('parou');
+  } else {
+    // MAT: tendência de 12m positiva mas momento recente (YTD) já esfriou
+    if(gSar!=null&&gSar>0&&sarYtdPct!=null&&sarYtdPct<=0&&c.sarMat>10)tipos.push('parou');
+  }
+  if(gSar!=null&&gSar<0&&gDal!=null&&gDal>0&&curSar>0)tipos.push('contraataque');
+  if(gDal!=null&&gDal<=-20&&curDal>0)tipos.push('dalqueda');
+  if(!tipos.length&&curTotal<obsThresh)tipos.push('observacao');
+  return {tipos:tipos,sarPct:sarPct,dalPct:dalPct,total:total,sarYtdPct:sarYtdPct,dalYtdPct:dalYtdPct,gSar:gSar,gDal:gDal,curTotal:curTotal};
 }
 function renderOncoTracking(){
   var contas=_contaWithAudit();
   if(!contas.length){document.getElementById('oncoBody').innerHTML='<div style="padding:20px;text-align:center;color:#888;">Importe o CSV do OncoTracking na aba <b>Auditoria</b> para ver a análise.</div>';return;}
   var totalSar=0,totalDal=0,totalSarAnt=0,totalDalAnt=0;
   var totalSarY=0,totalDalY=0,totalSarYAnt=0,totalDalYAnt=0;
+  var isYtd=_oncoLens==='ytd'; // definido cedo — usado para classificar arquétipos com a base correta
   var buckets={virgem:[],decolagem:[],parou:[],contraataque:[],dalqueda:[],observacao:[]};
   var enriched=contas.map(function(c){
-    var m=_classifyConta(c);c.meta=m;
+    var m=_classifyConta(c,isYtd);c.meta=m;
     totalSar+=c.sarMat;totalDal+=c.dalMat;totalSarAnt+=c.sarMatAnt;totalDalAnt+=c.dalMatAnt;
     totalSarY+=c.sarYtd;totalDalY+=c.dalYtd;totalSarYAnt+=c.sarYtdAnt;totalDalYAnt+=c.dalYtdAnt;
     m.acel=(m.sarYtdPct!=null&&m.sarPct!=null)?(m.sarYtdPct-m.sarPct):null; // Aceleração conta
@@ -2048,13 +2062,22 @@ function renderOncoTracking(){
   if(ovYtd.dalAtu!=null)totalDalY=ovYtd.dalAtu;if(ovYtd.dalAnt!=null)totalDalYAnt=ovYtd.dalAnt;
 
   // Fontes por lente
-  var isYtd=_oncoLens==='ytd';
+  var lensLbl=isYtd?'YTD':'MAT';
+  var ovLens=isYtd?'ytd':'mat';
   var tSar=isYtd?totalSarY:totalSar,tDal=isYtd?totalDalY:totalDal;
   var tSarAnt=isYtd?totalSarYAnt:totalSarAnt,tDalAnt=isYtd?totalDalYAnt:totalDalAnt;
   var totalMkt=tSar+tDal;
   var share=totalMkt?tSar/totalMkt*100:0;
   var shareAnt=(tSarAnt+tDalAnt)?tSarAnt/(tSarAnt+tDalAnt)*100:0;
   var shareDelta=share-shareAnt;
+  // Share vs Brasil (referência manual) — verde se território acima do BR, vermelho se abaixo
+  var _brRef=_matBR[ovLens]||{sar:null,dal:null};
+  var shareBRVal=(_brRef.sar!=null&&_brRef.dal!=null&&(_brRef.sar+_brRef.dal)>0)?(_brRef.sar/(_brRef.sar+_brRef.dal)*100):null;
+  var shareVsBR=shareBRVal!=null?(share-shareBRVal):null;
+  var shareClr=shareVsBR!=null?(shareVsBR>=0?'#059669':'#dc2626'):_clrPct(shareDelta*3);
+  var shareSub=shareVsBR!=null
+    ?((shareVsBR>=0?'▲':'▼')+' '+Math.abs(shareVsBR).toFixed(1)+'pp vs BR · '+lensLbl)
+    :((shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior · '+lensLbl);
   var evolSar=_pct(tSar,tSarAnt);
   var evolDal=_pct(tDal,tDalAnt);
   var gap=(evolSar||0)-(evolDal||0);
@@ -2070,12 +2093,10 @@ function renderOncoTracking(){
       (sub?'<div style="font-size:11px;color:#666;margin-top:2px;">'+sub+'</div>':'')+
     '</div>';
   };
-  var lensLbl=isYtd?'YTD':'MAT';
   var btn=function(l,active){return '<button onclick="setOncoLens(\''+l.toLowerCase()+'\')" style="padding:4px 12px;font-size:11px;font-weight:700;border:1px solid #ede9fe;border-radius:20px;cursor:pointer;background:'+(active?'#6d28d9':'#fff')+';color:'+(active?'#fff':'#6d28d9')+';">'+l+'</button>';};
   var toggle='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;"><span style="font-size:11px;color:#888;font-weight:700;">LENTE:</span>'+btn('MAT',!isYtd)+btn('YTD',isYtd)+
     '<button onclick="document.getElementById(\'terOvBox\').style.display=document.getElementById(\'terOvBox\').style.display===\'none\'?\'block\':\'none\';" style="margin-left:auto;background:none;border:1px solid #ede9fe;border-radius:20px;padding:4px 10px;font-size:11px;color:#6d28d9;cursor:pointer;">✏️ Ajustar totais</button>'+
   '</div>';
-  var ovLens=isYtd?'ytd':'mat';
   var ovCur=_territoryOverride[ovLens];
   var _ovHasAny=ovCur.sarAnt!=null||ovCur.sarAtu!=null||ovCur.dalAnt!=null||ovCur.dalAtu!=null;
   var _ovIn=function(id,val){return '<input type="number" id="'+id+'" value="'+(val!=null?val:'')+'" placeholder="—" onchange="setTerritoryOverride(\''+ovLens+'\',\''+id.replace('terOv_','')+'\',this.value)" style="width:100%;box-sizing:border-box;font-size:12px;padding:5px 6px;border:1px solid #ddd;border-radius:6px;text-align:right;">';};
@@ -2093,7 +2114,7 @@ function renderOncoTracking(){
   '</div>';
   var kpis=toggle+terOvBox+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">'+
     kpiCard('Mercado total ('+lensLbl+')',_fmtNum(totalMkt),_fmtNum(tSar)+' Sar · '+_fmtNum(tDal)+' Dal')+
-    kpiCard('Share Sarclisa Território',share.toFixed(1)+'%',(shareDelta>=0?'▲':'▼')+' '+Math.abs(shareDelta).toFixed(1)+'pp vs anterior · '+lensLbl,_clrPct(shareDelta*3))+
+    kpiCard('Share Sarclisa Território',share.toFixed(1)+'%',shareSub,shareClr)+
     _shareBRCard(share,ovLens)+
     kpiCard('Evol. Sarclisa '+lensLbl,_fmtPct(evolSar),null,_clrPct(evolSar))+
     kpiCard('Evol. Dalinvi '+lensLbl,_fmtPct(evolDal),null,_clrPct(evolDal))+
@@ -2124,7 +2145,14 @@ function renderOncoTracking(){
     '</div>'+
   '</div>';
 
-  var archDef=[
+  var archDef=isYtd?[
+    {k:'decolagem',ico:'🚀',t:'Sarclisa em decolagem (YTD)',d:'YTD Sar +30% ou mais no ano corrente — reforçar e virar case'},
+    {k:'virgem',ico:'🎯',t:'Alvos virgens (YTD)',d:'Dal YTD ≥ 40 e Sar zerado no ano — prioridade de novo prescritor'},
+    {k:'parou',ico:'💤',t:'Sarclisa estagnado no ano',d:'Tinha histórico Sarclisa (MAT) mas o YTD não cresce — ligar antes de perder de vez'},
+    {k:'contraataque',ico:'⚔️',t:'Contra-ataque (YTD)',d:'Sar caindo E Dal subindo no ano corrente — reforço competitivo'},
+    {k:'dalqueda',ico:'📉',t:'Dalinvi em queda (YTD)',d:'Dal YTD −20% ou mais — janela de troca'},
+    {k:'observacao',ico:'⚠️',t:'Sob observação (YTD)',d:'Volume do ano < 10 — manter monitoramento'}
+  ]:[
     {k:'decolagem',ico:'🚀',t:'Sarclisa em decolagem',d:'MAT Sar +30% ou mais — reforçar e virar case'},
     {k:'virgem',ico:'🎯',t:'Alvos virgens',d:'Dal MAT ≥ 100 e Sar zerado — prioridade de novo prescritor'},
     {k:'parou',ico:'💤',t:'Sarclisa parou',d:'MAT positivo mas YTD estagnado — ligar antes de reverter'},
@@ -2136,10 +2164,10 @@ function renderOncoTracking(){
     var m=c.meta;
     return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #f0edff;">'+
       '<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:13px;color:#1c1c1e;">'+esc(c.conta)+'</div>'+
-      '<div style="font-size:11px;color:#666;">Sar '+_fmtNum(c.sarMat)+' · Dal '+_fmtNum(c.dalMat)+' · Total '+_fmtNum(m.total)+'</div></div>'+
+      '<div style="font-size:11px;color:#666;">Sar '+_fmtNum(isYtd?c.sarYtd:c.sarMat)+' · Dal '+_fmtNum(isYtd?c.dalYtd:c.dalMat)+' · Total '+_fmtNum(m.curTotal)+'</div></div>'+
       '<div style="text-align:right;font-size:11px;line-height:1.3;">'+
-        '<div style="color:'+_clrPct(m.sarPct)+';font-weight:700;">Sar '+_fmtPct(m.sarPct)+'</div>'+
-        '<div style="color:'+_clrPct(m.dalPct)+';">Dal '+_fmtPct(m.dalPct)+'</div>'+
+        '<div style="color:'+_clrPct(m.gSar)+';font-weight:700;">Sar '+_fmtPct(m.gSar)+'</div>'+
+        '<div style="color:'+_clrPct(m.gDal)+';">Dal '+_fmtPct(m.gDal)+'</div>'+
       '</div>'+
       '<button onclick="openAuditModal(\''+escJ(c.conta)+'\',-1)" style="background:none;border:none;cursor:pointer;font-size:15px;padding:2px 4px;flex-shrink:0;" title="Editar">✏️</button>'+
     '</div>';
@@ -2161,21 +2189,21 @@ function renderOncoTracking(){
   });
 
   // Rankings
-  var upSar=enriched.filter(function(c){return c.meta.sarPct!=null&&c.sarMat>=10;}).sort(function(a,b){return b.meta.sarPct-a.meta.sarPct;}).slice(0,10);
-  var downSar=enriched.filter(function(c){return c.meta.sarPct!=null&&c.sarMatAnt>=10;}).sort(function(a,b){return a.meta.sarPct-b.meta.sarPct;}).slice(0,10);
+  var upSar=enriched.filter(function(c){return c.meta.gSar!=null&&(isYtd?c.sarYtd:c.sarMat)>=(isYtd?3:10);}).sort(function(a,b){return b.meta.gSar-a.meta.gSar;}).slice(0,10);
+  var downSar=enriched.filter(function(c){return c.meta.gSar!=null&&(isYtd?c.sarYtdAnt:c.sarMatAnt)>=(isYtd?3:10);}).sort(function(a,b){return a.meta.gSar-b.meta.gSar;}).slice(0,10);
   var rankHtml=function(title,list,ico){
     return '<div style="background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;">'+
       '<div style="font-weight:700;font-size:13px;margin-bottom:8px;">'+ico+' '+title+'</div>'+
       (list.length?list.map(function(c,i){
         return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:4px 0;border-bottom:1px solid #f0edff;">'+
           '<span style="color:#666;flex:1;min-width:0;">#'+(i+1)+' '+esc(c.conta)+'</span>'+
-          '<span style="color:'+_clrPct(c.meta.sarPct)+';font-weight:700;white-space:nowrap;">'+_fmtPct(c.meta.sarPct)+' · Sar '+_fmtNum(c.sarMat)+'</span>'+
+          '<span style="color:'+_clrPct(c.meta.gSar)+';font-weight:700;white-space:nowrap;">'+_fmtPct(c.meta.gSar)+' · Sar '+_fmtNum(isYtd?c.sarYtd:c.sarMat)+'</span>'+
           '<button onclick="openAuditModal(\''+escJ(c.conta)+'\',-1)" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;" title="Editar">✏️</button>'+
         '</div>';
       }).join(''):'<div style="color:#aaa;font-size:12px;">Sem dados suficientes</div>')+
     '</div>';
   };
-  var rankBlock='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">📈 RANKING SARCLISA (MAT)</div>'+
+  var rankBlock='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">📈 RANKING SARCLISA ('+lensLbl+')</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
       rankHtml('Contas em decolagem',upSar,'🚀')+
       rankHtml('Contas em queda',downSar,'📉')+
