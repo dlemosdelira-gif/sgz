@@ -1919,13 +1919,14 @@ function _fmtPct(p){if(p==null||!isFinite(p))return '—';var s=p>=0?'+':'';retu
 function _fmtNum(n){return Math.round(n||0).toLocaleString('pt-BR');}
 function _clrPct(p){if(p==null)return '#888';if(p>=20)return '#059669';if(p>0)return '#0891b2';if(p<=-20)return '#dc2626';if(p<0)return '#ea580c';return '#888';}
 function _contaWithAudit(){
+  // Itera cExtra — inclui TODAS as contas com auditData, não só as em CONTAS_DEF
   var out=[];
-  for(var i=0;i<CONTAS_DEF.length;i++){
-    var c=CONTAS_DEF[i];var ext=cExtra[c.conta]||{};var ad=ext.auditData||{};
-    if(!ad.sarclisa&&!ad.dalinvi)continue;
+  for(var name in cExtra){
+    var ad=cExtra[name]&&cExtra[name].auditData;
+    if(!ad||(!ad.sarclisa&&!ad.dalinvi))continue;
     var s=ad.sarclisa||{},d=ad.dalinvi||{};
     out.push({
-      conta:c.conta,
+      conta:name,
       sarMat:s.matAtu||0,sarMatAnt:s.matAnt||0,sarYtd:s.ytdAtu||0,sarYtdAnt:s.ytdAnt||0,
       dalMat:d.matAtu||0,dalMatAnt:d.matAnt||0,dalYtd:d.ytdAtu||0,dalYtdAnt:d.ytdAnt||0
     });
@@ -2471,13 +2472,15 @@ function applyCsvAudit(){
     }
     var updated=0;
 
-  // 1. Atualiza contas já conhecidas
+  // 1. Atualiza contas já conhecidas E grava auditData de rows sem match
+  //    (para OncoTracking não perder volume dessas contas)
   for(var i=0;i<csvParsedData.length;i++){
     var row=csvParsedData[i];
-    if(!row.conta)continue;
-    if(!cExtra[row.conta])cExtra[row.conta]={};
-    if(!cExtra[row.conta].auditData)cExtra[row.conta].auditData={};
-    var ad=cExtra[row.conta].auditData;
+    var key=row.conta||row.contaRaw;
+    if(!key)continue;
+    if(!cExtra[key])cExtra[key]={};
+    if(!cExtra[key].auditData)cExtra[key].auditData={};
+    var ad=cExtra[key].auditData;
     if(row.mat!=null)ad.mat=row.mat;
     if(row.ytd!=null)ad.ytd=row.ytd;
     if(row.scoreTam!=null)ad.scoreTam=row.scoreTam;
@@ -2489,7 +2492,7 @@ function applyCsvAudit(){
       if(row.products.dalinvi)ad.dalinvi=row.products.dalinvi;
       if(row.products.darzalex)ad.darzalex=row.products.darzalex;
     }
-    updated++;
+    if(row.conta)updated++; // contador só p/ contas de fato conectadas
   }
 
   // 2. Cria contas novas marcadas pelo usuário
