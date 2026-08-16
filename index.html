@@ -701,7 +701,8 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <code>Conta;MAT;YTD;Tamanho;Momento;Pot.Estrat.;Espaco</code><br>
       <strong>Formato 2 — Multi-produto IMS (separado por tab):</strong><br>
       <code>Marca&#9;Cidade&#9;Razão Social&#9;YTD ANT&#9;YTD ATU&#9;MAT ANT&#9;MAT ATU</code><br>
-      No formato 2, linhas de Sarclisa e Dalinvi IV são identificadas automaticamente pela coluna <b>Marca</b>.
+      No formato 2, linhas de Sarclisa e Dalinvi IV são identificadas automaticamente pela coluna <b>Marca</b>.<br>
+      <strong>Recomendado (iPad/Excel): importe o arquivo .xlsx direto</strong> — evita problemas de formatação ao colar. PDF não é suportado; exporte como XLSX ou CSV primeiro.
     </div>
     <div class="field">
       <label>Cole o CSV aqui</label>
@@ -709,8 +710,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;">
       <button class="ctrl-btn primary" onclick="processCsvAudit()">✓ Processar</button>
-      <button class="ctrl-btn" onclick="document.getElementById('csvFileInput').click()">📂 Importar arquivo</button>
+      <button class="ctrl-btn" onclick="document.getElementById('csvFileInput').click()">📂 Importar CSV/TXT</button>
       <input id="csvFileInput" type="file" accept=".csv,.txt" style="display:none" onchange="loadCsvFile(event)">
+      <button class="ctrl-btn" onclick="document.getElementById('xlsxFileInput').click()">📊 Importar XLSX</button>
+      <input id="xlsxFileInput" type="file" accept=".xlsx" style="display:none" onchange="loadXlsxFile(event)">
     </div>
     <div id="csvResult" class="csv-result" style="display:none"></div>
     <div id="csvNewContas" style="display:none;margin-top:10px;"></div>
@@ -2175,9 +2178,148 @@ function loadCsvFile(evt){
   evt.target.value='';
 }
 
+// ══════════ XLSX PARSER (vanilla JS — sem libs externas, lê o .xlsx como ZIP+XML) ══════════
+function _xlsxColToIdx(ref){
+  var m=String(ref||'').match(/^([A-Z]+)/);if(!m)return 0;
+  var s=m[1],n=0;
+  for(var k=0;k<s.length;k++)n=n*26+(s.charCodeAt(k)-64);
+  return n-1;
+}
+async function _xlsxReadZipEntry(buf,dv,name){
+  var len=buf.byteLength;
+  var eocd=-1;
+  var scanStart=Math.max(0,len-22-65557);
+  for(var i=len-22;i>=scanStart;i--){
+    if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}
+  }
+  if(eocd<0)throw new Error('Arquivo ZIP/XLSX inválido (fim de diretório central não encontrado).');
+  var cdOffset=dv.getUint32(eocd+16,true);
+  var cdEntries=dv.getUint16(eocd+10,true);
+  var p=cdOffset;
+  var dec=new TextDecoder('utf-8');
+  for(var e=0;e<cdEntries;e++){
+    if(dv.getUint32(p,true)!==0x02014b50)break;
+    var compMethod=dv.getUint16(p+10,true);
+    var compSize=dv.getUint32(p+20,true);
+    var fnLen=dv.getUint16(p+28,true);
+    var exLen=dv.getUint16(p+30,true);
+    var cmLen=dv.getUint16(p+32,true);
+    var localOffset=dv.getUint32(p+42,true);
+    var fname=dec.decode(new Uint8Array(buf,p+46,fnLen));
+    if(fname===name){
+      var lfnLen=dv.getUint16(localOffset+26,true);
+      var lexLen=dv.getUint16(localOffset+28,true);
+      var dataStart=localOffset+30+lfnLen+lexLen;
+      var compData=buf.slice(dataStart,dataStart+compSize);
+      if(compMethod===0)return compData;
+      if(compMethod===8){
+        var ds=new DecompressionStream('deflate-raw');
+        var stream=new Blob([compData]).stream().pipeThrough(ds);
+        return await new Response(stream).arrayBuffer();
+      }
+      throw new Error('Compressão ZIP não suportada (método '+compMethod+').');
+    }
+    p+=46+fnLen+exLen+cmLen;
+  }
+  return null;
+}
+async function _xlsxParse(file){
+  var buf=await file.arrayBuffer();
+  var dv=new DataView(buf);
+  var dec=new TextDecoder('utf-8');
+
+  // 1. Descobre o caminho real da primeira planilha (workbook.xml + rels)
+  var sheetPath='xl/worksheets/sheet1.xml';
+  try{
+    var wbBuf=await _xlsxReadZipEntry(buf,dv,'xl/workbook.xml');
+    var relsBuf=await _xlsxReadZipEntry(buf,dv,'xl/_rels/workbook.xml.rels');
+    if(wbBuf&&relsBuf){
+      var wbXml=new DOMParser().parseFromString(dec.decode(wbBuf),'application/xml');
+      var firstSheet=wbXml.getElementsByTagName('sheet')[0];
+      if(firstSheet){
+        var rid=firstSheet.getAttribute('r:id')||firstSheet.getAttribute('id');
+        var relsXml=new DOMParser().parseFromString(dec.decode(relsBuf),'application/xml');
+        var rels=relsXml.getElementsByTagName('Relationship');
+        for(var ri=0;ri<rels.length;ri++){
+          if(rels[ri].getAttribute('Id')===rid){
+            var target=rels[ri].getAttribute('Target').replace(/^\/?/,'');
+            sheetPath=target.indexOf('xl/')===0?target:'xl/'+target;
+            break;
+          }
+        }
+      }
+    }
+  }catch(e){console.warn('xlsx workbook.xml (usando fallback sheet1.xml):',e);}
+
+  // 2. Shared strings
+  var sharedStrings=[];
+  var ssBuf=await _xlsxReadZipEntry(buf,dv,'xl/sharedStrings.xml');
+  if(ssBuf){
+    var ssXml=new DOMParser().parseFromString(dec.decode(ssBuf),'application/xml');
+    var sis=ssXml.getElementsByTagName('si');
+    for(var i=0;i<sis.length;i++){
+      var ts=sis[i].getElementsByTagName('t');
+      var txt='';
+      for(var j=0;j<ts.length;j++)txt+=ts[j].textContent;
+      sharedStrings.push(txt);
+    }
+  }
+
+  // 3. Planilha
+  var shBuf=await _xlsxReadZipEntry(buf,dv,sheetPath);
+  if(!shBuf)throw new Error('Planilha não encontrada dentro do arquivo (esperado em '+sheetPath+').');
+  var shXml=new DOMParser().parseFromString(dec.decode(shBuf),'application/xml');
+  var rowsEls=shXml.getElementsByTagName('row');
+  var rows=[];
+  for(var ri2=0;ri2<rowsEls.length;ri2++){
+    var cells=rowsEls[ri2].getElementsByTagName('c');
+    var rowArr=[];
+    for(var ci=0;ci<cells.length;ci++){
+      var cEl=cells[ci];
+      var ref=cEl.getAttribute('r')||'';
+      var idx=_xlsxColToIdx(ref);
+      var t=cEl.getAttribute('t');
+      var val='';
+      if(t==='inlineStr'){
+        var isEl=cEl.getElementsByTagName('is')[0];
+        val=isEl?isEl.textContent:'';
+      } else {
+        var vEl=cEl.getElementsByTagName('v')[0];
+        var rawv=vEl?vEl.textContent:'';
+        val=(t==='s')?(sharedStrings[parseInt(rawv)]||''):rawv;
+      }
+      while(rowArr.length<idx)rowArr.push('');
+      rowArr[idx]=val;
+    }
+    rows.push(rowArr);
+  }
+  return rows;
+}
+function loadXlsxFile(evt){
+  var file=evt.target.files&&evt.target.files[0];if(!file)return;
+  evt.target.value='';
+  if(typeof DecompressionStream==='undefined'){
+    alert('⚠️ Seu navegador não suporta leitura de XLSX compactado. Abra o arquivo no Excel/Numbers, selecione tudo, copie e cole no campo de texto.');
+    return;
+  }
+  _xlsxParse(file).then(function(rows){
+    if(!rows||rows.length<2){alert('⚠️ Não foi possível ler dados desta planilha.');return;}
+    _processRowsMatrix(rows);
+  }).catch(function(e){
+    console.error('xlsx parse error:',e);
+    alert('❌ Erro ao ler o arquivo XLSX:\n'+(e&&e.message?e.message:e)+'\n\nTente copiar e colar os dados diretamente no campo de texto.');
+  });
+}
+
 function parseCsvLine(line){
-  var sep=line.indexOf(';')>=0?';':'\t';
-  return line.split(sep).map(function(c){return c.trim().replace(/^"|"$/g,'').trim();});
+  // Detecção robusta de separador: tab real > ; > 2+ espaços (fallback p/ paste sem tabs) > vírgula
+  line=String(line||'').replace(/ /g,' ').replace(/\r/g,'');
+  var cells;
+  if(line.indexOf('\t')>=0)cells=line.split('\t');
+  else if(line.indexOf(';')>=0)cells=line.split(';');
+  else if(/ {2,}/.test(line))cells=line.split(/ {2,}/);
+  else cells=line.split(',');
+  return cells.map(function(c){return c.trim().replace(/^"|"$/g,'').trim();});
 }
 
 function stripAccents(s){
@@ -2247,7 +2389,9 @@ function saveContasCustom(){
     .catch(function(e){console.error('contasDefFull ERRO:',e);alert('⚠️ Erro ao salvar lista de contas:\n'+(e&&e.message?e.message:e));});
 }
 
-function processCsvAuditWide(lines,brandRow,subRow){
+function processCsvAuditWideMatrix(rows){
+  // rows[0]=brandRow, rows[1]=subRow, rows[2+]=dados — já tokenizados (sem depender de separador de texto)
+  var brandRow=rows[0],subRow=rows[1];
   // Constrói map coluna→{marca,metric} a partir das duas primeiras linhas
   var colMap=[]; var lastBrand='';
   for(var c=0;c<Math.max(brandRow.length,subRow.length);c++){
@@ -2269,10 +2413,12 @@ function processCsvAuditWide(lines,brandRow,subRow){
   for(var c2=0;c2<subRow.length;c2++){if(/razão|razao|social|conta/i.test(subRow[c2]||'')){iRazao=c2;break;}}
 
   var byRazao={};
-  for(var li=2;li<lines.length;li++){
-    var cols=parseCsvLine(lines[li]);
+  var rowsUsed=0; // linhas de dados válidas (com razão social) — diagnóstico
+  for(var li=2;li<rows.length;li++){
+    var cols=rows[li];
     var razao=(cols[iRazao]||'').trim();
     if(!razao||/^total$/i.test(razao))continue;
+    rowsUsed++;
     if(!byRazao[razao])byRazao[razao]={razao:razao,products:{}};
     for(var k=0;k<colMap.length;k++){
       var m=colMap[k];if(!m.brand||!m.metric)continue;
@@ -2283,11 +2429,13 @@ function processCsvAuditWide(lines,brandRow,subRow){
   }
 
   var results=[],parsed=[];
+  var _dSarMat=0,_dSarYtd=0,_dDalMat=0,_dDalYtd=0;
   for(var razao in byRazao){
     var entry=byRazao[razao];
     var matchNome=fuzzyMatchConta(razao);
     var row={contaRaw:razao,conta:matchNome,isNewFormat:true,products:entry.products};
-    if(entry.products.sarclisa){row.mat=Math.round(entry.products.sarclisa.matAtu);row.ytd=Math.round(entry.products.sarclisa.ytdAtu);}
+    if(entry.products.sarclisa){row.mat=Math.round(entry.products.sarclisa.matAtu);row.ytd=Math.round(entry.products.sarclisa.ytdAtu);_dSarMat+=entry.products.sarclisa.matAtu||0;_dSarYtd+=entry.products.sarclisa.ytdAtu||0;}
+    if(entry.products.dalinvi){_dDalMat+=entry.products.dalinvi.matAtu||0;_dDalYtd+=entry.products.dalinvi.ytdAtu||0;}
     parsed.push(row);
     results.push(matchNome?'<span class="ok">✓ '+esc(razao)+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+esc(razao)+'"</span>');
   }
@@ -2298,7 +2446,10 @@ function processCsvAuditWide(lines,brandRow,subRow){
   csvNewContasPending=notFound;
   var resultEl=document.getElementById('csvResult');
   resultEl.style.display='block';
-  resultEl.innerHTML='<b>📊 Formato OncoTracking wide detectado — '+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
+  var diag='🔍 <b>Diagnóstico:</b> '+rowsUsed+' linhas de dados lidas · Colunas mapeadas: '+colMap.filter(function(m){return m.brand&&m.metric;}).length+
+    '<br>Somas detectadas — Sar MAT '+_fmtNum(_dSarMat)+' · YTD '+_fmtNum(_dSarYtd)+' &nbsp;|&nbsp; Dal MAT '+_fmtNum(_dDalMat)+' · YTD '+_fmtNum(_dDalYtd)+
+    '<br><span style="color:#888;">Confira essas somas contra a linha "Total" da sua planilha ANTES de aplicar.</span><hr style="margin:8px 0;border-color:#eee;">';
+  resultEl.innerHTML=diag+'<b>📊 Formato OncoTracking wide detectado — '+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
   document.getElementById('csvApplyBtn').style.display=(found>0||notFound.length>0)?'':'none';
 
   var newEl=document.getElementById('csvNewContas');
@@ -2322,19 +2473,27 @@ function processCsvAudit(){
   if(!raw){alert('Cole os dados primeiro.');return;}
   var lines=raw.split(/\r?\n/).filter(function(l){return l.trim();});
   if(lines.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
+  var rows=lines.map(parseCsvLine);
+  _processRowsMatrix(rows);
+}
+
+// Ponto único de entrada — usado tanto pelo paste (textarea) quanto pelo upload de XLSX.
+// rows = array de arrays de strings já tokenizadas (uma linha do CSV/planilha por item).
+function _processRowsMatrix(rows){
+  if(!rows||rows.length<2){alert('É necessário cabeçalho + pelo menos 1 linha de dados.');return;}
 
   // Detecta formato wide OncoTracking: linha 1 tem banner de marca (DALINVI/SARCLISA) repetido; linha 2 tem R3M/YTD/MAT ANT/ATU
-  var brandRow=parseCsvLine(lines[0]);
+  var brandRow=rows[0];
   var hasBrandBanner=brandRow.some(function(c){var u=(c||'').toUpperCase();return u.indexOf('DALINVI')>=0||u.indexOf('SARCLISA')>=0||u.indexOf('DARZALEX')>=0;});
-  var subHeaderRow=lines.length>1?parseCsvLine(lines[1]):[];
+  var subHeaderRow=rows.length>1?rows[1]:[];
   var hasSubHeader=subHeaderRow.some(function(c){return /ytd|mat/i.test(c||'')&&/(ant|atu)/i.test(c||'');});
 
   if(hasBrandBanner&&hasSubHeader){
-    processCsvAuditWide(lines,brandRow,subHeaderRow);
+    processCsvAuditWideMatrix(rows);
     return;
   }
 
-  var header=parseCsvLine(lines[0]).map(function(h){return h.toLowerCase().replace(/[^a-záàãâéêíóõôúç.\s]/gi,'').trim();});
+  var header=rows[0].map(function(h){return String(h||'').toLowerCase().replace(/[^a-záàãâéêíóõôúç.\s]/gi,'').trim();});
   var iMarca=header.findIndex(function(h){return h==='marca'||h.indexOf('marca')===0;});
   var isNewFormat=iMarca>=0;
 
@@ -2352,8 +2511,8 @@ function processCsvAudit(){
 
     // Aggregate by razão social + marca (multiple cities)
     var agg={};
-    for(var li=1;li<lines.length;li++){
-      var cols=parseCsvLine(lines[li]);
+    for(var li=1;li<rows.length;li++){
+      var cols=rows[li];
       if(!cols[iRazao])continue;
       var razao=cols[iRazao].trim();
       var marca=(cols[iMarca]||'').trim().toLowerCase();
@@ -2398,12 +2557,12 @@ function processCsvAudit(){
     var iEsp=header.findIndex(function(h){return h.indexOf('espa')>=0||h.indexOf('esp')>=0||h.indexOf('captura')>=0;});
     if(iConta<0)iConta=0;if(iMat<0)iMat=1;if(iYtd<0)iYtd=2;
 
-    for(var li=1;li<lines.length;li++){
-      var cols=parseCsvLine(lines[li]);
+    for(var li=1;li<rows.length;li++){
+      var cols=rows[li];
       if(!cols[iConta])continue;
       var contaRaw=cols[iConta];
-      var mat=parseFloat(String(cols[iMat]||'').replace(',','.'));
-      var ytd=parseFloat(String(cols[iYtd]||'').replace(',','.'));
+      var mat=parsePtNum(cols[iMat]);
+      var ytd=parsePtNum(cols[iYtd]);
       var matchNome=fuzzyMatchConta(contaRaw);
       var row={contaRaw:contaRaw,conta:matchNome,mat:isNaN(mat)?null:mat,ytd:isNaN(ytd)?null:ytd};
       if(iTam>=0&&cols[iTam])row.scoreTam=parseInt(cols[iTam])||null;
