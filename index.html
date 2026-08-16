@@ -2472,8 +2472,27 @@ function applyCsvAudit(){
     }
     var updated=0;
 
+    // 0. Se é import wide (com produtos Sar/Dal), RESETA sarclisa/dalinvi de TODAS as
+    //    contas antes de reaplicar — evita fantasmas de imports/colisões anteriores e
+    //    garante que os totais do OncoTracking batam exatamente com este CSV.
+    var isWideImport=csvParsedData.some(function(r){return r.isNewFormat;});
+    if(isWideImport){
+      for(var _rk in cExtra){
+        if(cExtra[_rk]&&cExtra[_rk].auditData){
+          delete cExtra[_rk].auditData.sarclisa;
+          delete cExtra[_rk].auditData.dalinvi;
+          delete cExtra[_rk].auditData.darzalex;
+        }
+      }
+    }
+
   // 1. Atualiza contas já conhecidas E grava auditData de rows sem match
   //    (para OncoTracking não perder volume dessas contas)
+  var _keysSeenThisApply={}; // detecta colisão de fuzzy match dentro do mesmo import (soma em vez de sobrescrever)
+  var _sumProd=function(a,b){
+    if(!a)return b;if(!b)return a;
+    return {matAnt:(a.matAnt||0)+(b.matAnt||0),matAtu:(a.matAtu||0)+(b.matAtu||0),ytdAnt:(a.ytdAnt||0)+(b.ytdAnt||0),ytdAtu:(a.ytdAtu||0)+(b.ytdAtu||0)};
+  };
   for(var i=0;i<csvParsedData.length;i++){
     var row=csvParsedData[i];
     var key=row.conta||row.contaRaw;
@@ -2481,6 +2500,8 @@ function applyCsvAudit(){
     if(!cExtra[key])cExtra[key]={};
     if(!cExtra[key].auditData)cExtra[key].auditData={};
     var ad=cExtra[key].auditData;
+    var collided=_keysSeenThisApply[key];
+    _keysSeenThisApply[key]=true;
     if(row.mat!=null)ad.mat=row.mat;
     if(row.ytd!=null)ad.ytd=row.ytd;
     if(row.scoreTam!=null)ad.scoreTam=row.scoreTam;
@@ -2488,9 +2509,9 @@ function applyCsvAudit(){
     if(row.scorePot!=null)ad.scorePot=row.scorePot;
     if(row.scoreEsp!=null)ad.scoreEsp=row.scoreEsp;
     if(row.products){
-      if(row.products.sarclisa)ad.sarclisa=row.products.sarclisa;
-      if(row.products.dalinvi)ad.dalinvi=row.products.dalinvi;
-      if(row.products.darzalex)ad.darzalex=row.products.darzalex;
+      if(row.products.sarclisa)ad.sarclisa=collided?_sumProd(ad.sarclisa,row.products.sarclisa):row.products.sarclisa;
+      if(row.products.dalinvi)ad.dalinvi=collided?_sumProd(ad.dalinvi,row.products.dalinvi):row.products.dalinvi;
+      if(row.products.darzalex)ad.darzalex=collided?_sumProd(ad.darzalex,row.products.darzalex):row.products.darzalex;
     }
     if(row.conta)updated++; // contador só p/ contas de fato conectadas
   }
@@ -2539,7 +2560,14 @@ function applyCsvAudit(){
     saveContasCustom();
     closeCsvAuditModal();
     renderContas();
-    alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!');
+    // Diagnóstico: soma total pós-apply, para conferência imediata contra a planilha
+    var _chkSar=0,_chkDal=0,_chkSarY=0,_chkDalY=0;
+    for(var _ck in cExtra){
+      var _cad=cExtra[_ck]&&cExtra[_ck].auditData;if(!_cad)continue;
+      if(_cad.sarclisa){_chkSar+=_cad.sarclisa.matAtu||0;_chkSarY+=_cad.sarclisa.ytdAtu||0;}
+      if(_cad.dalinvi){_chkDal+=_cad.dalinvi.matAtu||0;_chkDalY+=_cad.dalinvi.ytdAtu||0;}
+    }
+    alert('✅ '+updated+' conta(s) atualizada(s)/criada(s) e sincronizada(s)!\n\n📊 Totais pós-import:\nSar MAT '+Math.round(_chkSar)+' · YTD '+Math.round(_chkSarY)+'\nDal MAT '+Math.round(_chkDal)+' · YTD '+Math.round(_chkDalY)+'\n\nConfira contra a linha "Total" da planilha.');
   }catch(e){
     alert('❌ Erro ao aplicar:\n'+(e&&e.message?e.message:e)+'\n\n'+(e&&e.stack?e.stack.substring(0,300):''));
     console.error('applyCsvAudit error:',e);
