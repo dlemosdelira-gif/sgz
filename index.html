@@ -462,6 +462,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
         <button class="ctrl-btn" onclick="openCsvAuditModal()">📊 Auditoria</button>
         <button class="ctrl-btn" onclick="openOncoModal()">📡 OncoTracking</button>
         <button class="ctrl-btn" onclick="openCalcModal()">🧮 Calc</button>
+        <button class="ctrl-btn" onclick="openDupModal()">🔗 Duplicatas</button>
         <button class="ctrl-btn primary" onclick="openNewContaModal()">+ Nova</button>
       </div>
     </div>
@@ -482,6 +483,13 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
         <option value="Prioridade Alta">🟠 Alta</option>
         <option value="Prioridade Média">🟡 Média</option>
         <option value="Monitoramento">⚪ Monitoramento</option>
+      </select>
+      <select id="contaProd" onchange="renderContas()">
+        <option value="">Todos produtos</option>
+        <option value="sarclisa">💜 Só com Sarclisa</option>
+        <option value="dalinvi">💙 Só com Dalinvi</option>
+        <option value="both">⚡ Sarclisa + Dalinvi</option>
+        <option value="none">— Sem dado OncoTracking</option>
       </select>
     </div>
     <div id="contaList"></div>
@@ -512,6 +520,21 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <div class="modal" style="max-height:88vh;max-width:920px;">
     <div class="mhd"><h2>📡 OncoTracking · Análise de Mercado</h2><button onclick="closeOncoModal()">×</button></div>
     <div id="oncoBody" style="padding:12px 14px;"></div>
+  </div>
+</div>
+
+<div class="ov" id="dupOv">
+  <div class="modal" style="max-height:88vh;max-width:640px;">
+    <div class="mhd"><h2>🔗 Mesclar contas duplicadas</h2><button onclick="closeDupModal()">×</button></div>
+    <div style="padding:12px 14px;">
+      <div id="dupSuggest"></div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid #eee;">
+        <div style="font-size:12px;font-weight:800;color:#6d28d9;margin-bottom:8px;">Mesclar manualmente</div>
+        <div class="field"><label>Conta a remover (dados serão somados ao destino)</label><select id="dupFrom"></select></div>
+        <div class="field"><label>Conta destino (fica com o nome e recebe os dados)</label><select id="dupTo"></select></div>
+        <button class="ctrl-btn primary" style="width:100%;margin-top:6px;" onclick="doMergeContas()">🔗 Mesclar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -681,6 +704,8 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <div class="mhd"><h2 id="auditTitle">Editar auditoria</h2><button onclick="closeAuditModal()">×</button></div>
     <div class="audit-preview" id="auditPreview"></div>
     <div class="audit-grid">
+      <div class="audit-field"><label>Cidade</label><input type="text" id="at_cidade" autocomplete="off"></div>
+      <div class="audit-field"><label>CNPJ (evita duplicatas)</label><input type="text" id="at_cnpj" placeholder="00.000.000/0000-00" autocomplete="off"></div>
       <div class="audit-field"><label>Score Tamanho (1-3)</label><input type="number" id="at_tam" min="1" max="3" oninput="updateAuditPreview()"></div>
       <div class="audit-field"><label>Score Momento (1-3)</label><input type="number" id="at_mom" min="1" max="3" oninput="updateAuditPreview()"></div>
       <div class="audit-field"><label>Score Pot. Estratégico (1-3)</label><input type="number" id="at_pot" min="1" max="3" oninput="updateAuditPreview()"></div>
@@ -754,6 +779,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <div class="mhd"><h2>🏥 Nova Conta</h2><button onclick="closeNewContaModal()">×</button></div>
     <div class="field"><label>Nome da conta *</label><input id="nc_nome" type="text" placeholder="Ex: UNIMED Campinas" autocomplete="off"></div>
     <div class="field"><label>Cidade</label><input id="nc_cidade" type="text" placeholder="Ex: Campinas" autocomplete="off"></div>
+    <div class="field"><label>CNPJ (opcional — ajuda a evitar duplicatas)</label><input id="nc_cnpj" type="text" placeholder="00.000.000/0000-00" autocomplete="off"></div>
     <div class="field"><label>Prioridade</label>
       <select id="nc_prio">
         <option value="Monitoramento">⚪ Monitoramento</option>
@@ -1557,6 +1583,21 @@ function renderContas(){
   var prioFil=(document.getElementById('contaPrio')||{}).value||'';
   if(prioFil)contas=contas.filter(function(ct){return ct.prioridade===prioFil;});
 
+  // Filtro por produto (dados OncoTracking)
+  var prodFil=(document.getElementById('contaProd')||{}).value||'';
+  if(prodFil){
+    contas=contas.filter(function(ct){
+      var ad=(cExtra[ct.conta]&&cExtra[ct.conta].auditData)||{};
+      var hasSar=!!(ad.sarclisa&&((ad.sarclisa.matAtu||0)>0||(ad.sarclisa.ytdAtu||0)>0));
+      var hasDal=!!(ad.dalinvi&&((ad.dalinvi.matAtu||0)>0||(ad.dalinvi.ytdAtu||0)>0));
+      if(prodFil==='sarclisa')return hasSar;
+      if(prodFil==='dalinvi')return hasDal;
+      if(prodFil==='both')return hasSar&&hasDal;
+      if(prodFil==='none')return !hasSar&&!hasDal;
+      return true;
+    });
+  }
+
   // Ordenação — AGORA USANDO getContaData() CORRETAMENTE
   var sv=(document.getElementById('contaSort')||{}).value||'score';
   contas.sort(function(a,b){
@@ -1865,6 +1906,8 @@ function openAuditModal(contaNome,idx){
   for(var i=0;i<CONTAS_DEF.length;i++){if(CONTAS_DEF[i].conta===contaNome){ct=CONTAS_DEF[i];break;}}
   if(!ct)ct={scoreTam:1,scoreMom:1,scorePot:1,scoreEsp:1,mat:0,ytd:0};
   var ext=cExtra[contaNome]||{},ad=ext.auditData||{};
+  document.getElementById('at_cidade').value=ct.cidade||'';
+  document.getElementById('at_cnpj').value=ct.cnpj||'';
   document.getElementById('at_tam').value=ad.scoreTam!=null?ad.scoreTam:ct.scoreTam;
   document.getElementById('at_mom').value=ad.scoreMom!=null?ad.scoreMom:ct.scoreMom;
   document.getElementById('at_pot').value=ad.scorePot!=null?ad.scorePot:ct.scorePot;
@@ -1915,6 +1958,14 @@ function saveAuditModal(){
     newAd.dalinvi={matAnt:dMatAnt||0,matAtu:dMatAtu||0,ytdAnt:dYtdAnt||0,ytdAtu:dYtdAtu||0};
   }
   cExtra[auditContaNome].auditData=newAd;
+  // Cidade/CNPJ são atributos da conta em si — gravados no CONTAS_DEF
+  var _ctd=null;
+  for(var _ci=0;_ci<CONTAS_DEF.length;_ci++){if(CONTAS_DEF[_ci].conta===auditContaNome){_ctd=CONTAS_DEF[_ci];break;}}
+  if(_ctd){
+    _ctd.cidade=document.getElementById('at_cidade').value.trim();
+    _ctd.cnpj=document.getElementById('at_cnpj').value.trim();
+    saveContasCustom();
+  }
   persist();
   // Atualiza auditStore no Firebase para persistência isolada
   var auditPayload={};
@@ -2231,6 +2282,44 @@ function renderOncoTracking(){
     '</div>';
   rankBlock+=acelBlock;
 
+  // Análise por cidade
+  var cidadeOf={};for(var _cx=0;_cx<CONTAS_DEF.length;_cx++){cidadeOf[CONTAS_DEF[_cx].conta]=CONTAS_DEF[_cx].cidade||'';}
+  var cityMap={};
+  enriched.forEach(function(c){
+    var city=(cidadeOf[c.conta]||'').trim()||'Sem cidade';
+    if(!cityMap[city])cityMap[city]={city:city,sar:0,sarAnt:0,dal:0,dalAnt:0,n:0};
+    var cy=cityMap[city];
+    cy.sar+=isYtd?c.sarYtd:c.sarMat;cy.sarAnt+=isYtd?c.sarYtdAnt:c.sarMatAnt;
+    cy.dal+=isYtd?c.dalYtd:c.dalMat;cy.dalAnt+=isYtd?c.dalYtdAnt:c.dalMatAnt;
+    cy.n++;
+  });
+  var cities=Object.keys(cityMap).map(function(k){return cityMap[k];}).sort(function(a,b){return (b.sar+b.dal)-(a.sar+a.dal);});
+  var citiesKnown=cities.filter(function(c){return c.city!=='Sem cidade';});
+  var cityHtml='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin:18px 0 8px;letter-spacing:.5px;">📍 ANÁLISE POR CIDADE ('+lensLbl+')</div>';
+  if(!citiesKnown.length){
+    cityHtml+='<div style="padding:10px 12px;background:#f8f7ff;border-radius:10px;font-size:11px;color:#888;">💡 Nenhuma conta tem cidade preenchida ainda. Edite cada conta (✏️ Editar auditoria) e preencha o campo Cidade para habilitar esta análise.</div>';
+  } else {
+    cityHtml+='<div style="background:#fff;border:1px solid #ede9fe;border-radius:10px;overflow:hidden;">'+
+      '<div style="display:grid;grid-template-columns:1.6fr .8fr .8fr .7fr;gap:6px;padding:8px 10px;background:#f8f7ff;font-size:10px;font-weight:800;color:#888;text-transform:uppercase;">'+
+        '<span>Cidade</span><span style="text-align:right;">Mercado</span><span style="text-align:right;">Share Sar</span><span style="text-align:right;">Evol Sar</span>'+
+      '</div>'+
+      cities.map(function(cy){
+        var tot=cy.sar+cy.dal;
+        var shareC=tot?cy.sar/tot*100:0;
+        var totAnt=cy.sarAnt+cy.dalAnt;
+        var shareCAnt=totAnt?cy.sarAnt/totAnt*100:0;
+        var evolC=_pct(cy.sar,cy.sarAnt);
+        var isSem=cy.city==='Sem cidade';
+        return '<div style="display:grid;grid-template-columns:1.6fr .8fr .8fr .7fr;gap:6px;padding:7px 10px;border-top:1px solid #f0edff;font-size:12px;'+(isSem?'opacity:.55;':'')+'">'+
+          '<span style="font-weight:700;color:#1c1c1e;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(tc(cy.city))+' <span style="color:#aaa;font-weight:500;">· '+cy.n+'</span></span>'+
+          '<span style="text-align:right;color:#666;">'+_fmtNum(tot)+'</span>'+
+          '<span style="text-align:right;font-weight:700;color:'+(shareC>=shareCAnt?'#059669':'#dc2626')+';">'+shareC.toFixed(1)+'%</span>'+
+          '<span style="text-align:right;color:'+_clrPct(evolC)+';">'+_fmtPct(evolC)+'</span>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
   // Diff vs último snapshot
   var diffHtml='';
   if(_lastAuditSnapshot&&_lastAuditSnapshot.contas){
@@ -2263,7 +2352,7 @@ function renderOncoTracking(){
     diffHtml='<div style="margin-top:18px;padding:10px 12px;background:#f8f7ff;border-radius:10px;font-size:11px;color:#888;">💡 Um snapshot foi salvo. Da próxima vez que você importar um CSV, esta seção mostrará automaticamente o que mudou.</div>';
   }
 
-  document.getElementById('oncoBody').innerHTML=kpis+metaCard+arqHtml+rankBlock+diffHtml;
+  document.getElementById('oncoBody').innerHTML=kpis+metaCard+arqHtml+rankBlock+cityHtml+diffHtml;
 }
 
 function openNewContaModal(){
@@ -2287,7 +2376,9 @@ function saveNewConta(){
   var esp=parseInt(document.getElementById('nc_esp').value)||2;
   var prio=document.getElementById('nc_prio').value;
   var cidade=document.getElementById('nc_cidade').value.trim();
-  CONTAS_DEF.push({conta:nome,cidade:cidade,scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,scoreTotal:tam+mom+pot+esp,mat:0,ytd:0,prioridade:prio});
+  var cnpj=(document.getElementById('nc_cnpj')||{}).value;
+  cnpj=cnpj?cnpj.trim():'';
+  CONTAS_DEF.push({conta:nome,cidade:cidade,cnpj:cnpj,scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,scoreTotal:tam+mom+pot+esp,mat:0,ytd:0,prioridade:prio});
   if(!cExtra[nome])cExtra[nome]={};
   cExtra[nome].auditData={scoreTam:tam,scoreMom:mom,scorePot:pot,scoreEsp:esp,mat:0,ytd:0};
   saveContasCustom();
@@ -2508,6 +2599,7 @@ function saveContasCustom(){
     return {
       conta:c.conta,
       cidade:c.cidade||'',
+      cnpj:c.cnpj||'',
       scoreTam:c.scoreTam||1,scoreMom:c.scoreMom||1,scorePot:c.scorePot||1,scoreEsp:c.scoreEsp||1,
       scoreTotal:c.scoreTotal||((c.scoreTam||1)+(c.scoreMom||1)+(c.scorePot||1)+(c.scoreEsp||1)),
       mat:c.mat||0,ytd:c.ytd||0,
@@ -2517,6 +2609,82 @@ function saveContasCustom(){
   return dbRef.child('contasDefFull').set(clean)
     .then(function(){console.log('contasDefFull salvo:',clean.length,'contas');})
     .catch(function(e){console.error('contasDefFull ERRO:',e);alert('⚠️ Erro ao salvar lista de contas:\n'+(e&&e.message?e.message:e));});
+}
+
+// ══════════ MESCLAR CONTAS DUPLICADAS ══════════
+function openDupModal(){
+  var fromSel=document.getElementById('dupFrom'),toSel=document.getElementById('dupTo');
+  var opts=CONTAS_DEF.slice().sort(function(a,b){return a.conta.localeCompare(b.conta);}).map(function(c){return '<option value="'+escJ(c.conta)+'">'+esc(c.conta)+'</option>';}).join('');
+  fromSel.innerHTML=opts;toSel.innerHTML=opts;
+  renderDupSuggestions();
+  document.getElementById('dupOv').classList.add('on');
+}
+function closeDupModal(){document.getElementById('dupOv').classList.remove('on');}
+function renderDupSuggestions(){
+  var pairs=[];
+  for(var i=0;i<CONTAS_DEF.length;i++){
+    for(var j=i+1;j<CONTAS_DEF.length;j++){
+      var a=CONTAS_DEF[i].conta,b=CONTAS_DEF[j].conta;
+      var ca=CONTAS_DEF[i].cnpj,cb=CONTAS_DEF[j].cnpj;
+      var caD=ca?ca.replace(/\D/g,''):'',cbD=cb?cb.replace(/\D/g,''):'';
+      if(caD&&cbD&&caD===cbD&&caD.length>=11){pairs.push({a:a,b:b,reason:'Mesmo CNPJ'});continue;}
+      var wa=stripAccents(a.toLowerCase()).split(/\s+/).filter(function(w){return w.length>4;});
+      var wb=stripAccents(b.toLowerCase()).split(/\s+/).filter(function(w){return w.length>4;});
+      var common=wa.filter(function(w){return wb.indexOf(w)>=0;});
+      if(common.length>=2)pairs.push({a:a,b:b,reason:'Nomes parecidos: '+common.join(', ')});
+    }
+  }
+  var el=document.getElementById('dupSuggest');
+  if(!pairs.length){
+    el.innerHTML='<div style="color:#888;font-size:12px;line-height:1.5;">Nenhuma duplicata óbvia detectada automaticamente (por nome ou CNPJ).<br><br>Para casos como "CASSEMS" vs "CAIXA DE ASSISTÊNCIA...", os nomes não têm palavras em comum — preencha o <b>CNPJ</b> em ambas as contas (botão ✏️ Editar auditoria) para detecção automática, ou use a mesclagem manual abaixo.</div>';
+    return;
+  }
+  el.innerHTML='<div style="font-size:12px;font-weight:800;color:#6d28d9;margin-bottom:8px;">⚠️ Possíveis duplicatas detectadas</div>'+
+    pairs.map(function(p){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;margin-bottom:6px;font-size:12px;">'+
+        '<div style="flex:1;min-width:0;"><b>'+esc(p.a)+'</b> ↔ <b>'+esc(p.b)+'</b><br><span style="color:#888;font-size:10px;">'+esc(p.reason)+'</span></div>'+
+        '<button onclick="prefillMerge(\''+escJ(p.a)+'\',\''+escJ(p.b)+'\')" style="background:#ea580c;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;white-space:nowrap;">Mesclar</button>'+
+      '</div>';
+    }).join('');
+}
+function prefillMerge(a,b){
+  document.getElementById('dupFrom').value=a;
+  document.getElementById('dupTo').value=b;
+}
+function doMergeContas(){
+  var from=document.getElementById('dupFrom').value;
+  var to=document.getElementById('dupTo').value;
+  if(!from||!to||from===to){alert('Selecione duas contas diferentes.');return;}
+  if(!confirm('Mesclar "'+from+'" em "'+to+'"?\n\nTodos os dados de "'+from+'" (médicos, MAT/YTD, Sarclisa/Dalinvi) serão somados/transferidos para "'+to+'", e "'+from+'" será removida permanentemente.\n\nEsta ação não pode ser desfeita.'))return;
+
+  for(var i=0;i<docs.length;i++){if(docs[i].conta===from)docs[i].conta=to;}
+
+  var adFrom=(cExtra[from]&&cExtra[from].auditData)||{};
+  if(!cExtra[to])cExtra[to]={};
+  if(!cExtra[to].auditData)cExtra[to].auditData={};
+  var adTo=cExtra[to].auditData;
+  var _sum=function(x,y){if(!x)return y;if(!y)return x;return {matAnt:(x.matAnt||0)+(y.matAnt||0),matAtu:(x.matAtu||0)+(y.matAtu||0),ytdAnt:(x.ytdAnt||0)+(y.ytdAnt||0),ytdAtu:(x.ytdAtu||0)+(y.ytdAtu||0)};};
+  if(adFrom.sarclisa)adTo.sarclisa=_sum(adTo.sarclisa,adFrom.sarclisa);
+  if(adFrom.dalinvi)adTo.dalinvi=_sum(adTo.dalinvi,adFrom.dalinvi);
+  if(adFrom.darzalex)adTo.darzalex=_sum(adTo.darzalex,adFrom.darzalex);
+  adTo.mat=(adTo.mat||0)+(adFrom.mat||0);
+  adTo.ytd=(adTo.ytd||0)+(adFrom.ytd||0);
+  ['scoreTam','scoreMom','scorePot','scoreEsp'].forEach(function(k){
+    if(adFrom[k]!=null)adTo[k]=Math.max(adTo[k]!=null?adTo[k]:0,adFrom[k]);
+  });
+
+  CONTAS_DEF=CONTAS_DEF.filter(function(c){return c.conta!==from;});
+  delete cExtra[from];
+
+  saveContasCustom();
+  persist();
+  var auditPayload={};
+  for(var ak in cExtra){if(cExtra[ak]&&cExtra[ak].auditData)auditPayload[fbEncodeKey(ak)]=cExtra[ak].auditData;}
+  dbRef.child('auditStore').set(auditPayload).catch(function(e){console.error('auditStore:',e);});
+
+  closeDupModal();
+  renderContas();
+  alert('✅ "'+from+'" mesclada em "'+to+'".');
 }
 
 function processCsvAuditWideMatrix(rows){
