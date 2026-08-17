@@ -2709,15 +2709,59 @@ function processCsvAuditWideMatrix(rows){
   // Coluna razão social = primeira com sub-header contendo "razão"/"conta"/"social" ou coluna 0
   var iRazao=0;
   for(var c2=0;c2<subRow.length;c2++){if(/razão|razao|social|conta/i.test(subRow[c2]||'')){iRazao=c2;break;}}
+  // Colunas opcionais Cidade/CNPJ, se presentes (ex: tabela dinâmica exportada em forma tabular)
+  var iCidade=-1,iCnpj=-1;
+  for(var c3=0;c3<subRow.length;c3++){
+    var sh=(subRow[c3]||'').toLowerCase();
+    if(iCidade<0&&/cidade/.test(sh))iCidade=c3;
+    if(iCnpj<0&&/cnpj/.test(sh))iCnpj=c3;
+  }
+  var _digitsOnly=function(s){return String(s||'').replace(/\D/g,'');};
+  // Mapa CNPJ→conta existente, para bypassar fuzzy match por nome quando o CNPJ já é conhecido
+  var cnpjMap={};
+  for(var _cm=0;_cm<CONTAS_DEF.length;_cm++){
+    var _cd=_digitsOnly(CONTAS_DEF[_cm].cnpj);
+    if(_cd.length>=11)cnpjMap[_cd]=CONTAS_DEF[_cm].conta;
+  }
 
   var byRazao={};
   var rowsUsed=0; // linhas de dados válidas (com razão social) — diagnóstico
+  // Caminha a hierarquia Cidade → Razão Social → CNPJ quando a planilha vem de uma
+  // tabela dinâmica com níveis em linhas separadas (sem precisar mudar o layout no Excel).
+  // Também funciona normalmente com tabelas já achatadas (uma linha por conta).
+  var curCity='',curRazao='';
   for(var li=2;li<rows.length;li++){
     var cols=rows[li];
-    var razao=(cols[iRazao]||'').trim();
-    if(!razao||/^total$/i.test(razao))continue;
+    var label=(cols[iRazao]||'').trim();
+    if(!label||/^total$/i.test(label))continue;
+
+    // A linha tem valor numérico em alguma coluna mapeada? Se não, é cabeçalho de agrupamento.
+    var hasData=false;
+    for(var k1=0;k1<colMap.length;k1++){
+      var mm=colMap[k1];if(!mm.brand||!mm.metric)continue;
+      var vv=cols[k1];
+      if(vv!==undefined&&vv!==''&&!isNaN(parsePtNum(vv))){hasData=true;break;}
+    }
+    if(!hasData){
+      // Cabeçalho de agrupamento: cidade (termina em "-UF") ou razão social
+      if(/-[A-Z]{2}$/.test(label.toUpperCase()))curCity=label;
+      else curRazao=label;
+      continue;
+    }
+
+    // Linha de dado (folha). Se o rótulo é só dígitos (10-14) é um CNPJ — usa o contexto
+    // de cidade/razão acumulado. Senão, o próprio rótulo já é a razão social (tabela achatada).
+    var labelDigits=label.replace(/\D/g,'');
+    var isCnpjLeaf=labelDigits.length>=10&&labelDigits.length<=14&&labelDigits===label.replace(/[.\-\/\s]/g,'');
+    var razao=isCnpjLeaf?(curRazao||label):label;
+    var cnpjVal=isCnpjLeaf?labelDigits:'';
+    if(!razao)continue;
     rowsUsed++;
-    if(!byRazao[razao])byRazao[razao]={razao:razao,products:{}};
+    if(!byRazao[razao])byRazao[razao]={razao:razao,products:{},cidade:'',cnpj:''};
+    if(curCity)byRazao[razao].cidade=curCity;
+    if(cnpjVal)byRazao[razao].cnpj=cnpjVal;
+    if(iCidade>=0&&cols[iCidade])byRazao[razao].cidade=cols[iCidade].trim();
+    if(iCnpj>=0&&cols[iCnpj])byRazao[razao].cnpj=cols[iCnpj].trim();
     for(var k=0;k<colMap.length;k++){
       var m=colMap[k];if(!m.brand||!m.metric)continue;
       var v=parsePtNum(cols[k]);if(isNaN(v))continue;
@@ -2730,12 +2774,15 @@ function processCsvAuditWideMatrix(rows){
   var _dSarMat=0,_dSarYtd=0,_dDalMat=0,_dDalYtd=0;
   for(var razao in byRazao){
     var entry=byRazao[razao];
-    var matchNome=fuzzyMatchConta(razao);
-    var row={contaRaw:razao,conta:matchNome,isNewFormat:true,products:entry.products};
+    var entryCnpjD=_digitsOnly(entry.cnpj);
+    // CNPJ conhecido tem prioridade sobre fuzzy match por nome — evita duplicatas tipo CASSEMS
+    var matchNome=(entryCnpjD.length>=11&&cnpjMap[entryCnpjD])?cnpjMap[entryCnpjD]:fuzzyMatchConta(razao);
+    var row={contaRaw:razao,conta:matchNome,isNewFormat:true,products:entry.products,cidade:entry.cidade,cnpj:entry.cnpj};
     if(entry.products.sarclisa){row.mat=Math.round(entry.products.sarclisa.matAtu);row.ytd=Math.round(entry.products.sarclisa.ytdAtu);_dSarMat+=entry.products.sarclisa.matAtu||0;_dSarYtd+=entry.products.sarclisa.ytdAtu||0;}
     if(entry.products.dalinvi){_dDalMat+=entry.products.dalinvi.matAtu||0;_dDalYtd+=entry.products.dalinvi.ytdAtu||0;}
     parsed.push(row);
-    results.push(matchNome?'<span class="ok">✓ '+esc(razao)+' → '+matchNome+'</span>':'<span class="warn">⚠️ Não encontrada: "'+esc(razao)+'"</span>');
+    var _viaCnpj=(entryCnpjD.length>=11&&cnpjMap[entryCnpjD])?' <span style="color:#059669;">(via CNPJ)</span>':'';
+    results.push(matchNome?'<span class="ok">✓ '+esc(razao)+' → '+matchNome+_viaCnpj+'</span>':'<span class="warn">⚠️ Não encontrada: "'+esc(razao)+'"</span>');
   }
 
   csvParsedData=parsed;
@@ -2745,6 +2792,8 @@ function processCsvAuditWideMatrix(rows){
   var resultEl=document.getElementById('csvResult');
   resultEl.style.display='block';
   var diag='🔍 <b>Diagnóstico:</b> '+rowsUsed+' linhas de dados lidas · Colunas mapeadas: '+colMap.filter(function(m){return m.brand&&m.metric;}).length+
+    ' · Cidade: '+(iCidade>=0?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não encontrada</span>')+
+    ' · CNPJ: '+(iCnpj>=0?'<span style="color:#059669;">detectado</span>':'<span style="color:#aaa;">não encontrado</span>')+
     '<br>Somas detectadas — Sar MAT '+_fmtNum(_dSarMat)+' · YTD '+_fmtNum(_dSarYtd)+' &nbsp;|&nbsp; Dal MAT '+_fmtNum(_dDalMat)+' · YTD '+_fmtNum(_dDalYtd)+
     '<br><span style="color:#888;">Confira essas somas contra a linha "Total" da sua planilha ANTES de aplicar.</span><hr style="margin:8px 0;border-color:#eee;">';
   resultEl.innerHTML=diag+'<b>📊 Formato OncoTracking wide detectado — '+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
@@ -2974,6 +3023,16 @@ function applyCsvAudit(){
       if(row.products.dalinvi)ad.dalinvi=collided?_sumProd(ad.dalinvi,row.products.dalinvi):row.products.dalinvi;
       if(row.products.darzalex)ad.darzalex=collided?_sumProd(ad.darzalex,row.products.darzalex):row.products.darzalex;
     }
+    // Backfill de Cidade/CNPJ na conta (só preenche se ainda estiver vazio — não sobrescreve edição manual)
+    if(row.conta&&(row.cidade||row.cnpj)){
+      for(var _bi=0;_bi<CONTAS_DEF.length;_bi++){
+        if(CONTAS_DEF[_bi].conta===row.conta){
+          if(row.cidade&&!CONTAS_DEF[_bi].cidade)CONTAS_DEF[_bi].cidade=row.cidade;
+          if(row.cnpj&&!CONTAS_DEF[_bi].cnpj)CONTAS_DEF[_bi].cnpj=row.cnpj;
+          break;
+        }
+      }
+    }
     if(row.conta)updated++; // contador só p/ contas de fato conectadas
   }
 
@@ -2992,6 +3051,7 @@ function applyCsvAudit(){
       var tam=nr.scoreTam||1,mom=nr.scoreMom||1,pot2=nr.scorePot||1,esp=nr.scoreEsp||1;
       CONTAS_DEF.push({
         conta:nr.contaRaw,
+        cidade:nr.cidade||'',cnpj:nr.cnpj||'',
         scoreTam:tam,scoreMom:mom,scorePot:pot2,scoreEsp:esp,
         scoreTotal:tam+mom+pot2+esp,
         mat:nr.mat||0,ytd:nr.ytd||0,
