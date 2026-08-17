@@ -2620,6 +2620,11 @@ function openDupModal(){
   document.getElementById('dupOv').classList.add('on');
 }
 function closeDupModal(){document.getElementById('dupOv').classList.remove('on');}
+// Palavras genéricas demais para indicar duplicata sozinhas (aparecem em dezenas de contas distintas)
+var DUP_STOPWORDS=/^(unimed|cooperativa|coop|cooper|trabalho|medico|medicos|sociedade|servico|servicos|assistencia|hospital|clinica|clinicas|instituto|centro|oncologia|oncologico|oncologica|saude|fundacao|associacao|casa|misericordia|irmandade|santa|santo|tratamento|federacao|federal|regional|regiao|municipal|municipio|publica|publico|privada|privado|ltda|ltd|sa|s\.a|geral|estado|estadual|nacional|beneficencia|beneficiencia|cia|com|para|fed|reg|plano|planos|especializada|especializadas|especializado|especializados|departamento|unidade|paulista|paulistana|sul|norte|leste|oeste|central|interior|capital|metropolitana|metropolitano|grande|maior|nova|novo|unificado|unificada|integrado|integrada|onco)$/i;
+function _dupSigWords(name){
+  return stripAccents(name.toLowerCase()).replace(/[.\-\/]/g,' ').split(/\s+/).filter(function(w){return w.length>3&&!DUP_STOPWORDS.test(w);});
+}
 function renderDupSuggestions(){
   var pairs=[];
   for(var i=0;i<CONTAS_DEF.length;i++){
@@ -2628,10 +2633,13 @@ function renderDupSuggestions(){
       var ca=CONTAS_DEF[i].cnpj,cb=CONTAS_DEF[j].cnpj;
       var caD=ca?ca.replace(/\D/g,''):'',cbD=cb?cb.replace(/\D/g,''):'';
       if(caD&&cbD&&caD===cbD&&caD.length>=11){pairs.push({a:a,b:b,reason:'Mesmo CNPJ'});continue;}
-      var wa=stripAccents(a.toLowerCase()).split(/\s+/).filter(function(w){return w.length>4;});
-      var wb=stripAccents(b.toLowerCase()).split(/\s+/).filter(function(w){return w.length>4;});
-      var common=wa.filter(function(w){return wb.indexOf(w)>=0;});
-      if(common.length>=2)pairs.push({a:a,b:b,reason:'Nomes parecidos: '+common.join(', ')});
+      // Exige que TODAS as palavras significativas do nome mais curto apareçam no outro
+      // (depois de remover termos genéricos tipo UNIMED/COOPERATIVA/HOSPITAL/etc.)
+      var wa=_dupSigWords(a),wb=_dupSigWords(b);
+      if(!wa.length||!wb.length)continue; // nome só com termos genéricos — não dá pra comparar com segurança
+      var shorter=wa.length<=wb.length?wa:wb,longer=wa.length<=wb.length?wb:wa;
+      var allIn=shorter.every(function(w){return longer.indexOf(w)>=0;});
+      if(allIn)pairs.push({a:a,b:b,reason:'Nomes parecidos: '+shorter.join(', ')});
     }
   }
   var el=document.getElementById('dupSuggest');
