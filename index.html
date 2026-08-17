@@ -2736,7 +2736,9 @@ function processCsvAuditWideMatrix(rows){
   var rowsUsed=0; // linhas de dados válidas (com razão social) — diagnóstico
   var _isCnpjLabel=function(label){
     var d=label.replace(/\D/g,'');
-    return d.length>=10&&d.length<=14&&d===label.replace(/[.\-\/\s]/g,'');
+    // Remove qualquer formatação comum (ponto, traço, barra, espaço, vírgula, apóstrofo) —
+    // se o que sobra é só dígito e do tamanho certo, é um CNPJ, não importa a formatação de origem.
+    return d.length>=10&&d.length<=14&&d===label.replace(/[.,\-\/\s']/g,'');
   };
   var _isCityLabel=function(label){return /-[A-Z]{2}$/i.test(label);};
   // Detecta se a planilha tem hierarquia Cidade→Razão→CNPJ (alguma linha cujo rótulo é
