@@ -2726,35 +2726,36 @@ function processCsvAuditWideMatrix(rows){
 
   var byRazao={};
   var rowsUsed=0; // linhas de dados válidas (com razão social) — diagnóstico
-  // Caminha a hierarquia Cidade → Razão Social → CNPJ quando a planilha vem de uma
-  // tabela dinâmica com níveis em linhas separadas (sem precisar mudar o layout no Excel).
-  // Também funciona normalmente com tabelas já achatadas (uma linha por conta).
+  var _isCnpjLabel=function(label){
+    var d=label.replace(/\D/g,'');
+    return d.length>=10&&d.length<=14&&d===label.replace(/[.\-\/\s]/g,'');
+  };
+  var _isCityLabel=function(label){return /-[A-Z]{2}$/i.test(label);};
+  // Detecta se a planilha tem hierarquia Cidade→Razão→CNPJ (alguma linha cujo rótulo é
+  // um CNPJ isolado). Só nesse caso tratamos linhas de cidade/razão como cabeçalhos —
+  // caso contrário (tabela já achatada) cada linha É a própria conta, com dado direto.
+  // Isso evita classificar errado quando o Excel mostra subtotais nas linhas de grupo.
+  var hierarquia=false;
+  for(var _pi=2;_pi<rows.length;_pi++){
+    var _lbl=(rows[_pi][iRazao]||'').trim();
+    if(_lbl&&_isCnpjLabel(_lbl)){hierarquia=true;break;}
+  }
+
   var curCity='',curRazao='';
   for(var li=2;li<rows.length;li++){
     var cols=rows[li];
     var label=(cols[iRazao]||'').trim();
     if(!label||/^total$/i.test(label))continue;
 
-    // A linha tem valor numérico em alguma coluna mapeada? Se não, é cabeçalho de agrupamento.
-    var hasData=false;
-    for(var k1=0;k1<colMap.length;k1++){
-      var mm=colMap[k1];if(!mm.brand||!mm.metric)continue;
-      var vv=cols[k1];
-      if(vv!==undefined&&vv!==''&&!isNaN(parsePtNum(vv))){hasData=true;break;}
+    var razao,cnpjVal='';
+    if(hierarquia){
+      if(_isCityLabel(label)){curCity=label;continue;}
+      if(!_isCnpjLabel(label)){curRazao=label;continue;} // cabeçalho de razão social — nunca extrai dado direto (evita duplicar subtotal + folha)
+      razao=curRazao||label;
+      cnpjVal=label.replace(/\D/g,'');
+    } else {
+      razao=label; // tabela já achatada — cada linha é a própria conta
     }
-    if(!hasData){
-      // Cabeçalho de agrupamento: cidade (termina em "-UF") ou razão social
-      if(/-[A-Z]{2}$/.test(label.toUpperCase()))curCity=label;
-      else curRazao=label;
-      continue;
-    }
-
-    // Linha de dado (folha). Se o rótulo é só dígitos (10-14) é um CNPJ — usa o contexto
-    // de cidade/razão acumulado. Senão, o próprio rótulo já é a razão social (tabela achatada).
-    var labelDigits=label.replace(/\D/g,'');
-    var isCnpjLeaf=labelDigits.length>=10&&labelDigits.length<=14&&labelDigits===label.replace(/[.\-\/\s]/g,'');
-    var razao=isCnpjLeaf?(curRazao||label):label;
-    var cnpjVal=isCnpjLeaf?labelDigits:'';
     if(!razao)continue;
     rowsUsed++;
     if(!byRazao[razao])byRazao[razao]={razao:razao,products:{},cidade:'',cnpj:''};
@@ -2792,8 +2793,9 @@ function processCsvAuditWideMatrix(rows){
   var resultEl=document.getElementById('csvResult');
   resultEl.style.display='block';
   var diag='🔍 <b>Diagnóstico:</b> '+rowsUsed+' linhas de dados lidas · Colunas mapeadas: '+colMap.filter(function(m){return m.brand&&m.metric;}).length+
-    ' · Cidade: '+(iCidade>=0?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não encontrada</span>')+
-    ' · CNPJ: '+(iCnpj>=0?'<span style="color:#059669;">detectado</span>':'<span style="color:#aaa;">não encontrado</span>')+
+    ' · Hierarquia Cidade→Razão→CNPJ: '+(hierarquia?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não (tabela achatada)</span>')+
+    ' · Cidade (coluna): '+(iCidade>=0?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não encontrada</span>')+
+    ' · CNPJ (coluna): '+(iCnpj>=0?'<span style="color:#059669;">detectado</span>':'<span style="color:#aaa;">não encontrado</span>')+
     '<br>Somas detectadas — Sar MAT '+_fmtNum(_dSarMat)+' · YTD '+_fmtNum(_dSarYtd)+' &nbsp;|&nbsp; Dal MAT '+_fmtNum(_dDalMat)+' · YTD '+_fmtNum(_dDalYtd)+
     '<br><span style="color:#888;">Confira essas somas contra a linha "Total" da sua planilha ANTES de aplicar.</span><hr style="margin:8px 0;border-color:#eee;">';
   resultEl.innerHTML=diag+'<b>📊 Formato OncoTracking wide detectado — '+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
