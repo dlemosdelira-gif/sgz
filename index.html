@@ -884,6 +884,8 @@ function initListener(){
       }
       // Config da calculadora (preços editáveis + parâmetros)
       if(data.calcConfig)applyCalcConfig(data.calcConfig);
+      // Espelho do último relatório OncoTracking importado
+      if(Array.isArray(data.oncoData))oncoData=data.oncoData.filter(function(r){return r&&r.razao;});
       // Brasil de referência (input manual — usado para calcular Share BR), por lente MAT/YTD
       if(data.matBR&&typeof data.matBR==='object'){
         if(typeof data.matBR.sar==='number'||typeof data.matBR.dal==='number'){
@@ -1992,6 +1994,11 @@ function closeCsvAuditModal(){document.getElementById('csvAuditOv').classList.re
 
 // ══════════ ONCOTRACKING · ANÁLISE DE MERCADO ══════════
 var _lastAuditSnapshot=null; // populado no boot a partir de data.lastAuditSnapshot
+// oncoData: espelho fiel do último relatório OncoTracking importado (razão social + CNPJ +
+// cidade + valores). É a fonte de verdade da análise — garante números idênticos ao relatório,
+// cidade correta e deduplicação por CNPJ, sem depender do cruzamento com CONTAS_DEF.
+var oncoData=[];
+var _oncoPendingData=null; // preenchido no Processar; gravado em oncoData no Aplicar
 var _matBR={mat:{sar:null,dal:null},ytd:{sar:null,dal:null}}; // Brasil (referência manual) — por lente
 var _oncoLens='mat'; // 'mat' ou 'ytd' — toggle nos KPIs
 var _qGoal={meta:240,realizado:0,rotulo:'Q3'}; // Meta trimestral Sarclisa (frascos)
@@ -2061,6 +2068,20 @@ function _contaWithAudit(){
   }
   return out;
 }
+// Fonte da análise: oncoData (espelho do relatório) quando existir; senão cai no cExtra legado.
+function _oncoRecords(){
+  if(oncoData&&oncoData.length){
+    return oncoData.map(function(r){
+      var s=r.sarclisa||{},d=r.dalinvi||{};
+      return {
+        conta:r.razao,cidade:r.cidade||'',cnpj:r.cnpj||'',
+        sarMat:s.matAtu||0,sarMatAnt:s.matAnt||0,sarYtd:s.ytdAtu||0,sarYtdAnt:s.ytdAnt||0,
+        dalMat:d.matAtu||0,dalMatAnt:d.matAnt||0,dalYtd:d.ytdAtu||0,dalYtdAnt:d.ytdAnt||0
+      };
+    });
+  }
+  return _contaWithAudit();
+}
 function _classifyConta(c,isYtd){
   var sarPct=_pct(c.sarMat,c.sarMatAnt);
   var dalPct=_pct(c.dalMat,c.dalMatAnt);
@@ -2089,7 +2110,7 @@ function _classifyConta(c,isYtd){
   return {tipos:tipos,sarPct:sarPct,dalPct:dalPct,total:total,sarYtdPct:sarYtdPct,dalYtdPct:dalYtdPct,gSar:gSar,gDal:gDal,curTotal:curTotal};
 }
 function renderOncoTracking(){
-  var contas=_contaWithAudit();
+  var contas=_oncoRecords();
   if(!contas.length){document.getElementById('oncoBody').innerHTML='<div style="padding:20px;text-align:center;color:#888;">Importe o CSV do OncoTracking na aba <b>Auditoria</b> para ver a análise.</div>';return;}
   var totalSar=0,totalDal=0,totalSarAnt=0,totalDalAnt=0;
   var totalSarY=0,totalDalY=0,totalSarYAnt=0,totalDalYAnt=0;
@@ -2283,10 +2304,13 @@ function renderOncoTracking(){
   rankBlock+=acelBlock;
 
   // Análise por cidade
+  // Cidade vem do próprio relatório (oncoData); só cai no CONTAS_DEF em dados legados.
   var cidadeOf={};for(var _cx=0;_cx<CONTAS_DEF.length;_cx++){cidadeOf[CONTAS_DEF[_cx].conta]=CONTAS_DEF[_cx].cidade||'';}
+  var _isCnpjTxt=function(s){var d=String(s||'').replace(/\D/g,'');return d.length>=10&&d.length<=14&&d===String(s||'').replace(/[.,\-\/\s']/g,'');};
   var cityMap={};
   enriched.forEach(function(c){
-    var city=(cidadeOf[c.conta]||'').trim()||'Sem cidade';
+    var city=(c.cidade||cidadeOf[c.conta]||'').trim();
+    if(!city||_isCnpjTxt(city))city='Sem cidade'; // nunca exibe CNPJ como cidade
     if(!cityMap[city])cityMap[city]={city:city,sar:0,sarAnt:0,dal:0,dalAnt:0,n:0};
     var cy=cityMap[city];
     cy.sar+=isYtd?c.sarYtd:c.sarMat;cy.sarAnt+=isYtd?c.sarYtdAnt:c.sarMatAnt;
@@ -2627,11 +2651,21 @@ function _dupSigWords(name){
 }
 function renderDupSuggestions(){
   var pairs=[];
+  // CNPJ conhecido: do próprio CONTAS_DEF ou do relatório importado (oncoData, casado por nome)
+  var cnpjDe={};
+  for(var _z=0;_z<CONTAS_DEF.length;_z++){
+    var _d=(CONTAS_DEF[_z].cnpj||'').replace(/\D/g,'');
+    if(_d.length>=11)cnpjDe[CONTAS_DEF[_z].conta]=_d;
+  }
+  (oncoData||[]).forEach(function(r){
+    var d=(r.cnpj||'').replace(/\D/g,'');if(d.length<11)return;
+    var alvo=fuzzyMatchConta(r.razao);
+    if(alvo&&!cnpjDe[alvo])cnpjDe[alvo]=d;
+  });
   for(var i=0;i<CONTAS_DEF.length;i++){
     for(var j=i+1;j<CONTAS_DEF.length;j++){
       var a=CONTAS_DEF[i].conta,b=CONTAS_DEF[j].conta;
-      var ca=CONTAS_DEF[i].cnpj,cb=CONTAS_DEF[j].cnpj;
-      var caD=ca?ca.replace(/\D/g,''):'',cbD=cb?cb.replace(/\D/g,''):'';
+      var caD=cnpjDe[a]||'',cbD=cnpjDe[b]||'';
       if(caD&&cbD&&caD===cbD&&caD.length>=11){pairs.push({a:a,b:b,reason:'Mesmo CNPJ'});continue;}
       // Exige que TODAS as palavras significativas do nome mais curto apareçam no outro
       // (depois de remover termos genéricos tipo UNIMED/COOPERATIVA/HOSPITAL/etc.)
@@ -2795,6 +2829,23 @@ function processCsvAuditWideMatrix(rows){
     var _viaCnpj=(entryCnpjD.length>=11&&cnpjMap[entryCnpjD])?' <span style="color:#059669;">(via CNPJ)</span>':'';
     results.push(matchNome?'<span class="ok">✓ '+esc(razao)+' → '+matchNome+_viaCnpj+'</span>':'<span class="warn">⚠️ Não encontrada: "'+esc(razao)+'"</span>');
   }
+
+  // Espelho fiel do relatório, deduplicado por CNPJ (mesma empresa em linhas/cidades distintas soma)
+  var _byCnpj={},_ordem=[];
+  for(var _oz in byRazao){
+    var _e=byRazao[_oz];
+    var _kd=_digitsOnly(_e.cnpj);
+    var _k=_kd.length>=11?('c'+_kd):('n'+_oz);
+    if(!_byCnpj[_k]){_byCnpj[_k]={razao:_e.razao,cnpj:_e.cnpj||'',cidade:_e.cidade||'',sarclisa:null,dalinvi:null};_ordem.push(_k);}
+    var _t=_byCnpj[_k];
+    if(!_t.cidade&&_e.cidade)_t.cidade=_e.cidade;
+    ['sarclisa','dalinvi'].forEach(function(pk){
+      var p=_e.products[pk];if(!p)return;
+      if(!_t[pk])_t[pk]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
+      _t[pk].matAnt+=p.matAnt||0;_t[pk].matAtu+=p.matAtu||0;_t[pk].ytdAnt+=p.ytdAnt||0;_t[pk].ytdAtu+=p.ytdAtu||0;
+    });
+  }
+  _oncoPendingData=_ordem.map(function(k){return _byCnpj[k];});
 
   csvParsedData=parsed;
   var found=parsed.filter(function(r){return r.conta;}).length;
@@ -3091,6 +3142,11 @@ function applyCsvAudit(){
       .then(function(){console.log('auditStore salvo com sucesso');})
       .catch(function(e){console.error('auditStore save error:',e);alert('⚠️ Erro ao salvar auditStore:\n'+(e&&e.message?e.message:e));});
     saveContasCustom();
+    // Grava o espelho do relatório — fonte de verdade da análise OncoTracking
+    if(_oncoPendingData&&_oncoPendingData.length){
+      oncoData=_oncoPendingData;
+      dbRef.child('oncoData').set(oncoData).catch(function(e){console.error('oncoData:',e);});
+    }
     closeCsvAuditModal();
     renderContas();
     // Diagnóstico: soma total pós-apply, para conferência imediata contra a planilha
