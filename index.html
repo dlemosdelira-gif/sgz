@@ -527,6 +527,7 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
   <div class="modal" style="max-height:88vh;max-width:640px;">
     <div class="mhd"><h2>🔗 Mesclar contas duplicadas</h2><button onclick="closeDupModal()">×</button></div>
     <div style="padding:12px 14px;">
+      <div id="dupJunk"></div>
       <div id="dupSuggest"></div>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid #eee;">
         <div style="font-size:12px;font-weight:800;color:#6d28d9;margin-bottom:8px;">Mesclar manualmente</div>
@@ -2649,7 +2650,41 @@ var DUP_STOPWORDS=/^(unimed|cooperativa|coop|cooper|trabalho|medico|medicos|soci
 function _dupSigWords(name){
   return stripAccents(name.toLowerCase()).replace(/[.\-\/]/g,' ').split(/\s+/).filter(function(w){return w.length>3&&!DUP_STOPWORDS.test(w);});
 }
+// Contas-lixo: nome puramente numérico (CNPJ/cidade criados por imports antigos com bug)
+function _junkContas(){
+  return CONTAS_DEF.filter(function(c){
+    var n=(c.conta||'').trim();
+    return n&&/^[\d.,\-\/\s]+$/.test(n);
+  }).map(function(c){return c.conta;});
+}
+function limparContasLixo(){
+  var junk=_junkContas();
+  if(!junk.length){alert('Nenhuma conta com nome numérico encontrada.');return;}
+  if(!confirm('Remover '+junk.length+' conta(s) cujo nome é apenas número (criadas por importações com erro)?\n\nOs médicos vinculados a elas NÃO serão apagados — apenas ficarão sem conta.\n\nEsta ação não pode ser desfeita.'))return;
+  var set={};junk.forEach(function(n){set[n]=true;});
+  CONTAS_DEF=CONTAS_DEF.filter(function(c){return !set[c.conta];});
+  junk.forEach(function(n){delete cExtra[n];});
+  saveContasCustom();
+  persist();
+  var auditPayload={};
+  for(var ak in cExtra){if(cExtra[ak]&&cExtra[ak].auditData)auditPayload[fbEncodeKey(ak)]=cExtra[ak].auditData;}
+  dbRef.child('auditStore').set(auditPayload).catch(function(e){console.error('auditStore:',e);});
+  renderDupSuggestions();
+  renderContas();
+  alert('✅ '+junk.length+' conta(s) removida(s).');
+}
 function renderDupSuggestions(){
+  var junkEl=document.getElementById('dupJunk');
+  if(junkEl){
+    var junk=_junkContas();
+    junkEl.innerHTML=junk.length
+      ?'<div style="padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:10px;font-size:12px;">'+
+        '<b style="color:#dc2626;">🧹 '+junk.length+' conta(s) com nome numérico</b><br>'+
+        '<span style="color:#888;font-size:11px;">Criadas por importações antigas com erro (CNPJ/cidade viraram conta).</span><br>'+
+        '<button onclick="limparContasLixo()" style="margin-top:6px;background:#dc2626;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;cursor:pointer;">Remover todas</button>'+
+      '</div>'
+      :'';
+  }
   var pairs=[];
   // CNPJ conhecido: do próprio CONTAS_DEF ou do relatório importado (oncoData, casado por nome)
   var cnpjDe={};
@@ -2802,23 +2837,27 @@ function processCsvAuditWideMatrix(rows){
     }
     if(!razao)continue;
     rowsUsed++;
-    if(!byRazao[razao])byRazao[razao]={razao:razao,products:{},cidade:'',cnpj:''};
-    if(curCity)byRazao[razao].cidade=curCity;
-    if(cnpjVal)byRazao[razao].cnpj=cnpjVal;
-    if(iCidade>=0&&cols[iCidade])byRazao[razao].cidade=cols[iCidade].trim();
-    if(iCnpj>=0&&cols[iCnpj])byRazao[razao].cnpj=cols[iCnpj].trim();
+    // Chave por CNPJ (não por razão social): a mesma empresa pode ter filiais em cidades
+    // diferentes (ex.: UNIMED Campinas matriz + filial Nova Odessa). Agrupar por nome fazia
+    // a última filial sobrescrever a cidade da anterior.
+    var gkey=cnpjVal?('c'+cnpjVal):('n'+razao);
+    if(!byRazao[gkey])byRazao[gkey]={razao:razao,products:{},cidade:'',cnpj:cnpjVal||''};
+    if(curCity)byRazao[gkey].cidade=curCity;
+    if(iCidade>=0&&cols[iCidade])byRazao[gkey].cidade=cols[iCidade].trim();
+    if(iCnpj>=0&&cols[iCnpj])byRazao[gkey].cnpj=cols[iCnpj].trim();
     for(var k=0;k<colMap.length;k++){
       var m=colMap[k];if(!m.brand||!m.metric)continue;
       var v=parsePtNum(cols[k]);if(isNaN(v))continue;
-      if(!byRazao[razao].products[m.brand])byRazao[razao].products[m.brand]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
-      byRazao[razao].products[m.brand][m.metric]=(byRazao[razao].products[m.brand][m.metric]||0)+v;
+      if(!byRazao[gkey].products[m.brand])byRazao[gkey].products[m.brand]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
+      byRazao[gkey].products[m.brand][m.metric]=(byRazao[gkey].products[m.brand][m.metric]||0)+v;
     }
   }
 
   var results=[],parsed=[];
   var _dSarMat=0,_dSarYtd=0,_dDalMat=0,_dDalYtd=0;
-  for(var razao in byRazao){
-    var entry=byRazao[razao];
+  for(var _gk in byRazao){
+    var entry=byRazao[_gk];
+    var razao=entry.razao; // nome de exibição (a chave agora é o CNPJ)
     var entryCnpjD=_digitsOnly(entry.cnpj);
     // CNPJ conhecido tem prioridade sobre fuzzy match por nome — evita duplicatas tipo CASSEMS
     var matchNome=(entryCnpjD.length>=11&&cnpjMap[entryCnpjD])?cnpjMap[entryCnpjD]:fuzzyMatchConta(razao);
