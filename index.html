@@ -137,6 +137,14 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .barr-lbl{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
 .barr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;align-items:center;}
 .bchip{padding:5px 11px;border-radius:16px;font-size:12px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;}
+.f2fchip{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid #ddd;cursor:pointer;background:#fff;color:#555;}
+.f2fchip.on{background:#6d28d9;border-color:#6d28d9;color:#fff;}
+.f2fchk{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #f0f0f5;font-size:14px;cursor:pointer;color:#1c1c1e;}
+.f2fchk:last-of-type{border-bottom:none;}
+.f2fchk input{width:20px;height:20px;flex:none;accent-color:#059669;cursor:pointer;margin:0;}
+.f2fchk b{font-weight:700;}
+.f2ftemp{padding:9px 4px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid #ddd;cursor:pointer;background:#fff;color:#555;text-align:center;line-height:1.25;}
+.f2ftemp.on{background:#d1fae5;border-color:#059669;color:#065f46;}
 .bchip.sel{background:#6d28d9;color:#fff;border-color:#6d28d9;}
 /* add row e botão delete custom */
 .cmk-add-row{display:flex;gap:6px;margin-top:8px;align-items:center;}
@@ -536,6 +544,49 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
         <button class="ctrl-btn primary" style="width:100%;margin-top:6px;" onclick="doMergeContas()">🔗 Mesclar</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="ov" id="f2fOv">
+  <div class="modal" style="max-height:90vh;max-width:460px;">
+    <div class="mhd"><h2 id="f2fTitle">🤝 Registrar visita F2F</h2><button onclick="closeF2fModal()">×</button></div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:15px;">
+
+      <div class="field" style="margin:0;">
+        <label>Data da visita</label>
+        <input type="date" id="f2f_data" lang="pt-BR" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #6d28d9;border-radius:10px;font-size:16px;outline:none;color:#1c1c1e;text-align:center;-webkit-appearance:none;appearance:none;font-family:inherit;min-height:44px;">
+      </div>
+
+      <div class="field" style="margin:0;">
+        <label>Com quem falou</label>
+        <div id="f2fQuem" style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="f2fchip" data-v="Médico" onclick="toggleF2fChip(this)">Médico</button>
+          <button type="button" class="f2fchip" data-v="Farmácia" onclick="toggleF2fChip(this)">Farmácia</button>
+          <button type="button" class="f2fchip" data-v="Enfermagem" onclick="toggleF2fChip(this)">Enfermagem</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin:0;">
+        <label>Conferência da visita</label>
+        <label class="f2fchk"><input type="checkbox" id="f2f_email"><span>Registrei e enviei e-mail no <b>Veeva</b></span></label>
+        <label class="f2fchk"><input type="checkbox" id="f2f_whats"><span>Enviei material por <b>WhatsApp</b></span></label>
+        <label class="f2fchk"><input type="checkbox" id="f2f_reag" onchange="toggleF2fProx()"><span>Agendei a próxima visita no <b>Outlook</b></span></label>
+        <div id="f2fProxRow" style="display:none;padding:2px 0 0 31px;">
+          <input type="date" id="f2f_prox" lang="pt-BR" style="width:100%;box-sizing:border-box;padding:8px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:14px;outline:none;text-align:center;-webkit-appearance:none;appearance:none;font-family:inherit;">
+        </div>
+      </div>
+
+      <div class="field" style="margin:0;">
+        <label>Temperatura da visita</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          <button type="button" class="f2ftemp" data-v="up" onclick="setF2fTemp('up')"><span style="font-size:17px;display:block;">🔥</span>Avançou</button>
+          <button type="button" class="f2ftemp" data-v="mid" onclick="setF2fTemp('mid')"><span style="font-size:17px;display:block;">😐</span>Neutro</button>
+          <button type="button" class="f2ftemp" data-v="down" onclick="setF2fTemp('down')"><span style="font-size:17px;display:block;">🧊</span>Recuou</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="brow"><button class="bcanc" onclick="closeF2fModal()">Cancelar</button><button class="bsave" onclick="saveF2f()">Salvar visita</button></div>
   </div>
 </div>
 
@@ -3664,19 +3715,98 @@ function buildF2fHtml(docName, di){
   var tag=lastDate?
     '<span style="display:inline-flex;align-items:center;font-size:11px;background:#d1fae5;color:#065f46;border-radius:6px;padding:2px 8px;font-weight:700;margin-left:8px;cursor:pointer;border:none;" onclick="event.stopPropagation();removeLastF2f(\''+di+'\')">✓ '+fmtDate(lastDate)+' ×</span>':
     '';
-  return '<div style="padding:9px 14px;border-bottom:1px solid #f0f0f5;display:flex;align-items:center;gap:8px;">'+
+  var log=(cExtra[docName]||{}).f2fLog||[];
+  var last=log.length?log[log.length-1]:null;
+  var tempIco=last&&last.temp?({up:'🔥',mid:'😐',down:'🧊'}[last.temp]||''):'';
+  var pend=f2fPendencias(docName);
+  var pendHtml=pend.length?
+    '<div style="padding:0 14px 9px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">'+
+      '<span style="font-size:10px;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Ficou pendente:</span>'+
+      pend.map(function(p){return '<span style="font-size:11px;font-weight:700;background:#ffedd5;color:#ea580c;border-radius:20px;padding:2px 8px;">'+esc(p)+'</span>';}).join('')+
+    '</div>':'';
+  return '<div style="padding:9px 14px;'+(pendHtml?'':'border-bottom:1px solid #f0f0f5;')+'display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
     '<button onclick="event.stopPropagation();openF2fDate(\''+di+'\')" style="display:inline-flex;align-items:center;gap:5px;background:#fff;color:#16a34a;border:1.5px solid #16a34a;border-radius:10px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">🤝 F2F</button>'+
     tag+
+    (tempIco?'<span style="font-size:15px;" title="Temperatura da última visita">'+tempIco+'</span>':'')+
+    (last&&last.proxima?'<span style="font-size:11px;color:#0891b2;font-weight:700;">📅 próx. '+fmtDate(last.proxima+'T12:00:00Z')+'</span>':'')+
     (dates.length>1?'<span style="font-size:11px;color:#999;">+'+( dates.length-1)+' anterior'+(dates.length>2?'es':'')+'</span>':'')+
-  '</div>';
+  '</div>'+
+  (pendHtml?pendHtml.replace('<div style="padding:0 14px 9px;','<div style="padding:0 14px 9px;border-bottom:1px solid #f0f0f5;'):'');
 }
-var _f2fDi=-1;
+var _f2fDi=-1,_f2fTemp='';
 function openF2fDate(di){
-  _f2fDi=di;
-  document.getElementById('emailDatePicker').value=new Date().toISOString().split('T')[0];
-  document.getElementById('emailDateOvTitle').textContent='🤝 Data da visita F2F';
-  document.getElementById('emailDateOv').dataset.mode='f2f';
-  document.getElementById('emailDateOv').style.display='flex';
+  _f2fDi=di;_f2fTemp='';
+  var d=docs[parseInt(di)];
+  document.getElementById('f2fTitle').textContent='🤝 F2F · '+(d?tc(d.name):'');
+  document.getElementById('f2f_data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f2f_prox').value='';
+  document.getElementById('f2fProxRow').style.display='none';
+  ['f2f_email','f2f_whats','f2f_reag'].forEach(function(id){document.getElementById(id).checked=false;});
+  var chips=document.getElementById('f2fQuem').querySelectorAll('.f2fchip');
+  for(var i=0;i<chips.length;i++)chips[i].classList.remove('on');
+  // pré-seleciona "Médico" — caso mais comum
+  if(chips[0])chips[0].classList.add('on');
+  var temps=document.querySelectorAll('.f2ftemp');
+  for(var j=0;j<temps.length;j++)temps[j].classList.remove('on');
+  document.getElementById('f2fOv').classList.add('on');
+}
+function closeF2fModal(){document.getElementById('f2fOv').classList.remove('on');_f2fDi=-1;}
+function toggleF2fChip(el){el.classList.toggle('on');}
+function setF2fTemp(v){
+  _f2fTemp=(_f2fTemp===v)?'':v;
+  var temps=document.querySelectorAll('.f2ftemp');
+  for(var i=0;i<temps.length;i++)temps[i].classList.toggle('on',_f2fTemp&&temps[i].dataset.v===_f2fTemp);
+}
+function toggleF2fProx(){
+  var on=document.getElementById('f2f_reag').checked;
+  document.getElementById('f2fProxRow').style.display=on?'block':'none';
+  if(on&&!document.getElementById('f2f_prox').value){
+    var d=new Date();d.setDate(d.getDate()+21);
+    document.getElementById('f2f_prox').value=d.toISOString().split('T')[0];
+  }
+}
+function saveF2f(){
+  if(_f2fDi<0)return;
+  var di=_f2fDi;
+  var val=document.getElementById('f2f_data').value;
+  if(!val){alert('Informe a data da visita.');return;}
+  var parsed=new Date(val+'T12:00:00Z');
+  if(isNaN(parsed)){alert('Data inválida.');return;}
+  var nm=docs[parseInt(di)].name;
+  var quem=[];
+  var chips=document.getElementById('f2fQuem').querySelectorAll('.f2fchip.on');
+  for(var i=0;i<chips.length;i++)quem.push(chips[i].dataset.v);
+  var reag=document.getElementById('f2f_reag').checked;
+  var prox=reag?(document.getElementById('f2f_prox').value||''):'';
+  var rec={
+    date:parsed.toISOString(),
+    quem:quem,
+    email:document.getElementById('f2f_email').checked,
+    whats:document.getElementById('f2f_whats').checked,
+    reagendou:reag,
+    proxima:prox,
+    temp:_f2fTemp||''
+  };
+  if(!cExtra[nm])cExtra[nm]={};
+  if(!cExtra[nm].f2fLog)cExtra[nm].f2fLog=[];
+  cExtra[nm].f2fLog.push(rec);
+  cExtra[nm].f2fLog.sort(function(a,b){return a.date>b.date?1:a.date<b.date?-1:0;});
+  // mantém f2fDates em sincronia (usado por histórico, exportações e contagens já existentes)
+  if(!cExtra[nm].f2fDates)cExtra[nm].f2fDates=[];
+  cExtra[nm].f2fDates.push(rec.date);
+  cExtra[nm].f2fDates.sort();
+  closeF2fModal();
+  persist();renderDocs();_reopenMatList(di);
+}
+// Itens não marcados da última visita — mostrados só no card do médico
+function f2fPendencias(docName){
+  var log=(cExtra[docName]||{}).f2fLog||[];
+  if(!log.length)return [];
+  var last=log[log.length-1],out=[];
+  if(!last.email)out.push('E-mail no Veeva');
+  if(!last.whats)out.push('WhatsApp');
+  if(!last.reagendou)out.push('Reagendar');
+  return out;
 }
 function removeLastF2f(di){
   var d=docs[parseInt(di)];
@@ -3684,8 +3814,12 @@ function removeLastF2f(di){
   if(!cExtra[d.name])return;
   var arr=cExtra[d.name].f2fDates||[];
   if(!arr.length)return;
-  arr.pop();
+  var removed=arr.pop();
   cExtra[d.name].f2fDates=arr;
+  // remove também o registro do checklist correspondente
+  var log=cExtra[d.name].f2fLog||[];
+  for(var i=log.length-1;i>=0;i--){if(log[i]&&log[i].date===removed){log.splice(i,1);break;}}
+  cExtra[d.name].f2fLog=log;
   persist();renderDocs();_reopenMatList(di);
 }
 function buildTimelineHtml(docName){
@@ -3696,8 +3830,21 @@ function buildTimelineHtml(docName){
     if(ws)events.push({date:ws,label:'📱 WA: '+esc(mats[i].name)});
     if(we)events.push({date:we,label:'📧 Email: '+esc(mats[i].name)});
   }
+  var f2fLog=(cExtra[docName]||{}).f2fLog||[];
+  var _logged={};
+  for(var L=0;L<f2fLog.length;L++){
+    var r=f2fLog[L];if(!r||!r.date)continue;
+    _logged[r.date]=true;
+    var det=[];
+    if(r.quem&&r.quem.length)det.push(r.quem.join(' + '));
+    if(r.email)det.push('e-mail ✓');
+    if(r.whats)det.push('WhatsApp ✓');
+    if(r.reagendou)det.push('reagendado'+(r.proxima?' '+fmtDate(r.proxima+'T12:00:00Z'):''));
+    var ico={up:' 🔥',mid:' 😐',down:' 🧊'}[r.temp]||'';
+    events.push({date:r.date,label:'🤝 Visita F2F'+ico+(det.length?' <span style="color:#999;">· '+esc(det.join(' · '))+'</span>':'')});
+  }
   var f2fDates=(cExtra[docName]||{}).f2fDates||[];
-  for(var j=0;j<f2fDates.length;j++){if(f2fDates[j])events.push({date:f2fDates[j],label:'🤝 Visita F2F'});}
+  for(var j=0;j<f2fDates.length;j++){if(f2fDates[j]&&!_logged[f2fDates[j]])events.push({date:f2fDates[j],label:'🤝 Visita F2F'});}
   if(!events.length)return '';
   events.sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:0;});
   var rows='';
