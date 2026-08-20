@@ -978,7 +978,9 @@ function initListener(){
       }
       // Config da calculadora (preços editáveis + parâmetros)
       if(data.calcConfig)applyCalcConfig(data.calcConfig);
-      if(data.aiConfig&&typeof data.aiConfig.apiKey==='string')aiApiKey=data.aiConfig.apiKey;
+      // Limpeza: uma versão antiga chegou a salvar a chave da IA no Firebase (banco público).
+      // Se existir, apaga do banco — a chave já vive só em localStorage neste navegador.
+      if(data.aiConfig)dbRef.child('aiConfig').remove().catch(function(e){console.error('aiConfig cleanup:',e);});
       // Espelho do último relatório OncoTracking importado
       if(Array.isArray(data.oncoData))oncoData=data.oncoData.filter(function(r){return r&&r.razao;});
       // Brasil de referência (input manual — usado para calcular Share BR), por lente MAT/YTD
@@ -3868,7 +3870,12 @@ function removeLastF2f(di){
 }
 
 // ══════════ IA · ANÁLISE DE PERFIL (Gemini) ══════════
+// A chave fica SÓ no localStorage deste navegador — nunca no Firebase, que é um banco
+// público (a config do Firebase é visível no código-fonte da página). Guardar a chave lá
+// permitiria qualquer pessoa com a URL do app lê-la direto do banco.
+var AI_KEY_LS='s5aiKey';
 var aiApiKey='';
+try{aiApiKey=localStorage.getItem(AI_KEY_LS)||'';}catch(e){}
 var _aiDi=-1;
 function openAiConfigModal(){
   document.getElementById('ai_apikey').value=aiApiKey||'';
@@ -3879,9 +3886,12 @@ function openAiConfigModal(){
 function closeAiConfigModal(){document.getElementById('aiConfigOv').classList.remove('on');}
 function saveAiConfig(){
   aiApiKey=document.getElementById('ai_apikey').value.trim();
-  dbRef.child('aiConfig').set({apiKey:aiApiKey}).catch(function(e){console.error('aiConfig:',e);});
+  try{
+    if(aiApiKey)localStorage.setItem(AI_KEY_LS,aiApiKey);
+    else localStorage.removeItem(AI_KEY_LS);
+  }catch(e){console.warn('localStorage indisponível:',e);}
   closeAiConfigModal();
-  alert(aiApiKey?'✅ Chave salva.':'Chave removida.');
+  alert(aiApiKey?'✅ Chave salva só neste navegador (não sincroniza entre dispositivos).':'Chave removida.');
 }
 function openAiModal(di){
   _aiDi=di;
