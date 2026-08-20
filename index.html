@@ -3943,7 +3943,7 @@ function runAiAnalysis(){
   var resultBox=document.getElementById('aiResultBox'),resultEl=document.getElementById('aiResultContent');
   resultBox.style.display='block';resultEl.textContent='Consultando IA...';
 
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(aiApiKey),{
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key='+encodeURIComponent(aiApiKey),{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
