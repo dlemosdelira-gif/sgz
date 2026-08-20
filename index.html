@@ -139,9 +139,10 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .bchip{padding:5px 11px;border-radius:16px;font-size:12px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#fff;color:#374151;}
 .f2fchip{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid #ddd;cursor:pointer;background:#fff;color:#555;}
 .f2fchip.on{background:#6d28d9;border-color:#6d28d9;color:#fff;}
-.f2fchk{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #f0f0f5;font-size:14px;cursor:pointer;color:#1c1c1e;}
-.f2fchk:last-of-type{border-bottom:none;}
-.f2fchk input{width:20px;height:20px;flex:none;accent-color:#059669;cursor:pointer;margin:0;}
+.field label.f2fchk,label.f2fchk{display:flex;align-items:center;gap:11px;padding:12px 2px;border-bottom:1px solid #f0f0f5;font-size:14px;cursor:pointer;color:#1c1c1e;text-transform:none;letter-spacing:0;font-weight:500;margin:0;}
+.field label.f2fchk:last-of-type,label.f2fchk:last-of-type{border-bottom:none;}
+.field .f2fchk input[type=checkbox],.f2fchk input[type=checkbox]{width:22px;height:22px;min-width:22px;flex:0 0 22px;padding:0;margin:0;border-radius:6px;accent-color:#059669;cursor:pointer;-webkit-appearance:checkbox;appearance:checkbox;background:none;border:none;}
+.f2fchk span{flex:1;min-width:0;}
 .f2fchk b{font-weight:700;}
 .f2ftemp{padding:9px 4px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid #ddd;cursor:pointer;background:#fff;color:#555;text-align:center;line-height:1.25;}
 .f2ftemp.on{background:#d1fae5;border-color:#059669;color:#065f46;}
@@ -3768,10 +3769,10 @@ function toggleF2fProx(){
 function saveF2f(){
   if(_f2fDi<0)return;
   var di=_f2fDi;
+  // Nada é obrigatório — sem data preenchida, assume hoje
   var val=document.getElementById('f2f_data').value;
-  if(!val){alert('Informe a data da visita.');return;}
-  var parsed=new Date(val+'T12:00:00Z');
-  if(isNaN(parsed)){alert('Data inválida.');return;}
+  var parsed=val?new Date(val+'T12:00:00Z'):new Date();
+  if(isNaN(parsed))parsed=new Date();
   var nm=docs[parseInt(di)].name;
   var quem=[];
   var chips=document.getElementById('f2fQuem').querySelectorAll('.f2fchip.on');
