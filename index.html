@@ -1634,16 +1634,6 @@ function prodBarHtml(label,color,data){
     var col=pct>0?'#16a34a':pct<0?'#dc2626':'#888';
     return '<span style="font-size:10px;font-weight:700;color:'+col+';">'+(pct>0?'↑':pct<0?'↓':'=')+Math.abs(pct)+'%</span>';
   }
-  // Se o relatório trouxe a via de administração separada (IV vs SC/SQ), mostra o detalhe
-  // informativo abaixo do total — o total em si continua sendo a soma das duas vias.
-  var routesHtml='';
-  if(data.routes&&(data.routes.iv||data.routes.sc)){
-    var rv=data.routes.iv,rc=data.routes.sc;
-    var parts=[];
-    if(rv)parts.push('IV '+Math.round(rv.matAtu||0).toLocaleString('pt-BR'));
-    if(rc)parts.push('SC '+Math.round(rc.matAtu||0).toLocaleString('pt-BR'));
-    routesHtml='<div style="font-size:10px;color:#999;margin:1px 0 0 76px;">↳ MAT por via: '+parts.join(' · ')+'</div>';
-  }
   return '<div style="margin-bottom:8px;">'+
     '<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">'+
       '<span style="width:72px;font-size:11px;font-weight:700;color:'+color+';flex-shrink:0;">'+label+'</span>'+
@@ -1661,15 +1651,23 @@ function prodBarHtml(label,color,data){
       '<div style="position:absolute;left:0;top:0;width:'+pctAnt+'%;height:100%;background:#ddd;border-radius:4px;"></div>'+
       '<div style="position:absolute;left:0;top:0;width:'+pctAtu+'%;height:100%;background:'+color+';border-radius:4px;opacity:.85;"></div>'+
     '</div>'+
-    routesHtml+
   '</div>';
 }
 function buildProdHtml(ad){
   if(!ad||(!ad.sarclisa&&!ad.dalinvi&&!ad.darzalex))return '';
+  // Quando o relatório trouxe a via de administração separada (IV/SC), mostra uma linha
+  // para cada em vez de um total único — senão (dado antigo, sem via), mostra combinado.
+  var dalHtml;
+  var routes=ad.dalinvi&&ad.dalinvi.routes;
+  if(routes&&(routes.iv||routes.sc)){
+    dalHtml=prodBarHtml('Dalinvi IV','#0891b2',routes.iv)+prodBarHtml('Dalinvi SC','#0e7490',routes.sc);
+  } else {
+    dalHtml=prodBarHtml('Dalinvi','#0891b2',ad.dalinvi);
+  }
   return '<div style="background:#f8f8ff;border:1px solid #e0e7ff;border-radius:10px;padding:10px 12px;margin:6px 0;">'+
     '<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;">📦 Auditoria de Mercado (caixas)</div>'+
     prodBarHtml('Sarclisa','#7c3aed',ad.sarclisa)+
-    prodBarHtml('Dalinvi','#0891b2',ad.dalinvi)+
+    dalHtml+
     prodBarHtml('Darzalex','#dc2626',ad.darzalex)+
   '</div>';
 }
