@@ -1634,6 +1634,16 @@ function prodBarHtml(label,color,data){
     var col=pct>0?'#16a34a':pct<0?'#dc2626':'#888';
     return '<span style="font-size:10px;font-weight:700;color:'+col+';">'+(pct>0?'↑':pct<0?'↓':'=')+Math.abs(pct)+'%</span>';
   }
+  // Se o relatório trouxe a via de administração separada (IV vs SC/SQ), mostra o detalhe
+  // informativo abaixo do total — o total em si continua sendo a soma das duas vias.
+  var routesHtml='';
+  if(data.routes&&(data.routes.iv||data.routes.sc)){
+    var rv=data.routes.iv,rc=data.routes.sc;
+    var parts=[];
+    if(rv)parts.push('IV '+Math.round(rv.matAtu||0).toLocaleString('pt-BR'));
+    if(rc)parts.push('SC '+Math.round(rc.matAtu||0).toLocaleString('pt-BR'));
+    routesHtml='<div style="font-size:10px;color:#999;margin:1px 0 0 76px;">↳ MAT por via: '+parts.join(' · ')+'</div>';
+  }
   return '<div style="margin-bottom:8px;">'+
     '<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">'+
       '<span style="width:72px;font-size:11px;font-weight:700;color:'+color+';flex-shrink:0;">'+label+'</span>'+
@@ -1651,6 +1661,7 @@ function prodBarHtml(label,color,data){
       '<div style="position:absolute;left:0;top:0;width:'+pctAnt+'%;height:100%;background:#ddd;border-radius:4px;"></div>'+
       '<div style="position:absolute;left:0;top:0;width:'+pctAtu+'%;height:100%;background:'+color+';border-radius:4px;opacity:.85;"></div>'+
     '</div>'+
+    routesHtml+
   '</div>';
 }
 function buildProdHtml(ad){
@@ -1658,7 +1669,7 @@ function buildProdHtml(ad){
   return '<div style="background:#f8f8ff;border:1px solid #e0e7ff;border-radius:10px;padding:10px 12px;margin:6px 0;">'+
     '<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;">📦 Auditoria de Mercado (caixas)</div>'+
     prodBarHtml('Sarclisa','#7c3aed',ad.sarclisa)+
-    prodBarHtml('Dalinvi IV','#0891b2',ad.dalinvi)+
+    prodBarHtml('Dalinvi','#0891b2',ad.dalinvi)+
     prodBarHtml('Darzalex','#dc2626',ad.darzalex)+
   '</div>';
 }
@@ -2894,7 +2905,11 @@ function _processMultiSheetXlsx(sheets){
   for(var i=0;i<sheets.length;i++){
     var slice=_findBrandSlice(sheets[i].rows);
     if(!slice){skipped.push(sheets[i].name);continue;}
-    var ex=_extractWideRows(slice);
+    // Detecta a via de administração pelo NOME da aba (o banner de marca dentro da planilha
+    // não distingue IV de SC) — usado só para exibir o detalhe informativo por via.
+    var nm=(sheets[i].name||'').toUpperCase();
+    var routeHint=/\bIV\b/.test(nm)?'iv':(/\bSQ\b|\bSC\b|SUBCUT/.test(nm)?'sc':null);
+    var ex=_extractWideRows(slice,routeHint);
     ex.sheetName=sheets[i].name;
     extractions.push(ex);
   }
@@ -2911,7 +2926,7 @@ function processCsvAuditWideMatrix(rows){
 
 // Extrai os dados de UM bloco wide (banner de marca na linha 0, sub-cabeçalho na linha 1,
 // dados a partir da linha 2) sem tocar em estado global — só devolve o resultado.
-function _extractWideRows(rows){
+function _extractWideRows(rows,routeHint){
   var brandRow=rows[0],subRow=rows[1];
   // Constrói map coluna→{marca,metric} a partir das duas primeiras linhas
   var colMap=[]; var lastBrand='';
@@ -2996,6 +3011,13 @@ function _extractWideRows(rows){
       var v=parsePtNum(cols[k]);if(isNaN(v))continue;
       if(!byRazao[gkey].products[m.brand])byRazao[gkey].products[m.brand]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
       byRazao[gkey].products[m.brand][m.metric]=(byRazao[gkey].products[m.brand][m.metric]||0)+v;
+      // Detalhe por via (IV/SC) — só informativo; o total acima já soma tudo normalmente.
+      if(routeHint){
+        var pr=byRazao[gkey].products[m.brand];
+        if(!pr.routes)pr.routes={};
+        if(!pr.routes[routeHint])pr.routes[routeHint]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
+        pr.routes[routeHint][m.metric]=(pr.routes[routeHint][m.metric]||0)+v;
+      }
     }
   }
 
@@ -3005,6 +3027,15 @@ function _extractWideRows(rows){
 // Une o(s) resultado(s) de _extractWideRows (1 aba = mesmo comportamento de antes; várias
 // abas = soma por conta entre elas) e finaliza: matching por CNPJ/nome, espelho oncoData,
 // diagnóstico na tela e lista de contas novas.
+function _mergeRoutes(targetProd,srcRoutes){
+  if(!targetProd.routes)targetProd.routes={};
+  for(var rk in srcRoutes){
+    var r=srcRoutes[rk];
+    if(!targetProd.routes[rk])targetProd.routes[rk]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
+    targetProd.routes[rk].matAnt+=r.matAnt||0;targetProd.routes[rk].matAtu+=r.matAtu||0;
+    targetProd.routes[rk].ytdAnt+=r.ytdAnt||0;targetProd.routes[rk].ytdAtu+=r.ytdAtu||0;
+  }
+}
 function _finishWideImport(extractions,skippedSheets){
   var merged={};
   var rowsUsed=0,mappedCols=0,hierarquia=false,iCidadeAny=false,iCnpjAny=false;
@@ -3023,6 +3054,7 @@ function _finishWideImport(extractions,skippedSheets){
         if(!t.products[pk])t.products[pk]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
         t.products[pk].matAnt+=p.matAnt||0;t.products[pk].matAtu+=p.matAtu||0;
         t.products[pk].ytdAnt+=p.ytdAnt||0;t.products[pk].ytdAtu+=p.ytdAtu||0;
+        if(p.routes)_mergeRoutes(t.products[pk],p.routes);
       }
     }
   });
@@ -3056,6 +3088,7 @@ function _finishWideImport(extractions,skippedSheets){
       var p=_e.products[pk];if(!p)return;
       if(!_t[pk])_t[pk]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
       _t[pk].matAnt+=p.matAnt||0;_t[pk].matAtu+=p.matAtu||0;_t[pk].ytdAnt+=p.ytdAnt||0;_t[pk].ytdAtu+=p.ytdAtu||0;
+      if(p.routes)_mergeRoutes(_t[pk],p.routes);
     });
   }
   _oncoPendingData=_ordem.map(function(k){return _byCnpj[k];});
