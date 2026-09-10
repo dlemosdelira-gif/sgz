@@ -838,7 +838,8 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
       <strong>Formato 2 — Multi-produto IMS (separado por tab):</strong><br>
       <code>Marca&#9;Cidade&#9;Razão Social&#9;YTD ANT&#9;YTD ATU&#9;MAT ANT&#9;MAT ATU</code><br>
       No formato 2, linhas de Sarclisa e Dalinvi IV são identificadas automaticamente pela coluna <b>Marca</b>.<br>
-      <strong>Recomendado (iPad/Excel): importe o arquivo .xlsx direto</strong> — evita problemas de formatação ao colar. PDF não é suportado; exporte como XLSX ou CSV primeiro.
+      <strong>Recomendado (iPad/Excel): importe o arquivo .xlsx direto</strong> — evita problemas de formatação ao colar. PDF não é suportado; exporte como XLSX ou CSV primeiro.<br>
+      Se o relatório vier com <b>uma aba por produto</b> (ex.: Dalinvi IV / Dalinvi SQ / Sarclisa), o botão 📊 Importar XLSX lê e soma todas as abas automaticamente — colar só pega a aba ativa no Excel.
     </div>
     <div class="field">
       <label>Cole o CSV aqui</label>
@@ -2566,35 +2567,42 @@ async function _xlsxReadZipEntry(buf,dv,name){
   }
   return null;
 }
-async function _xlsxParse(file){
+// Lê TODAS as abas do workbook (não só a primeira) — necessário porque o relatório
+// OncoTracking agora vem com uma aba por produto (ex.: "Dalinvi IV", "Dalinvi SQ", "Sarclisa").
+async function _xlsxParseAllSheets(file){
   var buf=await file.arrayBuffer();
   var dv=new DataView(buf);
   var dec=new TextDecoder('utf-8');
 
-  // 1. Descobre o caminho real da primeira planilha (workbook.xml + rels)
-  var sheetPath='xl/worksheets/sheet1.xml';
+  // 1. Lista de abas (nome + caminho real via workbook.xml + rels)
+  var sheetRefs=[{name:'Sheet1',path:'xl/worksheets/sheet1.xml'}];
   try{
     var wbBuf=await _xlsxReadZipEntry(buf,dv,'xl/workbook.xml');
     var relsBuf=await _xlsxReadZipEntry(buf,dv,'xl/_rels/workbook.xml.rels');
     if(wbBuf&&relsBuf){
       var wbXml=new DOMParser().parseFromString(dec.decode(wbBuf),'application/xml');
-      var firstSheet=wbXml.getElementsByTagName('sheet')[0];
-      if(firstSheet){
-        var rid=firstSheet.getAttribute('r:id')||firstSheet.getAttribute('id');
-        var relsXml=new DOMParser().parseFromString(dec.decode(relsBuf),'application/xml');
-        var rels=relsXml.getElementsByTagName('Relationship');
+      var sheetEls=wbXml.getElementsByTagName('sheet');
+      var relsXml=new DOMParser().parseFromString(dec.decode(relsBuf),'application/xml');
+      var rels=relsXml.getElementsByTagName('Relationship');
+      var refs=[];
+      for(var si=0;si<sheetEls.length;si++){
+        var rid=sheetEls[si].getAttribute('r:id')||sheetEls[si].getAttribute('id');
+        var nm=sheetEls[si].getAttribute('name')||('Sheet'+(si+1));
+        var path=null;
         for(var ri=0;ri<rels.length;ri++){
           if(rels[ri].getAttribute('Id')===rid){
             var target=rels[ri].getAttribute('Target').replace(/^\/?/,'');
-            sheetPath=target.indexOf('xl/')===0?target:'xl/'+target;
+            path=target.indexOf('xl/')===0?target:'xl/'+target;
             break;
           }
         }
+        if(path)refs.push({name:nm,path:path});
       }
+      if(refs.length)sheetRefs=refs;
     }
   }catch(e){console.warn('xlsx workbook.xml (usando fallback sheet1.xml):',e);}
 
-  // 2. Shared strings
+  // 2. Shared strings (compartilhado entre todas as abas)
   var sharedStrings=[];
   var ssBuf=await _xlsxReadZipEntry(buf,dv,'xl/sharedStrings.xml');
   if(ssBuf){
@@ -2608,35 +2616,39 @@ async function _xlsxParse(file){
     }
   }
 
-  // 3. Planilha
-  var shBuf=await _xlsxReadZipEntry(buf,dv,sheetPath);
-  if(!shBuf)throw new Error('Planilha não encontrada dentro do arquivo (esperado em '+sheetPath+').');
-  var shXml=new DOMParser().parseFromString(dec.decode(shBuf),'application/xml');
-  var rowsEls=shXml.getElementsByTagName('row');
-  var rows=[];
-  for(var ri2=0;ri2<rowsEls.length;ri2++){
-    var cells=rowsEls[ri2].getElementsByTagName('c');
-    var rowArr=[];
-    for(var ci=0;ci<cells.length;ci++){
-      var cEl=cells[ci];
-      var ref=cEl.getAttribute('r')||'';
-      var idx=_xlsxColToIdx(ref);
-      var t=cEl.getAttribute('t');
-      var val='';
-      if(t==='inlineStr'){
-        var isEl=cEl.getElementsByTagName('is')[0];
-        val=isEl?isEl.textContent:'';
-      } else {
-        var vEl=cEl.getElementsByTagName('v')[0];
-        var rawv=vEl?vEl.textContent:'';
-        val=(t==='s')?(sharedStrings[parseInt(rawv)]||''):rawv;
+  // 3. Cada aba
+  var sheets=[];
+  for(var s=0;s<sheetRefs.length;s++){
+    var shBuf=await _xlsxReadZipEntry(buf,dv,sheetRefs[s].path);
+    if(!shBuf)continue;
+    var shXml=new DOMParser().parseFromString(dec.decode(shBuf),'application/xml');
+    var rowsEls=shXml.getElementsByTagName('row');
+    var rows=[];
+    for(var ri2=0;ri2<rowsEls.length;ri2++){
+      var cells=rowsEls[ri2].getElementsByTagName('c');
+      var rowArr=[];
+      for(var ci=0;ci<cells.length;ci++){
+        var cEl=cells[ci];
+        var ref=cEl.getAttribute('r')||'';
+        var idx=_xlsxColToIdx(ref);
+        var t=cEl.getAttribute('t');
+        var val='';
+        if(t==='inlineStr'){
+          var isEl=cEl.getElementsByTagName('is')[0];
+          val=isEl?isEl.textContent:'';
+        } else {
+          var vEl=cEl.getElementsByTagName('v')[0];
+          var rawv=vEl?vEl.textContent:'';
+          val=(t==='s')?(sharedStrings[parseInt(rawv)]||''):rawv;
+        }
+        while(rowArr.length<idx)rowArr.push('');
+        rowArr[idx]=val;
       }
-      while(rowArr.length<idx)rowArr.push('');
-      rowArr[idx]=val;
+      rows.push(rowArr);
     }
-    rows.push(rowArr);
+    sheets.push({name:sheetRefs[s].name,rows:rows});
   }
-  return rows;
+  return sheets;
 }
 function loadXlsxFile(evt){
   var file=evt.target.files&&evt.target.files[0];if(!file)return;
@@ -2645,9 +2657,11 @@ function loadXlsxFile(evt){
     alert('⚠️ Seu navegador não suporta leitura de XLSX compactado. Abra o arquivo no Excel/Numbers, selecione tudo, copie e cole no campo de texto.');
     return;
   }
-  _xlsxParse(file).then(function(rows){
-    if(!rows||rows.length<2){alert('⚠️ Não foi possível ler dados desta planilha.');return;}
-    _processRowsMatrix(rows);
+  _xlsxParseAllSheets(file).then(function(sheets){
+    sheets=(sheets||[]).filter(function(s){return s.rows&&s.rows.length>1;});
+    if(!sheets.length){alert('⚠️ Não foi possível ler dados desta planilha.');return;}
+    if(sheets.length===1){_processRowsMatrix(sheets[0].rows);return;}
+    _processMultiSheetXlsx(sheets);
   }).catch(function(e){
     console.error('xlsx parse error:',e);
     alert('❌ Erro ao ler o arquivo XLSX:\n'+(e&&e.message?e.message:e)+'\n\nTente copiar e colar os dados diretamente no campo de texto.');
@@ -2861,8 +2875,43 @@ function doMergeContas(){
   alert('✅ "'+from+'" mesclada em "'+to+'".');
 }
 
+// Detecta o começo do bloco "banner de marca + sub-cabeçalho" dentro das primeiras linhas
+// (tabelas dinâmicas do Excel às vezes têm 1 linha extra "Column Labels" antes do banner).
+// Retorna as linhas já cortadas a partir do banner, ou null se não achou o formato wide.
+function _findBrandSlice(rows){
+  var _isBrandRow=function(r){return (r||[]).some(function(c){var u=(c||'').toUpperCase();return u.indexOf('DALINVI')>=0||u.indexOf('SARCLISA')>=0||u.indexOf('DARZALEX')>=0;});};
+  var _isSubHeaderRow=function(r){return (r||[]).some(function(c){return /ytd|mat/i.test(c||'')&&/(ant|atu)/i.test(c||'');});};
+  for(var bi=0;bi<Math.min(5,rows.length-1);bi++){
+    if(_isBrandRow(rows[bi])&&_isSubHeaderRow(rows[bi+1]))return bi===0?rows:rows.slice(bi);
+  }
+  return null;
+}
+
+// Processa múltiplas abas do XLSX (uma por produto: "Dalinvi IV", "Dalinvi SQ", "Sarclisa"
+// etc.) — cada aba vira uma extração independente, depois somadas por conta.
+function _processMultiSheetXlsx(sheets){
+  var extractions=[],skipped=[];
+  for(var i=0;i<sheets.length;i++){
+    var slice=_findBrandSlice(sheets[i].rows);
+    if(!slice){skipped.push(sheets[i].name);continue;}
+    var ex=_extractWideRows(slice);
+    ex.sheetName=sheets[i].name;
+    extractions.push(ex);
+  }
+  if(!extractions.length){
+    alert('⚠️ Nenhuma aba do arquivo tem o formato OncoTracking reconhecido (banner de marca + YTD/MAT).');
+    return;
+  }
+  _finishWideImport(extractions,skipped);
+}
+
 function processCsvAuditWideMatrix(rows){
-  // rows[0]=brandRow, rows[1]=subRow, rows[2+]=dados — já tokenizados (sem depender de separador de texto)
+  _finishWideImport([_extractWideRows(rows)],[]);
+}
+
+// Extrai os dados de UM bloco wide (banner de marca na linha 0, sub-cabeçalho na linha 1,
+// dados a partir da linha 2) sem tocar em estado global — só devolve o resultado.
+function _extractWideRows(rows){
   var brandRow=rows[0],subRow=rows[1];
   // Constrói map coluna→{marca,metric} a partir das duas primeiras linhas
   var colMap=[]; var lastBrand='';
@@ -2950,11 +2999,39 @@ function processCsvAuditWideMatrix(rows){
     }
   }
 
+  return {byRazao:byRazao,rowsUsed:rowsUsed,mappedCols:colMap.filter(function(m){return m.brand&&m.metric;}).length,hierarquia:hierarquia,iCidade:iCidade,iCnpj:iCnpj,cnpjMap:cnpjMap,_digitsOnly:_digitsOnly};
+}
+
+// Une o(s) resultado(s) de _extractWideRows (1 aba = mesmo comportamento de antes; várias
+// abas = soma por conta entre elas) e finaliza: matching por CNPJ/nome, espelho oncoData,
+// diagnóstico na tela e lista de contas novas.
+function _finishWideImport(extractions,skippedSheets){
+  var merged={};
+  var rowsUsed=0,mappedCols=0,hierarquia=false,iCidadeAny=false,iCnpjAny=false;
+  var _digitsOnly=extractions[0]._digitsOnly,cnpjMap=extractions[0].cnpjMap;
+  extractions.forEach(function(ex){
+    rowsUsed+=ex.rowsUsed;mappedCols+=ex.mappedCols;
+    if(ex.hierarquia)hierarquia=true;if(ex.iCidade>=0)iCidadeAny=true;if(ex.iCnpj>=0)iCnpjAny=true;
+    for(var k in ex.byRazao){
+      var e=ex.byRazao[k];
+      if(!merged[k])merged[k]={razao:e.razao,products:{},cidade:e.cidade||'',cnpj:e.cnpj||''};
+      var t=merged[k];
+      if(!t.cidade&&e.cidade)t.cidade=e.cidade;
+      if(!t.cnpj&&e.cnpj)t.cnpj=e.cnpj;
+      for(var pk in e.products){
+        var p=e.products[pk];
+        if(!t.products[pk])t.products[pk]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
+        t.products[pk].matAnt+=p.matAnt||0;t.products[pk].matAtu+=p.matAtu||0;
+        t.products[pk].ytdAnt+=p.ytdAnt||0;t.products[pk].ytdAtu+=p.ytdAtu||0;
+      }
+    }
+  });
+
   var results=[],parsed=[];
   var _dSarMat=0,_dSarYtd=0,_dDalMat=0,_dDalYtd=0;
-  for(var _gk in byRazao){
-    var entry=byRazao[_gk];
-    var razao=entry.razao; // nome de exibição (a chave agora é o CNPJ)
+  for(var _gk in merged){
+    var entry=merged[_gk];
+    var razao=entry.razao;
     var entryCnpjD=_digitsOnly(entry.cnpj);
     // CNPJ conhecido tem prioridade sobre fuzzy match por nome — evita duplicatas tipo CASSEMS
     var matchNome=(entryCnpjD.length>=11&&cnpjMap[entryCnpjD])?cnpjMap[entryCnpjD]:fuzzyMatchConta(razao);
@@ -2966,16 +3043,16 @@ function processCsvAuditWideMatrix(rows){
     results.push(matchNome?'<span class="ok">✓ '+esc(razao)+' → '+matchNome+_viaCnpj+'</span>':'<span class="warn">⚠️ Não encontrada: "'+esc(razao)+'"</span>');
   }
 
-  // Espelho fiel do relatório, deduplicado por CNPJ (mesma empresa em linhas/cidades distintas soma)
+  // Espelho fiel do relatório, deduplicado por CNPJ (mesma empresa em linhas/cidades/abas distintas soma)
   var _byCnpj={},_ordem=[];
-  for(var _oz in byRazao){
-    var _e=byRazao[_oz];
+  for(var _oz in merged){
+    var _e=merged[_oz];
     var _kd=_digitsOnly(_e.cnpj);
     var _k=_kd.length>=11?('c'+_kd):('n'+_oz);
     if(!_byCnpj[_k]){_byCnpj[_k]={razao:_e.razao,cnpj:_e.cnpj||'',cidade:_e.cidade||'',sarclisa:null,dalinvi:null};_ordem.push(_k);}
     var _t=_byCnpj[_k];
     if(!_t.cidade&&_e.cidade)_t.cidade=_e.cidade;
-    ['sarclisa','dalinvi'].forEach(function(pk){
+    ['sarclisa','dalinvi','darzalex'].forEach(function(pk){
       var p=_e.products[pk];if(!p)return;
       if(!_t[pk])_t[pk]={matAnt:0,matAtu:0,ytdAnt:0,ytdAtu:0};
       _t[pk].matAnt+=p.matAnt||0;_t[pk].matAtu+=p.matAtu||0;_t[pk].ytdAnt+=p.ytdAnt||0;_t[pk].ytdAtu+=p.ytdAtu||0;
@@ -2989,12 +3066,14 @@ function processCsvAuditWideMatrix(rows){
   csvNewContasPending=notFound;
   var resultEl=document.getElementById('csvResult');
   resultEl.style.display='block';
-  var diag='🔍 <b>Diagnóstico:</b> '+rowsUsed+' linhas de dados lidas · Colunas mapeadas: '+colMap.filter(function(m){return m.brand&&m.metric;}).length+
-    ' · Hierarquia Cidade→Razão→CNPJ: '+(hierarquia?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não (tabela achatada)</span>')+
-    ' · Cidade (coluna): '+(iCidade>=0?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não encontrada</span>')+
-    ' · CNPJ (coluna): '+(iCnpj>=0?'<span style="color:#059669;">detectado</span>':'<span style="color:#aaa;">não encontrado</span>')+
+  var abasInfo=extractions.length>1?(' · <b>'+extractions.length+' aba(s) somadas</b>'+(extractions.map(function(e){return e.sheetName;}).filter(Boolean).length?' ('+extractions.map(function(e){return e.sheetName;}).filter(Boolean).join(', ')+')':'')):'';
+  if(skippedSheets&&skippedSheets.length)abasInfo+=' · <span style="color:#ea580c;">ignoradas (formato não reconhecido): '+skippedSheets.join(', ')+'</span>';
+  var diag='🔍 <b>Diagnóstico:</b> '+rowsUsed+' linhas de dados lidas · Colunas mapeadas: '+mappedCols+abasInfo+
+    '<br>Hierarquia Cidade→Razão→CNPJ: '+(hierarquia?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não (tabela achatada)</span>')+
+    ' · Cidade (coluna): '+(iCidadeAny?'<span style="color:#059669;">detectada</span>':'<span style="color:#aaa;">não encontrada</span>')+
+    ' · CNPJ (coluna): '+(iCnpjAny?'<span style="color:#059669;">detectado</span>':'<span style="color:#aaa;">não encontrado</span>')+
     '<br>Somas detectadas — Sar MAT '+_fmtNum(_dSarMat)+' · YTD '+_fmtNum(_dSarYtd)+' &nbsp;|&nbsp; Dal MAT '+_fmtNum(_dDalMat)+' · YTD '+_fmtNum(_dDalYtd)+
-    '<br><span style="color:#888;">Confira essas somas contra a linha "Total" da sua planilha ANTES de aplicar.</span><hr style="margin:8px 0;border-color:#eee;">';
+    '<br><span style="color:#888;">Confira essas somas contra a linha "Total" da sua planilha (some as abas se houver mais de uma) ANTES de aplicar.</span><hr style="margin:8px 0;border-color:#eee;">';
   resultEl.innerHTML=diag+'<b>📊 Formato OncoTracking wide detectado — '+found+' de '+parsed.length+' contas identificadas</b><br>'+results.join('<br>');
   document.getElementById('csvApplyBtn').style.display=(found>0||notFound.length>0)?'':'none';
 
@@ -3031,15 +3110,9 @@ function _processRowsMatrix(rows){
   // Detecta formato wide OncoTracking: escaneia as primeiras linhas (até 5) procurando
   // a linha com banner de marca (DALINVI/SARCLISA) — tabelas dinâmicas do Excel costumam
   // ter 1 linha extra ("Column Labels") antes do banner, então não assumimos linha 0.
-  var _isBrandRow=function(r){return (r||[]).some(function(c){var u=(c||'').toUpperCase();return u.indexOf('DALINVI')>=0||u.indexOf('SARCLISA')>=0||u.indexOf('DARZALEX')>=0;});};
-  var _isSubHeaderRow=function(r){return (r||[]).some(function(c){return /ytd|mat/i.test(c||'')&&/(ant|atu)/i.test(c||'');});};
-  var brandRowIdx=-1;
-  for(var _bi=0;_bi<Math.min(5,rows.length-1);_bi++){
-    if(_isBrandRow(rows[_bi])&&_isSubHeaderRow(rows[_bi+1])){brandRowIdx=_bi;break;}
-  }
-
-  if(brandRowIdx>=0){
-    processCsvAuditWideMatrix(brandRowIdx===0?rows:rows.slice(brandRowIdx));
+  var wideSlice=_findBrandSlice(rows);
+  if(wideSlice){
+    processCsvAuditWideMatrix(wideSlice);
     return;
   }
 
