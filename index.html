@@ -622,7 +622,19 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
         <textarea id="ai_notas" placeholder="Cole aqui suas anotações de conversas com o médico..." style="min-height:110px;font-size:14px;line-height:1.5;" onblur="saveDocNotas()"></textarea>
       </div>
 
-      <button class="ctrl-btn primary" style="width:100%;" onclick="runAiAnalysis()" id="ai_runBtn">🤖 Analisar perfil</button>
+      <button class="ctrl-btn primary" style="width:100%;" onclick="runAiAnalysis()" id="ai_runBtn">🤖 Analisar perfil (automático)</button>
+
+      <div style="border-top:1px solid #eee;padding-top:12px;">
+        <div style="font-size:11px;color:#888;margin-bottom:8px;line-height:1.5;">
+          Se o botão acima der erro (modelo/API fora do ar), use o caminho manual: copie o prompt, cole em qualquer IA (Gemini, ChatGPT, Claude...), e cole a resposta de volta aqui.
+        </div>
+        <button class="ctrl-btn" style="width:100%;" onclick="copyAiPrompt()" id="ai_copyBtn">📋 Copiar prompt para colar em outra IA</button>
+        <div class="field" style="margin:10px 0 0;">
+          <label>Colar resposta da IA aqui</label>
+          <textarea id="ai_pasteResult" placeholder="Cole aqui o que a IA respondeu..." style="min-height:110px;font-size:14px;line-height:1.5;"></textarea>
+        </div>
+        <button class="ctrl-btn" style="width:100%;margin-top:8px;" onclick="useAiPastedResult()">✅ Usar esta resposta</button>
+      </div>
 
       <div id="aiResultBox" style="display:none;">
         <div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Resultado</div>
@@ -4002,10 +4014,11 @@ function openAiModal(di){
   var d=docs[parseInt(di)];
   document.getElementById('aiOvTitle').textContent='🤖 '+(d?tc(d.name):'Análise de perfil');
   document.getElementById('ai_notas').value=(cExtra[d.name]||{}).notas||'';
+  document.getElementById('ai_pasteResult').value='';
   document.getElementById('aiResultBox').style.display='none';
   document.getElementById('aiResultContent').textContent='';
   document.getElementById('ai_runBtn').disabled=false;
-  document.getElementById('ai_runBtn').textContent='🤖 Analisar perfil';
+  document.getElementById('ai_runBtn').textContent='🤖 Analisar perfil (automático)';
   document.getElementById('aiOv').classList.add('on');
 }
 function closeAiModal(){document.getElementById('aiOv').classList.remove('on');_aiDi=-1;}
@@ -4039,18 +4052,45 @@ function _aiBuildContext(d){
     notas?'Notas de conversas do representante:\n'+notas:'Sem notas de conversas registradas.'
   ].filter(Boolean).join('\n\n');
 }
-function runAiAnalysis(){
-  if(_aiDi<0)return;
-  if(!aiApiKey){alert('⚠️ Configure sua chave de API do Gemini primeiro (botão 🤖⚙️ no topo).');openAiConfigModal();return;}
-  var d=docs[parseInt(_aiDi)];if(!d)return;
-  saveDocNotas();
+function _aiBuildPrompt(d){
   var ctx=_aiBuildContext(d);
-  var prompt='Você é um assistente de um representante farmacêutico da Sanofi (linha Sarclisa/Dalinvi, oncologia/hematologia — mieloma múltiplo). '+
+  return 'Você é um assistente de um representante farmacêutico da Sanofi (linha Sarclisa/Dalinvi, oncologia/hematologia — mieloma múltiplo). '+
     'Com base no perfil e nas notas de conversas abaixo, escreva uma análise curta e prática em português, em 3 blocos com estes títulos exatos:\n\n'+
     '📋 RESUMO\n(2-3 frases sobre o perfil e o relacionamento até aqui)\n\n'+
     '💡 INSIGHTS\n(2-4 bullets com observações relevantes extraídas das notas — padrões, objeções, interesses)\n\n'+
     '❓ SUGESTÕES DE PERGUNTA PARA A PRÓXIMA VISITA\n(3 perguntas específicas e diretas, não genéricas)\n\n'+
     'Seja direto, sem introduções nem conclusões extras. Não invente dados que não estão no contexto.\n\n=== CONTEXTO ===\n'+ctx;
+}
+function copyAiPrompt(){
+  if(_aiDi<0)return;
+  var d=docs[parseInt(_aiDi)];if(!d)return;
+  saveDocNotas();
+  var prompt=_aiBuildPrompt(d);
+  var btn=document.getElementById('ai_copyBtn');
+  var done=function(){btn.textContent='✅ Copiado! Cole em qualquer IA';setTimeout(function(){btn.textContent='📋 Copiar prompt para colar em outra IA';},2500);};
+  var fail=function(){
+    // Fallback p/ navegadores sem permissão de clipboard: seleciona um textarea temporário
+    var ta=document.createElement('textarea');
+    ta.value=prompt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    try{document.execCommand('copy');done();}catch(e){alert('Não consegui copiar automaticamente. Selecione e copie manualmente:\n\n'+prompt);}
+    document.body.removeChild(ta);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(prompt).then(done).catch(fail);}
+  else fail();
+}
+function useAiPastedResult(){
+  var txt=document.getElementById('ai_pasteResult').value.trim();
+  if(!txt){alert('Cole a resposta da IA no campo acima primeiro.');return;}
+  document.getElementById('aiResultBox').style.display='block';
+  document.getElementById('aiResultContent').textContent=txt;
+}
+function runAiAnalysis(){
+  if(_aiDi<0)return;
+  if(!aiApiKey){alert('⚠️ Configure sua chave de API do Gemini primeiro (botão 🤖⚙️ no topo), ou use o caminho manual abaixo (copiar prompt / colar resposta).');openAiConfigModal();return;}
+  var d=docs[parseInt(_aiDi)];if(!d)return;
+  saveDocNotas();
+  var prompt=_aiBuildPrompt(d);
 
   var btn=document.getElementById('ai_runBtn');
   btn.disabled=true;btn.textContent='🤖 Analisando...';
@@ -4069,8 +4109,8 @@ function runAiAnalysis(){
     resultEl.textContent=txt||'Sem resposta da IA.';
     btn.disabled=false;btn.textContent='🔄 Analisar novamente';
   }).catch(function(e){
-    resultEl.textContent='❌ Erro ao consultar a IA:\n'+(e&&e.message?e.message:e)+'\n\nVerifique se a chave de API está correta em 🤖⚙️.';
-    btn.disabled=false;btn.textContent='🤖 Analisar perfil';
+    resultEl.textContent='❌ Erro ao consultar a IA automaticamente:\n'+(e&&e.message?e.message:e)+'\n\nUse o caminho manual abaixo: copie o prompt e cole em qualquer IA.';
+    btn.disabled=false;btn.textContent='🤖 Analisar perfil (automático)';
   });
 }
 function buildTimelineHtml(docName){
