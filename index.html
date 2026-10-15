@@ -597,31 +597,41 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
     <div class="mhd"><h2>🤖 Configurar IA</h2><button onclick="closeAiConfigModal()">×</button></div>
     <div style="padding:14px;display:flex;flex-direction:column;gap:13px;">
       <div style="font-size:13px;color:#666;line-height:1.5;">
-        As chaves ficam salvas só neste navegador (localStorage) — nunca no Firebase. Preencha a(s) que você tiver e escolha qual usar como preferencial no botão automático.
+        As chaves ficam salvas só neste navegador (localStorage) — nunca no Firebase nem no código. Preencha a(s) que você tiver; ambas ficam disponíveis, só uma é a ativa por vez.
       </div>
 
       <div class="field" style="margin:0;">
-        <label>IA preferencial (botão automático)</label>
+        <label>IA ativa (botão automático)</label>
         <select id="ai_provider">
+          <option value="claude">Claude (Anthropic) — recomendado</option>
           <option value="gemini">Google Gemini</option>
-          <option value="claude">Claude (Anthropic)</option>
         </select>
       </div>
 
-      <div style="border-top:1px solid #eee;padding-top:12px;">
-        <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">Google Gemini</div>
-        <div class="field" style="margin:0;">
-          <label>Chave de API (gratuita em aistudio.google.com/apikey)</label>
-          <input type="password" id="ai_apikey" placeholder="AIza...">
-        </div>
-      </div>
-
-      <div style="border-top:1px solid #eee;padding-top:12px;">
-        <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">Claude (Anthropic)</div>
-        <div class="field" style="margin:0;">
-          <label>Chave de API (console.anthropic.com)</label>
+      <div style="border:1.5px solid #ede9fe;border-radius:10px;padding:10px 12px;">
+        <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:8px;">⭐ Claude (Anthropic) <span style="font-weight:500;color:#888;">— recomendado: cota paga barata, sem limite diário apertado</span></div>
+        <div class="field" style="margin:0 0 8px;">
+          <label>Chave de API (console.anthropic.com/settings/keys)</label>
           <input type="password" id="ai_claudekey" placeholder="sk-ant-...">
         </div>
+        <div class="field" style="margin:0 0 8px;">
+          <label>Modelo</label>
+          <input type="text" id="ai_claudemodel" placeholder="claude-haiku-5-5">
+        </div>
+        <button class="ctrl-btn" style="width:100%;" onclick="testAiConnection('claude')" id="ai_testClaudeBtn">🔌 Testar conexão</button>
+      </div>
+
+      <div style="border:1px solid #eee;border-radius:10px;padding:10px 12px;">
+        <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">Google Gemini</div>
+        <div class="field" style="margin:0 0 8px;">
+          <label>Chave de API (aistudio.google.com/apikey)</label>
+          <input type="password" id="ai_apikey" placeholder="AIza...">
+        </div>
+        <div class="field" style="margin:0 0 8px;">
+          <label>Modelo</label>
+          <input type="text" id="ai_gemimodel" placeholder="gemini-3.6-flash">
+        </div>
+        <button class="ctrl-btn" style="width:100%;" onclick="testAiConnection('gemini')" id="ai_testGeminiBtn">🔌 Testar conexão</button>
       </div>
 
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
@@ -4006,37 +4016,55 @@ function removeLastF2f(di){
   persist();renderDocs();_reopenMatList(di);
 }
 
-// ══════════ IA · ANÁLISE DE PERFIL (Gemini / Claude) ══════════
-// As chaves ficam SÓ no localStorage deste navegador — nunca no Firebase, que é um banco
-// público (a config do Firebase é visível no código-fonte da página). Guardar a chave lá
-// permitiria qualquer pessoa com a URL do app lê-la direto do banco.
+// ══════════ IA · DESPACHANTE CENTRAL (Claude padrão / Gemini) ══════════
+// As chaves ficam SÓ no localStorage deste navegador — nunca no Firebase nem no código-fonte
+// (o app é hospedado publicamente no GitHub Pages; uma chave commitada seria raspada e
+// esgotada em minutos). Qualquer ponto do app que precisar chamar IA deve passar por
+// ai_call(prompt) — nunca chamar _callGemini/_callClaude direto — assim trocar o provedor
+// no seletor de configurações muda tudo de uma vez só.
 var AI_KEY_LS='s5aiKey';
 var AI_CLAUDE_KEY_LS='s5aiClaudeKey';
 var AI_PROVIDER_LS='s5aiProvider';
+var AI_GEMINI_MODEL_LS='s5aiGeminiModel';
+var AI_CLAUDE_MODEL_LS='s5aiClaudeModel';
+var AI_DEFAULT_GEMINI_MODEL='gemini-3.6-flash';
+var AI_DEFAULT_CLAUDE_MODEL='claude-haiku-5-5';
 var aiApiKey='';
 var claudeApiKey='';
-var aiProvider='gemini';
+var aiProvider='claude'; // Claude é o padrão: cota paga barata, sem limite diário apertado como o free tier do Gemini
+var geminiModel='';
+var claudeModel='';
 try{aiApiKey=localStorage.getItem(AI_KEY_LS)||'';}catch(e){}
 try{claudeApiKey=localStorage.getItem(AI_CLAUDE_KEY_LS)||'';}catch(e){}
-try{aiProvider=localStorage.getItem(AI_PROVIDER_LS)||'gemini';}catch(e){}
+try{aiProvider=localStorage.getItem(AI_PROVIDER_LS)||'claude';}catch(e){}
+try{geminiModel=localStorage.getItem(AI_GEMINI_MODEL_LS)||'';}catch(e){}
+try{claudeModel=localStorage.getItem(AI_CLAUDE_MODEL_LS)||'';}catch(e){}
 var _aiDi=-1;
 function openAiConfigModal(){
   document.getElementById('ai_apikey').value=aiApiKey||'';
   document.getElementById('ai_claudekey').value=claudeApiKey||'';
-  document.getElementById('ai_provider').value=aiProvider||'gemini';
+  document.getElementById('ai_gemimodel').value=geminiModel||'';
+  document.getElementById('ai_claudemodel').value=claudeModel||'';
+  document.getElementById('ai_provider').value=aiProvider||'claude';
   document.getElementById('ai_showkey').checked=false;
   document.getElementById('ai_apikey').type='password';
   document.getElementById('ai_claudekey').type='password';
+  document.getElementById('ai_testClaudeBtn').textContent='🔌 Testar conexão';
+  document.getElementById('ai_testGeminiBtn').textContent='🔌 Testar conexão';
   document.getElementById('aiConfigOv').classList.add('on');
 }
 function closeAiConfigModal(){document.getElementById('aiConfigOv').classList.remove('on');}
 function saveAiConfig(){
   aiApiKey=document.getElementById('ai_apikey').value.trim();
   claudeApiKey=document.getElementById('ai_claudekey').value.trim();
+  geminiModel=document.getElementById('ai_gemimodel').value.trim();
+  claudeModel=document.getElementById('ai_claudemodel').value.trim();
   aiProvider=document.getElementById('ai_provider').value;
   try{
     if(aiApiKey)localStorage.setItem(AI_KEY_LS,aiApiKey);else localStorage.removeItem(AI_KEY_LS);
     if(claudeApiKey)localStorage.setItem(AI_CLAUDE_KEY_LS,claudeApiKey);else localStorage.removeItem(AI_CLAUDE_KEY_LS);
+    if(geminiModel)localStorage.setItem(AI_GEMINI_MODEL_LS,geminiModel);else localStorage.removeItem(AI_GEMINI_MODEL_LS);
+    if(claudeModel)localStorage.setItem(AI_CLAUDE_MODEL_LS,claudeModel);else localStorage.removeItem(AI_CLAUDE_MODEL_LS);
     localStorage.setItem(AI_PROVIDER_LS,aiProvider);
   }catch(e){console.warn('localStorage indisponível:',e);}
   closeAiConfigModal();
@@ -4118,8 +4146,28 @@ function useAiPastedResult(){
   document.getElementById('aiResultBox').style.display='block';
   document.getElementById('aiResultContent').textContent=txt;
 }
+
+// Retry curto só para falhas transitórias do lado do servidor (sobrecarga/instabilidade).
+// NUNCA re-tenta 429 (rate limit) nem outros 4xx (chave inválida, requisição malformada) —
+// isso só desperdiçaria cota/gasto sem chance de dar certo na repetição.
+var AI_RETRY_STATUSES=[500,503,529];
+var AI_RETRY_DELAYS=[900,1800];
+function _fetchWithRetry(url,options){
+  var attempt=0;
+  function tryOnce(){
+    return fetch(url,options).then(function(r){
+      if(!r.ok&&AI_RETRY_STATUSES.indexOf(r.status)>=0&&attempt<AI_RETRY_DELAYS.length){
+        var delay=AI_RETRY_DELAYS[attempt];attempt++;
+        return new Promise(function(res){setTimeout(res,delay);}).then(tryOnce);
+      }
+      return r;
+    });
+  }
+  return tryOnce();
+}
 function _callGemini(prompt){
-  return fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key='+encodeURIComponent(aiApiKey),{
+  var model=geminiModel||AI_DEFAULT_GEMINI_MODEL;
+  return _fetchWithRetry('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(aiApiKey),{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
@@ -4131,7 +4179,8 @@ function _callGemini(prompt){
   });
 }
 function _callClaude(prompt){
-  return fetch('https://api.anthropic.com/v1/messages',{
+  var model=claudeModel||AI_DEFAULT_CLAUDE_MODEL;
+  return _fetchWithRetry('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{
       'Content-Type':'application/json',
@@ -4139,34 +4188,73 @@ function _callClaude(prompt){
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true'
     },
-    body:JSON.stringify({model:'claude-sonnet-5',max_tokens:1024,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:model,max_tokens:4096,messages:[{role:'user',content:prompt}]})
   }).then(function(r){
     if(!r.ok)return r.text().then(function(t){throw new Error('HTTP '+r.status+': '+t.slice(0,200));});
     return r.json();
   }).then(function(data){
-    return data&&data.content&&data.content[0]&&data.content[0].text;
+    if(data&&data.stop_reason==='refusal')throw new Error('O modelo recusou o pedido (stop_reason: refusal).');
+    var blocks=(data&&data.content)||[];
+    for(var i=0;i<blocks.length;i++){if(blocks[i]&&blocks[i].type==='text')return blocks[i].text;}
+    return null;
+  });
+}
+// Despachante central — todo ponto do app que precisa de IA deve chamar isto, nunca
+// _callGemini/_callClaude direto. opts.forceProvider força um provedor específico
+// (usado só pra "Testar conexão" e por funcionalidades exclusivas de um provedor —
+// ex. TTS, que hoje este app não tem, mas se tivesse continuaria sempre via Gemini
+// independente de qual provedor estiver ativo pra texto).
+function ai_call(prompt,opts){
+  opts=opts||{};
+  var provider=opts.forceProvider;
+  if(!provider){
+    provider=(aiProvider==='claude')
+      ?(claudeApiKey?'claude':(aiApiKey?'gemini':null))
+      :(aiApiKey?'gemini':(claudeApiKey?'claude':null));
+  }
+  if(!provider)return Promise.reject(new Error('Nenhum provedor de IA configurado.'));
+  return (provider==='claude'?_callClaude(prompt):_callGemini(prompt)).then(function(txt){
+    return {text:txt,provider:provider};
+  });
+}
+function testAiConnection(provider){
+  var btn=document.getElementById(provider==='claude'?'ai_testClaudeBtn':'ai_testGeminiBtn');
+  var key=document.getElementById(provider==='claude'?'ai_claudekey':'ai_apikey').value.trim();
+  if(!key){alert('Preencha a chave de '+(provider==='claude'?'Claude':'Gemini')+' antes de testar.');return;}
+  // Usa os valores digitados na tela (ainda não salvos) para o teste
+  var prevGeminiKey=aiApiKey,prevClaudeKey=claudeApiKey,prevGeminiModel=geminiModel,prevClaudeModel=claudeModel;
+  aiApiKey=document.getElementById('ai_apikey').value.trim();
+  claudeApiKey=document.getElementById('ai_claudekey').value.trim();
+  geminiModel=document.getElementById('ai_gemimodel').value.trim();
+  claudeModel=document.getElementById('ai_claudemodel').value.trim();
+  btn.disabled=true;btn.textContent='🔄 Testando...';
+  ai_call('Responda apenas "ok".',{forceProvider:provider}).then(function(res){
+    btn.disabled=false;btn.textContent='✅ Conectado!';
+    setTimeout(function(){btn.textContent='🔌 Testar conexão';},3000);
+  }).catch(function(e){
+    btn.disabled=false;btn.textContent='🔌 Testar conexão';
+    alert('❌ Falha ao testar '+(provider==='claude'?'Claude':'Gemini')+':\n'+(e&&e.message?e.message:e));
+  }).finally(function(){
+    aiApiKey=prevGeminiKey;claudeApiKey=prevClaudeKey;geminiModel=prevGeminiModel;claudeModel=prevClaudeModel;
   });
 }
 function runAiAnalysis(){
   if(_aiDi<0)return;
-  var useClaudePref=aiProvider==='claude';
-  var provider=useClaudePref?(claudeApiKey?'claude':(aiApiKey?'gemini':null)):(aiApiKey?'gemini':(claudeApiKey?'claude':null));
-  if(!provider){alert('⚠️ Configure sua chave de API (Gemini ou Claude) primeiro (botão 🤖⚙️ no topo), ou use o caminho manual abaixo (copiar prompt / colar resposta).');openAiConfigModal();return;}
+  if(!aiApiKey&&!claudeApiKey){alert('⚠️ Configure sua chave de API (Claude ou Gemini) primeiro (botão 🤖⚙️ no topo), ou use o caminho manual abaixo (copiar prompt / colar resposta).');openAiConfigModal();return;}
   var d=docs[parseInt(_aiDi)];if(!d)return;
   saveDocNotas();
   var prompt=_aiBuildPrompt(d);
 
   var btn=document.getElementById('ai_runBtn');
-  btn.disabled=true;btn.textContent='🤖 Analisando ('+(provider==='claude'?'Claude':'Gemini')+')...';
+  btn.disabled=true;btn.textContent='🤖 Analisando...';
   var resultBox=document.getElementById('aiResultBox'),resultEl=document.getElementById('aiResultContent');
   resultBox.style.display='block';resultEl.textContent='Consultando IA...';
 
-  var call=provider==='claude'?_callClaude(prompt):_callGemini(prompt);
-  call.then(function(txt){
-    resultEl.textContent=txt||'Sem resposta da IA.';
+  ai_call(prompt).then(function(res){
+    resultEl.textContent=res.text||'Sem resposta da IA.';
     btn.disabled=false;btn.textContent='🔄 Analisar novamente';
   }).catch(function(e){
-    resultEl.textContent='❌ Erro ao consultar a IA ('+(provider==='claude'?'Claude':'Gemini')+') automaticamente:\n'+(e&&e.message?e.message:e)+'\n\nUse o caminho manual abaixo: copie o prompt e cole em qualquer IA.';
+    resultEl.textContent='❌ Erro ao consultar a IA automaticamente:\n'+(e&&e.message?e.message:e)+'\n\nUse o caminho manual abaixo: copie o prompt e cole em qualquer IA.';
     btn.disabled=false;btn.textContent='🤖 Analisar perfil (automático)';
   });
 }
