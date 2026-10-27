@@ -1534,9 +1534,25 @@ function toggleMats(i){
   ml.style.display=open?'block':'none';
   if(mc)mc.style.transform=open?'rotate(180deg)':'';
 }
-function _reopenMatList(di){var card=document.getElementById('dc'+di);if(card)card.classList.add('open');var ml=document.getElementById('ml'+di);if(ml){ml.style.display='block';var mc=document.getElementById('mc'+di);if(mc)mc.style.transform='rotate(180deg)';}}
-function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();persist();renderDocs();_reopenMatList(di);}
-function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();renderDocs();_reopenMatList(di);
+// Restaura o estado de aberto/fechado do card QUE ELE JÁ TINHA antes do renderDocs() —
+// nunca força abrir. Sem isso, clicar num botão de envio na linha rápida (card fechado)
+// abria o card inteiro, já que essas funções fazem persist()+renderDocs() (que reconstrói
+// o DOM do zero) antes de restaurar a posição.
+function _captureOpenState(di){
+  var card=document.getElementById('dc'+di);
+  var ml=document.getElementById('ml'+di);
+  return {open:!!(card&&card.classList.contains('open')),matsOpen:!!(ml&&ml.style.display!=='none')};
+}
+function _reopenMatList(di,state){
+  var card=document.getElementById('dc'+di);
+  if(card&&state&&state.open)card.classList.add('open');
+  if(state&&state.matsOpen){
+    var ml=document.getElementById('ml'+di);
+    if(ml){ml.style.display='block';var mc=document.getElementById('mc'+di);if(mc)mc.style.transform='rotate(180deg)';}
+  }
+}
+function markSent(di,mi){var nm=docs[parseInt(di)].name;sent[sk(nm,parseInt(mi))]=new Date().toISOString();var st=_captureOpenState(di);persist();renderDocs();_reopenMatList(di,st);}
+function toggleSent(di,mi){var nm=docs[parseInt(di)].name,k=sk(nm,parseInt(mi));var st=_captureOpenState(di);if(sent[k])delete sent[k];else sent[k]=new Date().toISOString();persist();renderDocs();_reopenMatList(di,st);
 }
 var _emailPickDi=-1,_emailPickMi=-1;
 function openEmailDateOv(di,mi,currentVal){
@@ -1567,19 +1583,21 @@ function confirmEmailDate(){
     if(!cExtra[nm].f2fDates)cExtra[nm].f2fDates=[];
     cExtra[nm].f2fDates.push(parsed.toISOString());
     cExtra[nm].f2fDates.sort();
-    persist();renderDocs();_reopenMatList(di);
+    var st=_captureOpenState(di);
+    persist();renderDocs();_reopenMatList(di,st);
   } else {
     if(_emailPickDi<0){_emailPickDi=-1;_emailPickMi=-1;return;}
     var nm2=docs[parseInt(_emailPickDi)].name;
     var k=sk(nm2,parseInt(_emailPickMi))+'__e';
-    sentEmail[k]=parsed.toISOString();persist();renderDocs();_reopenMatList(_emailPickDi);
+    var st2=_captureOpenState(_emailPickDi);
+    sentEmail[k]=parsed.toISOString();persist();renderDocs();_reopenMatList(_emailPickDi,st2);
     _emailPickDi=-1;_emailPickMi=-1;
   }
 }
 function toggleEmailSent(di,mi){
   var nm=docs[parseInt(di)].name;
   var k=sk(nm,parseInt(mi))+'__e';
-  if(sentEmail[k]){delete sentEmail[k];persist();renderDocs();_reopenMatList(di);}
+  if(sentEmail[k]){var st=_captureOpenState(di);delete sentEmail[k];persist();renderDocs();_reopenMatList(di,st);}
   else{openEmailDateOv(di,mi,null);}
 }
 function editEmailDate(di,mi){
@@ -4049,7 +4067,8 @@ function saveF2f(){
   cExtra[nm].f2fDates.push(rec.date);
   cExtra[nm].f2fDates.sort();
   closeF2fModal();
-  persist();renderDocs();_reopenMatList(di);
+  var stF2f=_captureOpenState(di);
+  persist();renderDocs();_reopenMatList(di,stF2f);
 }
 // Itens não marcados da última visita — mostrados só no card do médico
 function f2fPendencias(docName){
@@ -4073,7 +4092,8 @@ function removeLastF2f(di){
   var log=cExtra[d.name].f2fLog||[];
   for(var i=log.length-1;i>=0;i--){if(log[i]&&log[i].date===removed){log.splice(i,1);break;}}
   cExtra[d.name].f2fLog=log;
-  persist();renderDocs();_reopenMatList(di);
+  var stRm=_captureOpenState(di);
+  persist();renderDocs();_reopenMatList(di,stRm);
 }
 
 // ══════════ IA · DESPACHANTE CENTRAL (Claude padrão / Gemini) ══════════
