@@ -45,6 +45,16 @@ body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-
 .sc-badge{display:inline-block;padding:2px 7px;border-radius:7px;font-size:11px;font-weight:600;margin-left:2px;}
 .s-hi{background:#fef3c7;color:#92400e;}.s-md{background:#e0e7ff;color:#3730a3;}.s-lo{background:#f3f4f6;color:#6b7280;}
 .dc-acts{display:flex;gap:5px;flex-shrink:0;}
+.qrow{display:flex;align-items:center;gap:6px;padding:0 12px 10px;flex-wrap:wrap;}
+.qf2f{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#16a34a;border:1.5px solid #16a34a;border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.qmat{display:inline-flex;align-items:center;gap:5px;background:#faf9ff;border:1.5px solid #ede9fe;border-radius:9px;padding:4px 4px 4px 9px;font-size:11.5px;max-width:210px;}
+.qmat.qsent{background:#f0fdf4;border-color:#bbf7d0;}
+.qmat-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#333;font-weight:600;flex-shrink:1;min-width:0;}
+.qmat-wa,.qmat-em{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;border:none;cursor:pointer;flex-shrink:0;}
+.qmat-wa{background:#22c55e;color:#fff;}
+.qmat-wa.done{background:#dcfce7;color:#16a34a;}
+.qmat-em{background:#6d28d9;color:#fff;}
+.qmat-em.done{background:#ede9fe;color:#6d28d9;}
 .ibtn{background:none;border:1px solid #e5e5ea;border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;}
 .ibtn.d{border-color:#fca5a5;color:#dc2626;}
 .chev{font-size:9px;color:#ccc;padding:4px 2px;background:none;border:none;cursor:pointer;transition:transform .2s;flex-shrink:0;}
@@ -1424,21 +1434,39 @@ function renderDocs(){
 
     // Materiais
     var rows='';
+    var unsentMats=[],sentMats=[]; // p/ linha de ações rápidas: prioriza não enviados, completa até 3 com enviados
     for(var r=0;r<mats.length;r++){
       var m=mats[r],midx=m.id,sk2=sk(d.name,midx),ws=sent[sk2];
       var stag=ws?'<button class="stag" onclick="event.stopPropagation();toggleSent(\''+di+'\',\''+midx+'\')">✓ WA '+fmtDate(ws)+'</button>':'';
       var ekey=sk(d.name,midx)+'__e';
       var we=sentEmail[ekey];
-      
+
       var etag=we?'<button class="etag" onclick="event.stopPropagation();editEmailDate(\''+di+'\',\''+midx+'\')" title="Clique para editar a data">✓ Email '+fmtDate(we)+'</button>':'';
       var btn=d.phone
         ?'<a class="wbtn" href="'+wurl(d.phone,m.msg)+'" onclick="event.stopPropagation();markSent(\''+di+'\',\''+midx+'\')" target="_blank" rel="noopener">'+WA_ICON+' Enviar</a>'
         :'<span class="nophone">Sem WhatsApp</span>';
-        
+
       var doneCls=we?' done':'';
       var ebtn='<button class="ebtn'+doneCls+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+midx+'\')" title="Marcar envio via E-mail/Email">'+EMAIL_ICON+(we?' E-mail':' E-mail')+'</button>';
-      
+
       rows+='<div class="mrow"><div class="mlabel">'+esc(m.name)+stag+etag+'</div>'+btn+ebtn+'</div>';
+      var qEntry={m:m,midx:midx,ws:ws,we:we};
+      if(!ws&&!we)unsentMats.push(qEntry);else sentMats.push(qEntry);
+    }
+    var quickMats=unsentMats.slice(0,3);
+    if(quickMats.length<3)quickMats=quickMats.concat(sentMats.slice(0,3-quickMats.length));
+    var qrowHtml='';
+    if(quickMats.length){
+      qrowHtml='<div class="qrow" onclick="event.stopPropagation()">';
+      quickMats.forEach(function(q){
+        var sentCls=(q.ws&&q.we)?' qsent':'';
+        var waBtn=d.phone
+          ?'<a class="qmat-wa'+(q.ws?' done':'')+'" href="'+wurl(d.phone,q.m.msg)+'" onclick="event.stopPropagation();markSent(\''+di+'\',\''+q.midx+'\')" target="_blank" rel="noopener" title="Enviar por WhatsApp">'+(q.ws?'✓':WA_ICON)+'</a>'
+          :'';
+        var emBtn='<button class="qmat-em'+(q.we?' done':'')+'" onclick="event.stopPropagation();toggleEmailSent(\''+di+'\',\''+q.midx+'\')" title="Marcar envio por e-mail">'+(q.we?'✓':'✉️')+'</button>';
+        qrowHtml+='<span class="qmat'+sentCls+'"><span class="qmat-nm">'+esc(q.m.name)+'</span>'+waBtn+emBtn+'</span>';
+      });
+      qrowHtml+='</div>';
     }
 
     var waLbl=sc2>0?'WA:'+sc2:'';var eLbl=sc2e>0?'Email:'+sc2e:'';var sentSummary=[waLbl,eLbl].filter(Boolean).join(' · ');var matBtnLabel=sentSummary?'📨 '+sentSummary+' / '+mats.length:'📤 Enviar materiais';
@@ -1458,6 +1486,7 @@ function renderDocs(){
           '</div>'+
           '<button class="chev">▼</button>'+
         '</div>'+
+        buildQuickRowHtml(d,di,qrowHtml)+
         '<div class="dc-body">'+
           '<div class="dc-detail">'+
             '<span><b>CRM:</b> '+esc(d.crm||'—')+'</span>'+
@@ -3920,6 +3949,18 @@ function semaforo(iso){
   var dot=days<30?'#22c55e':days<60?'#f59e0b':'#ef4444';
   var label=days===0?'Hoje':days===1?'Ontem':days+'d atrás';
   return{dot:dot,label:label,days:days};
+}
+// Linha de ações rápidas — sempre visível no card, mesmo fechado (ideia "ações no
+// cabeçalho"): F2F + até 3 materiais, priorizando os ainda não enviados a esse médico.
+function buildQuickRowHtml(d,di,qrowHtml){
+  var log=(cExtra[d.name]||{}).f2fLog||[];
+  var last=log.length?log[log.length-1]:null;
+  var tempIco=last&&last.temp?({up:'🔥',mid:'😐',down:'🧊'}[last.temp]||''):'';
+  var dates=(cExtra[d.name]||{}).f2fDates||[];
+  var lastDate=dates.length?dates[dates.length-1]:null;
+  var f2fChip='<span class="qf2f" onclick="event.stopPropagation();openF2fDate(\''+di+'\')">🤝 F2F'+(lastDate?' <span style="color:#888;font-weight:500;">'+fmtDate(lastDate)+(tempIco?' '+tempIco:'')+'</span>':'')+'</span>';
+  if(!qrowHtml)return '<div class="qrow" onclick="event.stopPropagation()">'+f2fChip+'</div>';
+  return qrowHtml.replace('<div class="qrow" onclick="event.stopPropagation()">','<div class="qrow" onclick="event.stopPropagation()">'+f2fChip);
 }
 function buildF2fHtml(docName, di){
   var dates=(cExtra[docName]||{}).f2fDates||[];
